@@ -1021,3 +1021,63 @@ Google por primera vez.
 
 Angular no crea perfiles ni escribe `role`, `active` o `labsAssigned`
 directamente en Firestore.
+
+## Panel Admin/Sistemas Fase 16B: gestion de laboratorios
+
+La ruta `/admin/laboratorios` permite a `admin_sistemas` crear y editar
+laboratorios desde la Web App. La escritura critica no se hace con `updateDoc`
+directo desde Angular; el frontend invoca Cloud Functions callable:
+
+```text
+adminCreateLab
+adminUpdateLab
+```
+
+Campos administrables:
+
+- nombre, slug, descripcion, descripcion breve, ubicacion e imagen URL;
+- `active` y `visibleInCatalog`;
+- `calendarId` operativo visible solo para Admin/Sistemas;
+- `minNoticeHours`;
+- campos de compatibilidad `requiresApprovalWhenRisky` y
+  `requiresProtocolWhenRisky`;
+- `weeklySchedule` base por dia;
+- `responsibleUids`, `responsibleEmails` y `defaultNotifyEmails`.
+
+Validaciones backend:
+
+- actor autenticado, activo y con rol `admin_sistemas`;
+- slug seguro y unico;
+- `calendarId` no vacio;
+- `minNoticeHours >= 0`;
+- correos institucionales `@tecplayacar.edu.mx`;
+- responsables existentes con rol `responsable_laboratorio` o
+  `admin_sistemas`;
+- `weeklySchedule` con dias permitidos, horas `HH:mm` y `end > start`;
+- rechazo de campos arbitrarios fuera del contrato.
+
+Cada creacion o actualizacion registra auditoria en `auditEvents` con acciones:
+
+```text
+ADMIN_CREATE_LAB
+ADMIN_UPDATE_LAB
+```
+
+La fase no implementa editor avanzado de `specialRules`, `blockedPeriods`,
+importacion masiva, subida real de imagenes ni sincronizacion automatica con
+`users/{uid}.labsAssigned`. Si se asigna un responsable en el laboratorio,
+Admin/Sistemas debe mantener `labsAssigned` desde `/admin/usuarios` para que
+el responsable vea solicitudes.
+## Ajuste visual del dialogo de laboratorios
+
+El dialogo de alta/edicion de laboratorios se ajusto para pantallas de
+escritorio y tablet:
+
+- ancho responsive `min(1120px, calc(100vw - 32px))`;
+- altura maxima basada en viewport;
+- sin scroll horizontal en el formulario;
+- tabs desplazables si el ancho disponible es reducido;
+- iconos completos y centrados en encabezados, callouts y chips.
+
+Este ajuste es solo visual. No modifica servicios, rutas, validaciones,
+Cloud Functions ni reglas de seguridad.

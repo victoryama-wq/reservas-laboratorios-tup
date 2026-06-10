@@ -697,3 +697,55 @@ responsable/coordinador. El dialog debe pedir nombre opcional, correo
 institucional, rol oficial, estado activo y laboratorios asignados si el rol es
 `responsable_laboratorio`. Tambien debe listar preautorizados pendientes y
 mantener estados de carga/vacio/error sin quedarse en `Cargando...`.
+
+## Actualizacion Fase 16B: UI de gestion de laboratorios
+
+La ruta `/admin/laboratorios` deja de ser solo lectura y permite gestionar
+laboratorios con una interfaz Admin/Sistemas consistente con el sistema visual.
+
+La vista incluye:
+
+- encabezado con `AppPageHeaderComponent`;
+- filtros por busqueda, estado activo/inactivo y visibilidad en catalogo;
+- cards responsivas con nombre, slug, descripcion, estado, ruta QR,
+  responsables, correos y `calendarId`;
+- boton `Nuevo laboratorio`;
+- accion `Editar`;
+- chips de estado con `AppStatusChipComponent`;
+- estados de carga, vacio y error con `AppInfoCalloutComponent`.
+
+El dialogo `AdminLabEditDialogComponent` usa Angular Material y secciones por
+tabs:
+
+- Datos generales;
+- Disponibilidad;
+- Responsables;
+- Calendario.
+
+El campo `calendarId` se muestra solo dentro de Admin/Sistemas con una nota de
+uso operativo. No debe aparecer en catalogo docente, detalle docente ni
+calendario publico.
+
+No se implementa subida real de imagenes ni edicion de `specialRules` en esta
+fase.
+## Actualizacion Fase 16B.1: dialogo de laboratorios
+
+El modal de alta/edicion de laboratorios debe conservar la linea visual
+institucional y abrirse con ancho amplio y responsive:
+
+```text
+min(1120px, calc(100vw - 32px))
+```
+
+Reglas visuales:
+
+- no debe mostrar scroll horizontal en el contenido del formulario;
+- si las tabs no caben en pantallas pequenas, solo la cabecera de tabs puede
+  desplazarse horizontalmente;
+- los iconos de encabezado, callouts y chips deben verse completos, centrados y
+  con caja fija;
+- cualquier dialogo administrativo futuro con formularios extensos debe usar
+  `panelClass` propio para controlar radio, sombra, superficie y overflow sin
+  romper el sistema visual;
+- este ajuste es solo de interfaz y no cambia servicios, rutas, validaciones,
+  Cloud Functions ni reglas de seguridad.

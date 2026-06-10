@@ -420,3 +420,34 @@ acepta `email`, `displayName`, `role`, `active` y `labsAssigned`. El rol debe
 ser `responsable_laboratorio` o `admin_sistemas`; no se usa para docentes con
 patron `tup-dNUMEROS`. Cada laboratorio asignado debe existir en `labs`. La
 funcion registra `auditEvents.action = ADMIN_PREAUTHORIZE_USER`.
+
+## Actualizacion Fase 16B: adminCreateLab y adminUpdateLab
+
+`adminCreateLab` y `adminUpdateLab` son callables HTTPS Function v2. Ambas
+requieren usuario autenticado, perfil activo y rol `admin_sistemas`.
+
+`adminCreateLab` valida y crea:
+
+- `name`, `slug`, `description` y `calendarId` obligatorios;
+- slug en minusculas, numeros y guiones;
+- slug unico en `labs`;
+- `active` y `visibleInCatalog` booleanos;
+- `minNoticeHours` mayor o igual a cero;
+- `weeklySchedule` valido;
+- `responsibleUids` existentes con rol `responsable_laboratorio` o
+  `admin_sistemas`;
+- `responsibleEmails` y `defaultNotifyEmails` institucionales;
+- `qrPath = /reservar/{slug}`;
+- `createdAt` y `updatedAt`.
+
+`adminUpdateLab` valida `labId`, existencia del laboratorio y solo actualiza
+campos permitidos. Si cambia `slug`, actualiza `qrPath` y valida unicidad. No
+borra historial de reservas ni modifica `specialRules`.
+
+Ambas funciones rechazan campos arbitrarios fuera del contrato y registran:
+
+- `auditEvents.action = ADMIN_CREATE_LAB`
+- `auditEvents.action = ADMIN_UPDATE_LAB`
+
+No validan `calendarId` contra Google Calendar API en esta fase; solo exigen
+texto no vacio.

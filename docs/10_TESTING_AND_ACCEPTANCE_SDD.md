@@ -141,6 +141,38 @@ Agregar o ejecutar pruebas manuales para:
   requerir un segundo clic en la misma ruta.
 - Si Firestore devuelve datos o una lista vacia, la vista debe salir del estado
   `Cargando...` y mostrar datos, estado vacio o error claro.
+## Pruebas Fase 16B: gestion de laboratorios
+
+Agregar o ejecutar pruebas manuales para:
+
+- `/admin/laboratorios` carga datos en primera navegacion sin segundo clic;
+- un admin puede crear laboratorio con slug unico;
+- un slug duplicado se rechaza desde backend;
+- slug con caracteres invalidos se rechaza;
+- `calendarId` vacio se rechaza;
+- `minNoticeHours < 0` se rechaza;
+- correos fuera de `@tecplayacar.edu.mx` se rechazan;
+- `responsibleUids` inexistentes o con rol no permitido se rechazan;
+- `weeklySchedule` con `end <= start` se rechaza;
+- editar `slug` actualiza `qrPath`;
+- activar/desactivar laboratorio actualiza el listado;
+- mostrar/ocultar catalogo actualiza el listado;
+- cada creacion genera `auditEvents.action = ADMIN_CREATE_LAB`;
+- cada actualizacion genera `auditEvents.action = ADMIN_UPDATE_LAB`;
+- Angular llama `adminCreateLab/adminUpdateLab` y no `updateDoc` directo;
+- `calendarId` no aparece en vistas docentes;
+- no se modifican reservas existentes.
+
+Validaciones tecnicas:
+
+```bash
+npm --prefix functions run lint
+npm --prefix functions run build
+npm --prefix apps/web run build
+git diff --check
+git status --short
+```
+
 ## Pruebas Fase 16A.1: autoalta y prealta
 
 Agregar o ejecutar pruebas manuales para:

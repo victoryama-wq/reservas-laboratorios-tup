@@ -1261,3 +1261,73 @@ Regla de continuidad:
 
 Las pantallas administrativas futuras deben conservar esta misma linea visual,
 cerrar `loading` explicitamente y renderizar datos en la primera navegacion.
+
+## Fase 16B: Gestion visual de laboratorios
+
+Se amplia `/admin/laboratorios` como pantalla operativa de gestion completa,
+manteniendo la identidad visual institucional.
+
+Componentes y patrones usados:
+
+- `AppPageHeaderComponent` para encabezado;
+- `AppSectionCardComponent` para filtros y cards de laboratorio;
+- `AppStatusChipComponent` para estado activo/visible;
+- `AppInfoCalloutComponent` para avisos y estados de carga/error/vacio;
+- Angular Material Dialog, Tabs, Form Fields, Select, Checkbox, Buttons e
+  Icons;
+- Tailwind CSS para grid, spacing, responsive y jerarquia visual.
+
+Nuevo componente:
+
+```text
+apps/web/src/app/features/admin/components/admin-lab-edit-dialog/admin-lab-edit-dialog.component.ts
+```
+
+El dialogo usa secciones:
+
+- Datos generales;
+- Disponibilidad;
+- Responsables;
+- Calendario.
+
+Reglas visuales:
+
+- no mostrar `calendarId` fuera de Admin/Sistemas;
+- mantener textos en espanol;
+- evitar tablas anchas en mobile;
+- usar cards y filtros con la misma proporcion de Fase 13;
+- cerrar estados de carga en primera navegacion;
+- no introducir paletas ni tipografias alternas.
+
+Esta fase no rediseña catalogo docente, calendario, reservas ni responsable;
+solo homologa y habilita la gestion administrativa de laboratorios.
+## Ajuste visual Fase 16B.1: dialogo de laboratorios e iconografia
+
+Se estabilizo la presentacion del dialogo de alta y edicion de laboratorios
+despues de detectar que el ancho util era insuficiente y que algunos iconos de
+avisos se recortaban.
+
+Cambios visuales aplicados:
+
+- el dialogo `AdminLabEditDialogComponent` usa un ancho operativo de
+  `min(1120px, calc(100vw - 32px))`;
+- el `maxWidth` y `maxHeight` se ajustan al viewport para evitar que el modal
+  se salga de pantalla;
+- el panel `admin-lab-dialog-panel` controla radio, sombra, superficie y
+  overflow;
+- se elimina el scroll horizontal del contenido del dialogo;
+- las tabs pueden desplazarse horizontalmente si el viewport es reducido;
+- `AppInfoCalloutComponent` y `AppStatusChipComponent` definen una caja fija
+  para `mat-icon`, evitando iconos recortados o descentrados;
+- el encabezado del dialogo usa una caja de icono con dimensiones fijas.
+
+Regla para futuros dialogos administrativos:
+
+- no depender del `maxWidth` por defecto de Angular Material cuando el dialogo
+  contenga formularios amplios o tabs;
+- usar `panelClass` especifico cuando se requiera controlar superficie,
+  overflow y responsividad;
+- asegurar que todo icono dentro de callouts, chips o acciones tenga ancho,
+  alto y `line-height` definidos;
+- evitar scroll horizontal salvo que sea una navegacion de tabs o contenido
+  deliberadamente desplazable.

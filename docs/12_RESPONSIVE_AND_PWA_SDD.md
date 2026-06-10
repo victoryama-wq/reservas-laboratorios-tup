@@ -331,9 +331,49 @@ Las vistas admin nuevas tambien deben estabilizar su primera carga visual:
   debe marcarse para refresco despues de actualizar `loading`, datos y errores;
 - en movil, tablet y escritorio no debe quedar un callout de `Cargando...`
   permanente cuando la consulta ya termino.
+## Actualizacion Fase 16B: responsive en gestion de laboratorios
+
+`/admin/laboratorios` debe funcionar en mobile, tablet y desktop.
+
+Reglas responsive:
+
+- en mobile, usar cards apiladas, filtros de ancho completo y botones grandes;
+- en tablet, permitir grid progresivo de cards;
+- en desktop, usar dos columnas amplias para laboratorios;
+- el dialogo de laboratorio debe ocupar `min(980px, 96vw)` y ser desplazable
+  verticalmente en pantallas pequenas;
+- las secciones del dialogo deben agruparse en tabs para evitar saturacion;
+- los campos `calendarId`, correos y ruta QR deben permitir corte de linea y
+  no provocar overflow horizontal;
+- los estados de carga, vacio y error deben mantener `AppInfoCalloutComponent`.
+
+La vista conserva el sistema visual de Fase 13: Inter, paleta morada operativa,
+Angular Material para controles, Tailwind/clases globales para composicion y
+cards blancas con bordes suaves.
+
 ## Actualizacion Fase 16A.1: responsive de usuarios preautorizados
 
 La vista `/admin/usuarios` debe presentar preautorizados pendientes en cards
 responsive. En movil debe apilar informacion y accion principal; en tablet y
 escritorio puede usar grids. Los filtros, dialogos y callouts deben conservar
 el sistema visual documentado y no provocar overflow horizontal.
+## Actualizacion Fase 16B.1: responsive del dialogo de laboratorios
+
+El dialogo de laboratorio debe ocupar:
+
+```text
+min(1120px, calc(100vw - 32px))
+```
+
+Debe respetar el viewport y ser desplazable verticalmente en pantallas
+pequenas.
+
+Reglas responsive:
+
+- el contenido del dialogo no debe provocar scroll horizontal;
+- si falta ancho, las tabs pueden desplazarse horizontalmente sin afectar los
+  campos;
+- los iconos dentro de callouts, chips y encabezados deben tener caja fija para
+  evitar recortes o desalineaciones;
+- los campos `calendarId`, correos y ruta QR deben permitir corte de linea y no
+  provocar overflow horizontal.

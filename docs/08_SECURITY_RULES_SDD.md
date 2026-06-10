@@ -126,3 +126,29 @@ Admin/Sistemas para responsables/coordinadores y admins. Desde cliente:
 
 Angular no debe escribir `role`, `active`, `labsAssigned` ni documentos de
 prealta con `setDoc` o `updateDoc`.
+
+## Actualizacion Fase 16B: seguridad de laboratorios
+
+La gestion critica de laboratorios se realiza mediante Cloud Functions:
+
+- `adminCreateLab`
+- `adminUpdateLab`
+
+Angular no debe crear ni editar laboratorios con `setDoc` o `updateDoc`
+directo.
+
+Requisitos:
+
+- solo `admin_sistemas` activo puede crear o actualizar labs;
+- no aceptar campos arbitrarios fuera del contrato;
+- validar slug unico y seguro;
+- validar correos institucionales;
+- validar responsables existentes con rol permitido;
+- validar `weeklySchedule`;
+- registrar `auditEvents`;
+- no exponer `calendarId` fuera de Admin/Sistemas;
+- no modificar reservas existentes ni historiales.
+
+Las reglas actuales permiten lectura admin de `labs` y lectura de laboratorios
+activos a usuarios con perfil activo. No se requiere abrir escritura directa
+amplia para esta fase.

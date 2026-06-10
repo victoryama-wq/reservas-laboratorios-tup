@@ -472,3 +472,40 @@ interface PreauthorizedUserDoc {
 Cuando `claimedByUid` existe, la prealta ya fue reclamada por un usuario real
 de Firebase Authentication y los cambios posteriores deben hacerse sobre
 `users/{uid}` mediante `adminUpdateUser`.
+
+## Actualizacion Fase 16B: administracion de labs
+
+La coleccion `labs` mantiene el modelo `LabDoc` existente. Fase 16B no agrega
+colecciones nuevas ni renombra campos, pero formaliza que Admin/Sistemas puede
+crear y editar documentos mediante Cloud Functions.
+
+Campos editables desde `/admin/laboratorios`:
+
+- `name`
+- `slug`
+- `description`
+- `shortDescription`
+- `imageUrl`
+- `location`
+- `calendarId`
+- `responsibleUids`
+- `responsibleEmails`
+- `defaultNotifyEmails`
+- `active`
+- `visibleInCatalog`
+- `minNoticeHours`
+- `requiresApprovalWhenRisky`
+- `requiresProtocolWhenRisky`
+- `weeklySchedule`
+
+`qrPath` se deriva automaticamente como `/reservar/{slug}`. `specialRules`
+queda fuera del editor Fase 16B y se conserva sin borrarse.
+
+`responsibleUids` no sincroniza automaticamente `users/{uid}.labsAssigned`.
+La asignacion que controla visibilidad de solicitudes para responsables sigue
+gestionandose desde `/admin/usuarios`.
+
+Eventos de auditoria esperados:
+
+- `auditEvents.action = ADMIN_CREATE_LAB`
+- `auditEvents.action = ADMIN_UPDATE_LAB`

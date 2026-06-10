@@ -356,6 +356,35 @@ a {
   --mdc-snackbar-container-color: var(--info-text);
 }
 
+.admin-lab-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.admin-lab-dialog-panel .mat-mdc-dialog-container {
+  --mdc-dialog-container-shape: 24px;
+}
+
+.admin-lab-dialog-panel .mat-mdc-tab-header {
+  overflow-x: auto;
+}
+
+.admin-lab-dialog-panel .mat-mdc-tab-label-container {
+  min-width: 0;
+}
+
+.admin-lab-dialog-panel .mat-mdc-tab-labels {
+  min-width: max-content;
+}
+
+.admin-lab-dialog-panel .mat-mdc-dialog-content,
+.admin-lab-dialog-panel .mat-mdc-dialog-surface,
+.admin-lab-dialog-panel .mdc-dialog__surface {
+  max-width: 100%;
+}
+
 .mat-mdc-tab-group,
 .mat-mdc-tab-nav-bar {
   --mdc-tab-indicator-active-indicator-color: var(--brand-primary);

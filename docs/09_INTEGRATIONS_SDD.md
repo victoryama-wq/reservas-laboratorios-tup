@@ -92,6 +92,25 @@ Importante
 Google Calendar no será la fuente de verdad principal. Firestore controla estatus, permisos, protocolos y trazabilidad.
 ERROR_CALENDAR es un estatus técnico de reserva y bloquea el horario hasta resolución por Admin/Sistemas.
 
+Actualizacion Fase 16B: calendarId administrable
+
+Admin/Sistemas puede configurar `labs/{labId}.calendarId` desde
+`/admin/laboratorios`. El valor es un dato operativo para Google Calendar y
+solo debe mostrarse en vistas administrativas.
+
+Fase 16B no consulta Google Calendar API para validar el `calendarId` al
+guardarlo. La validacion se limita a exigir texto no vacio. Las funciones de
+reserva y aprobacion siguen siendo responsables de usar Calendar API para
+validar conflictos, crear eventos o registrar `ERROR_CALENDAR`.
+
+Los calendarios de laboratorio deben continuar compartidos con:
+
+```text
+escenarios.tup@tecplayacar.edu.mx
+```
+
+con permisos de escritura.
+
 Correo
 
 Proveedor oficial

@@ -16,7 +16,9 @@ export type StatusChipVariant =
   template: `
     <span class="app-status-chip" [ngClass]="variantClass()">
       @if (icon()) {
-        <mat-icon class="text-[18px]">{{ icon() }}</mat-icon>
+        <mat-icon class="app-status-chip__icon text-[18px]">
+          {{ icon() }}
+        </mat-icon>
       }
 
       @if (label()) {
@@ -26,6 +28,18 @@ export type StatusChipVariant =
       }
     </span>
   `,
+  styles: [`
+    .app-status-chip__icon {
+      display: inline-flex;
+      width: 20px;
+      min-width: 20px;
+      height: 20px;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      line-height: 20px;
+    }
+  `],
 })
 export class AppStatusChipComponent {
   readonly variant = input<StatusChipVariant>('neutral');

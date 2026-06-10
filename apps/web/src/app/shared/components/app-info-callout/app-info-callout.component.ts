@@ -11,7 +11,9 @@ export type InfoCalloutVariant = 'info' | 'success' | 'warning' | 'danger';
   template: `
     <div class="app-info-callout" [ngClass]="variantClass()">
       @if (icon()) {
-        <mat-icon class="mt-0.5 text-[20px]">{{ icon() }}</mat-icon>
+        <mat-icon class="app-info-callout__icon mt-0.5 text-[20px]">
+          {{ icon() }}
+        </mat-icon>
       }
 
       <div class="min-w-0">
@@ -27,6 +29,18 @@ export type InfoCalloutVariant = 'info' | 'success' | 'warning' | 'danger';
       </div>
     </div>
   `,
+  styles: [`
+    .app-info-callout__icon {
+      display: inline-flex;
+      width: 24px;
+      min-width: 24px;
+      height: 24px;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      line-height: 24px;
+    }
+  `],
 })
 export class AppInfoCalloutComponent {
   readonly variant = input<InfoCalloutVariant>('info');
