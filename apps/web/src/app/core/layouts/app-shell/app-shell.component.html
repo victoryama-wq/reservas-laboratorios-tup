@@ -1,0 +1,101 @@
+<div class="app-shell">
+  <mat-toolbar class="app-header">
+    <a class="brand" routerLink="/" aria-label="Ir al inicio">
+      <span class="brand-mark" aria-hidden="true">TUP</span>
+      <span class="brand-text">{{ systemName }}</span>
+    </a>
+
+    <nav class="nav-actions" aria-label="Navegacion principal">
+      @if (user$ | async; as user) {
+        <a
+          mat-button
+          routerLink="/laboratorios"
+          routerLinkActive="active-link"
+        >
+          Laboratorios
+        </a>
+        <a
+          mat-button
+          routerLink="/mis-reservas"
+          routerLinkActive="active-link"
+        >
+          Mis reservas
+        </a>
+
+        @if (canSeeResponsibleNav$ | async) {
+          <a
+            mat-button
+            routerLink="/responsable/solicitudes"
+            routerLinkActive="active-link"
+          >
+            Responsable
+          </a>
+        }
+
+        @if (canSeeAdminNav$ | async) {
+          <a
+            mat-button
+            routerLink="/admin/dashboard"
+            routerLinkActive="active-link"
+          >
+            Panel Admin
+          </a>
+          <a
+            mat-button
+            routerLink="/admin/usuarios"
+            routerLinkActive="active-link"
+          >
+            Usuarios
+          </a>
+          <a
+            mat-button
+            routerLink="/admin/laboratorios"
+            routerLinkActive="active-link"
+          >
+            Laboratorios admin
+          </a>
+          <a
+            mat-button
+            routerLink="/admin/bitacora"
+            routerLinkActive="active-link"
+          >
+            Bitácora
+          </a>
+        }
+      } @else {
+        <a mat-button routerLink="/login" routerLinkActive="active-link">
+          Ingresar
+        </a>
+      }
+    </nav>
+
+    <div class="header-user">
+      @if (user$ | async; as user) {
+        @if (profile$ | async; as profileResult) {
+          <span class="notification-dot" aria-hidden="true"></span>
+          <div class="user-avatar" aria-hidden="true">
+            {{ getInitials(profileResult.profile?.displayName, user.email) }}
+          </div>
+          <div class="user-copy">
+            <span>{{ profileResult.profile?.displayName || user.email }}</span>
+            <small>{{ getRoleLabel(profileResult.profile?.role) }}</small>
+          </div>
+        } @else {
+          <div class="user-avatar" aria-hidden="true">
+            {{ getInitials(undefined, user.email) }}
+          </div>
+          <span class="user-email">{{ user.email }}</span>
+        }
+        <button mat-button class="sign-out-button" type="button" (click)="signOut()">
+          Cerrar sesion
+        </button>
+      } @else {
+        <span class="secure-label">Conexion segura</span>
+      }
+    </div>
+  </mat-toolbar>
+
+  <main class="main-content">
+    <router-outlet />
+  </main>
+</div>

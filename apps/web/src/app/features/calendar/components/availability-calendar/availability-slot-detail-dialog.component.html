@@ -1,0 +1,33 @@
+<section class="availability-detail-dialog">
+  <header class="availability-detail-dialog__header">
+    <span
+      class="availability-detail-dialog__icon"
+      [class.is-danger]="data.variant === 'danger'"
+      [class.is-warning]="data.variant === 'warning'"
+      [class.is-neutral]="data.variant === 'neutral'"
+    >
+      <mat-icon>{{ data.icon }}</mat-icon>
+    </span>
+
+    <div>
+      <h2 mat-dialog-title>{{ data.title }}</h2>
+      <p mat-dialog-content>{{ data.message }}</p>
+    </div>
+  </header>
+
+  <div class="availability-detail-dialog__summary">
+    <span>Horario</span>
+    <strong>{{ data.timeRange }}</strong>
+  </div>
+
+  <div class="availability-detail-dialog__summary">
+    <span>Estado</span>
+    <strong>{{ data.statusLabel }}</strong>
+  </div>
+
+  <footer mat-dialog-actions align="end">
+    <button mat-flat-button color="primary" type="button" mat-dialog-close>
+      Entendido
+    </button>
+  </footer>
+</section>

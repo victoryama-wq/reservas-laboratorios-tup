@@ -1,0 +1,39 @@
+.detail-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 0 44px;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.protocol-stack {
+  display: grid;
+  gap: 20px;
+}
+
+.decision-card {
+  display: block;
+  margin-top: 22px;
+}
+
+.state-card {
+  min-height: 180px;
+}
+
+.state-card.error {
+  border-color: var(--danger-border);
+  color: var(--danger-text);
+}
+
+@media (min-width: 900px) {
+  .detail-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .reservation-data-card {
+    grid-row: span 2;
+  }
+}

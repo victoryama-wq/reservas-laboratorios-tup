@@ -1,0 +1,8 @@
+.my-reservation-detail-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.my-reservation-detail-page > button {
+  justify-self: start;
+}

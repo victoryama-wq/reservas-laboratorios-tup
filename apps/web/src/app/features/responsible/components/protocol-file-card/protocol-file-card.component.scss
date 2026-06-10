@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.protocol-file {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid var(--border-soft);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.protocol-file__body {
+  min-width: 0;
+}
+
+.protocol-file__body strong {
+  display: block;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.protocol-file__body p {
+  margin: 0.25rem 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.protocol-empty {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+.protocol-empty p {
+  margin: 0;
+}

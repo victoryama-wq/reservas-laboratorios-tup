@@ -1,0 +1,36 @@
+:host {
+  display: block;
+}
+
+.decision-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.decision-panel__fields {
+  display: grid;
+  gap: 1rem;
+}
+
+.decision-panel__actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.decision-panel__actions button {
+  min-height: 48px;
+}
+
+.reject-button {
+  border-color: var(--danger-border) !important;
+  color: var(--danger-text) !important;
+  font-weight: 800;
+}
+
+@media (min-width: 768px) {
+  .decision-panel__actions {
+    flex-direction: row;
+  }
+}

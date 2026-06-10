@@ -1,0 +1,26 @@
+<app-reservation-stepper-form
+  [form]="reservationForm"
+  [stepperOrientation]="stepperOrientation()"
+  [selectedLabName]="lab().name"
+  [selectedLabSlug]="lab().slug"
+  [minDate]="minDate"
+  [practiceTypes]="practiceTypes"
+  [submitting]="submitting()"
+  [disabled]="submitting()"
+  [uploadingProtocol]="uploadingProtocol()"
+  [protocolFileName]="selectedProtocolFile()?.name ?? null"
+  [protocolFileSummary]="protocolFileSummary()"
+  [protocolRequired]="
+    riskForm.controls.risky.value === true ||
+    riskForm.controls.externalParticipants.value === true
+  "
+  [dateInPastError]="hasDateInPastError()"
+  [minNoticeWarning]="hasMinNoticeWarning()"
+  [minNoticeHours]="lab().minNoticeHours"
+  [protocolWarning]="hasProtocolWarning()"
+  [result]="result()"
+  submitLabel="Crear reserva"
+  (protocolSelected)="onProtocolFileSelected($event)"
+  (protocolRemoved)="removeProtocolFile()"
+  (submitReservation)="submitDraft()"
+/>

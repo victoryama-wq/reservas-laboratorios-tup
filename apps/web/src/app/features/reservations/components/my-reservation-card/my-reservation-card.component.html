@@ -1,0 +1,59 @@
+<article class="reservation-card">
+  <div class="reservation-card__header">
+    <app-icon-box icon="event_note" />
+    <div class="min-w-0">
+      <p class="reservation-card__folio">{{ reservation().folio }}</p>
+      <h2>{{ reservation().labName }}</h2>
+    </div>
+  </div>
+
+  <div class="reservation-card__status">
+    <app-status-chip
+      [variant]="statusVariant(reservation().status)"
+      [icon]="statusIcon(reservation().status)"
+      [label]="statusLabel(reservation().status)"
+    />
+  </div>
+
+  <dl class="reservation-card__meta">
+    <div>
+      <dt>Fecha</dt>
+      <dd>{{ dateLabel() }}</dd>
+    </div>
+    <div>
+      <dt>Horario</dt>
+      <dd>{{ timeLabel() }}</dd>
+    </div>
+    <div>
+      <dt>Tipo de practica</dt>
+      <dd>{{ reservation().practiceType }}</dd>
+    </div>
+    <div>
+      <dt>Protocolo requerido</dt>
+      <dd>{{ yesNo(reservation().protocolRequired) }}</dd>
+    </div>
+    <div>
+      <dt>Revision requerida</dt>
+      <dd>{{ yesNo(reservation().requiresManualReview) }}</dd>
+    </div>
+  </dl>
+
+  @if (reservation().status === 'PENDIENTE_VALIDACION') {
+    <p class="reservation-card__notice">
+      Tu solicitud requiere revision del responsable antes de confirmarse en
+      calendario.
+    </p>
+  }
+
+  <div class="reservation-card__footer">
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      (click)="viewDetails.emit(reservation())"
+    >
+      Ver detalle
+      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </button>
+  </div>
+</article>

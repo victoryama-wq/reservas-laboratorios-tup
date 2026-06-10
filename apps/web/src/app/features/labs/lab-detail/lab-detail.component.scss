@@ -1,0 +1,85 @@
+.lab-detail {
+  display: grid;
+  gap: 28px;
+}
+
+.availability-section {
+  min-width: 0;
+}
+
+.detail-layout {
+  display: grid;
+  gap: 22px;
+}
+
+.summary-card {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+
+  h2 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 1.12rem;
+    font-weight: 850;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+dl {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+}
+
+dl > div {
+  display: flex;
+  gap: 14px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 18px;
+}
+
+dt {
+  color: var(--color-text-primary);
+  font-weight: 850;
+}
+
+dd {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+mat-card-actions {
+  padding: 0 16px 16px;
+}
+
+.state-panel {
+  p {
+    margin: 0;
+  }
+}
+
+.error {
+  color: #bd3232;
+}
+
+@media (min-width: 980px) {
+  .detail-layout {
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: start;
+  }
+}

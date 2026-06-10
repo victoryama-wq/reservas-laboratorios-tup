@@ -1,0 +1,133 @@
+<div class="detail-layout">
+  <app-section-card
+    title="Datos de la reserva"
+    subtitle="Informacion principal de tu solicitud."
+    icon="event_note"
+  >
+    <div class="status-row">
+      <app-status-chip
+        [variant]="statusVariant(reservation().status)"
+        [icon]="statusIcon(reservation().status)"
+        [label]="statusLabel(reservation().status)"
+      />
+    </div>
+
+    @if (reservation().status === 'PENDIENTE_VALIDACION') {
+      <app-info-callout
+        variant="warning"
+        icon="schedule"
+        message="Tu solicitud requiere revision del responsable antes de confirmarse en calendario."
+      />
+    }
+
+    <div class="detail-grid">
+      @for (item of detailItems(); track item.label) {
+        <div class="detail-item">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+        </div>
+      }
+    </div>
+  </app-section-card>
+
+  <div class="side-column">
+    <app-section-card
+      title="Protocolo"
+      subtitle="Archivos adjuntos privados."
+      icon="description"
+    >
+      @if (reservation().protocolFiles.length) {
+        <div class="protocol-list">
+          @for (file of reservation().protocolFiles; track file.storagePath) {
+            <article class="protocol-file">
+              <app-icon-box icon="description" size="sm" />
+              <div class="min-w-0">
+                <strong>{{ file.fileName }}</strong>
+                <span>{{ file.contentType }} - {{ formatFileSize(file.sizeBytes) }}</span>
+              </div>
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Abrir protocolo"
+                [disabled]="protocolLoading()"
+                (click)="downloadProtocol.emit(file)"
+              >
+                <mat-icon>download</mat-icon>
+              </button>
+            </article>
+          }
+        </div>
+      } @else {
+        <app-info-callout
+          variant="info"
+          icon="info"
+          message="Esta reserva no tiene protocolo adjunto."
+        />
+      }
+    </app-section-card>
+
+    @if (canCancel()) {
+      <app-section-card
+        title="Cancelar reserva"
+        subtitle="Accion disponible solo para reservas futuras."
+        icon="event_busy"
+        iconVariant="danger"
+      >
+        <div class="cancel-panel">
+          <app-info-callout
+            variant="warning"
+            icon="warning"
+            message="Al cancelar se liberara el horario y se notificara a las personas involucradas."
+          />
+
+          <button
+            mat-flat-button
+            type="button"
+            class="cancel-panel__button"
+            [disabled]="cancelLoading()"
+            (click)="cancelReservation.emit()"
+          >
+            <mat-icon>event_busy</mat-icon>
+            {{ cancelLoading() ? 'Cancelando...' : 'Cancelar reserva' }}
+          </button>
+        </div>
+      </app-section-card>
+    }
+
+    <app-section-card
+      title="Bitacora basica"
+      subtitle="Eventos registrados para esta reserva."
+      icon="history"
+    >
+      @if (logs().length) {
+        <ol class="timeline">
+          @for (log of logs(); track log.id) {
+            @let item = timelineItem(log);
+            <li>
+              <span
+                class="timeline-dot"
+                [class.timeline-dot--success]="item.variant === 'success'"
+                [class.timeline-dot--warning]="item.variant === 'warning'"
+                [class.timeline-dot--danger]="item.variant === 'danger'"
+                [class.timeline-dot--info]="item.variant === 'info'"
+                [class.timeline-dot--neutral]="item.variant === 'neutral'"
+                aria-hidden="true"
+              ></span>
+              <div>
+                <strong>{{ item.title }}</strong>
+                <p>{{ item.description }}</p>
+                <small>{{ formatLogDate(log) }}</small>
+              </div>
+            </li>
+          }
+        </ol>
+      } @else {
+        <app-info-callout
+          variant="info"
+          icon="info"
+          message="No hay bitacora disponible para mostrar."
+        />
+      }
+    </app-section-card>
+  </div>
+</div>

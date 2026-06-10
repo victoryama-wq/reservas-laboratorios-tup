@@ -1,0 +1,87 @@
+.availability-detail-dialog {
+  display: grid;
+  gap: 1rem;
+  padding: 1.35rem;
+}
+
+.availability-detail-dialog__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.availability-detail-dialog__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 1rem;
+  background: var(--neutral-bg);
+  color: var(--neutral-text);
+}
+
+.availability-detail-dialog__icon.is-danger {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.availability-detail-dialog__icon.is-warning {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+h2 {
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+p {
+  margin: 0.45rem 0 0;
+  padding: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.availability-detail-dialog__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 1rem;
+  background: var(--surface-soft);
+  padding: 0.85rem 1rem;
+}
+
+.availability-detail-dialog__summary span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.availability-detail-dialog__summary strong {
+  color: var(--text-primary);
+  font-weight: 850;
+}
+
+footer {
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 520px) {
+  footer {
+    display: grid;
+  }
+
+  footer button {
+    width: 100%;
+  }
+}

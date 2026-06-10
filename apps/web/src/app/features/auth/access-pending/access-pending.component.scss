@@ -1,0 +1,35 @@
+.access-pending-page {
+  display: grid;
+  min-height: calc(100vh - 128px);
+  place-items: center;
+  padding: 24px 0;
+}
+
+.access-card {
+  display: grid;
+  justify-items: center;
+  width: min(100%, 520px);
+  text-align: center;
+}
+
+.access-icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin-top: 24px;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--info-bg);
+  color: var(--info-text);
+}
+
+.access-icon mat-icon {
+  width: 30px;
+  height: 30px;
+  font-size: 30px;
+}
+
+mat-card-content p {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}

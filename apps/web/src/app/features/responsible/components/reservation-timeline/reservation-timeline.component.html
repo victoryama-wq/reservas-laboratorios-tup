@@ -1,0 +1,33 @@
+<app-section-card title="Bitacora basica" icon="schedule">
+  @if (events().length) {
+    <div class="timeline">
+      @for (event of events(); track event.status + event.label + ($index)) {
+        <div class="timeline__item">
+          <span class="timeline__marker">
+            <mat-icon>{{ event.icon || 'radio_button_checked' }}</mat-icon>
+          </span>
+
+          <div class="timeline__content">
+            <app-status-chip
+              [variant]="event.variant || 'neutral'"
+              [label]="event.status"
+            />
+            <p>{{ event.label }}</p>
+            @if (event.date || event.actor) {
+              <small>
+                @if (event.date) {
+                  <span>{{ event.date }}</span>
+                }
+                @if (event.actor) {
+                  <span>{{ event.actor }}</span>
+                }
+              </small>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="timeline-empty">No hay bitacora visible para este usuario.</p>
+  }
+</app-section-card>

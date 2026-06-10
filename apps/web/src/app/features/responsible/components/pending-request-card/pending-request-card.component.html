@@ -1,0 +1,62 @@
+<app-section-card class="pending-card">
+  <div class="pending-card__header">
+    <app-icon-box icon="science" size="lg" />
+
+    <app-status-chip
+      variant="warning"
+      icon="schedule"
+      label="Sin revision"
+    />
+  </div>
+
+  <div class="pending-card__title">
+    <h2>{{ request().labName }}</h2>
+    <p>{{ request().folio }}</p>
+  </div>
+
+  <div class="pending-card__meta">
+    <div>
+      <span>Fecha</span>
+      <strong>{{ dateLabel() }}</strong>
+    </div>
+    <div>
+      <span>Horario</span>
+      <strong>{{ timeLabel() }}</strong>
+    </div>
+    <div>
+      <span>Docente</span>
+      <strong>{{ request().teacherName }}</strong>
+    </div>
+    <div>
+      <span>Asignatura / Grupo</span>
+      <strong>{{ request().subject || 'No especificado' }} / {{ request().group || 'No especificado' }}</strong>
+    </div>
+  </div>
+
+  <p class="pending-card__practice">{{ request().practiceName }}</p>
+
+  <div class="pending-card__chips">
+    @if (request().risky) {
+      <app-status-chip variant="danger" icon="warning" label="Riesgo" />
+    } @else {
+      <app-status-chip variant="neutral" icon="verified_user" label="Sin riesgo" />
+    }
+
+    @if (request().protocolFiles.length) {
+      <app-status-chip
+        variant="info"
+        icon="attach_file"
+        label="Protocolo adjunto"
+      />
+    }
+  </div>
+
+  @if (showActions()) {
+    <div class="pending-card__actions">
+      <button mat-flat-button color="primary" type="button" (click)="emitReview()">
+        Revisar
+        <mat-icon class="text-[20px]">arrow_forward</mat-icon>
+      </button>
+    </div>
+  }
+</app-section-card>

@@ -1,0 +1,226 @@
+<section class="availability-calendar grid gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <header class="availability-calendar__header grid gap-3 md:grid-cols-[1fr_auto] md:items-start">
+    <div>
+      <p class="app-page-kicker">{{ title() }}</p>
+      @if (subtitle()) {
+        <h2 class="text-xl font-extrabold text-slate-950">{{ subtitle() }}</h2>
+      }
+      @if (scheduleSummary()) {
+        <p class="text-sm text-slate-600">{{ scheduleSummary() }}</p>
+      }
+    </div>
+
+    <div
+      class="availability-calendar__view-toggle flex w-fit items-center rounded-full border border-slate-200 bg-slate-50 p-1"
+      aria-label="Vista del calendario"
+    >
+      <button
+        type="button"
+        class="rounded-full px-4 py-2 text-sm font-bold text-slate-600"
+        [class.is-active]="viewMode() === 'week'"
+        [attr.aria-pressed]="viewMode() === 'week'"
+        (click)="setViewMode('week')"
+      >
+        Semana
+      </button>
+      <button
+        type="button"
+        class="rounded-full px-4 py-2 text-sm font-bold text-slate-600"
+        [class.is-active]="viewMode() === 'month'"
+        [attr.aria-pressed]="viewMode() === 'month'"
+        (click)="setViewMode('month')"
+      >
+        Mes
+      </button>
+    </div>
+  </header>
+
+  @if (showLegend()) {
+    <div
+      class="availability-calendar__legend flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-600"
+      aria-label="Leyenda de disponibilidad"
+    >
+      @for (item of legendItems; track item.status) {
+        <span class="flex items-center gap-2">
+          <i [ngClass]="'legend-dot--' + item.status"></i>
+          {{ item.label }}
+        </span>
+      }
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="grid min-h-56 place-items-center gap-3 text-slate-600">
+      <mat-spinner diameter="34" />
+      <p>Cargando disponibilidad...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="grid min-h-56 place-items-center gap-3 text-red-700" role="alert">
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else {
+    @if (emptyMessage()) {
+      <app-info-callout variant="info" icon="info" [message]="emptyMessage()" />
+    }
+
+    @if (readLimitMessage()) {
+      <app-info-callout
+        variant="warning"
+        icon="warning"
+        [message]="readLimitMessage()"
+      />
+    }
+
+    <div class="availability-calendar__toolbar grid gap-3">
+      <div class="availability-calendar__nav flex justify-center gap-2">
+        <button
+          mat-icon-button
+          type="button"
+          aria-label="Rango anterior"
+          [disabled]="disabled()"
+          (click)="emitPreviousRange()"
+        >
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
+          aria-label="Ir a hoy"
+          [disabled]="disabled()"
+          (click)="emitToday()"
+        >
+          Hoy
+        </button>
+        <button
+          mat-icon-button
+          type="button"
+          aria-label="Rango siguiente"
+          [disabled]="disabled()"
+          (click)="emitNextRange()"
+        >
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+
+      <h3 class="text-center text-lg font-extrabold text-slate-950">{{ currentRangeLabel() }}</h3>
+    </div>
+
+    @if (viewMode() === 'week') {
+      <div class="availability-calendar__week" [style.--day-count]="days().length">
+        <div class="availability-calendar__corner">Hora</div>
+        @for (day of days(); track day.key) {
+          <div
+            class="availability-calendar__day-heading"
+            [class.is-today]="day.isToday"
+            [class.is-disabled]="day.disabled"
+          >
+            <strong>{{ day.label }}</strong>
+            <span>{{ day.dateLabel }}</span>
+          </div>
+        }
+
+        <div class="availability-calendar__time-axis" [style.--hour-count]="hours().length">
+          @for (hour of hours(); track hour) {
+            <div class="availability-calendar__time">{{ hour }}</div>
+          }
+        </div>
+
+        @for (day of days(); track day.key) {
+          <div
+            class="availability-calendar__day-column"
+            [class.is-disabled]="day.disabled"
+            [style.--hour-count]="hours().length"
+          >
+            @if (day.disabled) {
+              <div class="availability-calendar__day-note">
+                <span>Dia no disponible</span>
+              </div>
+            } @else {
+              @for (hour of hours(); track hour; let hourIndex = $index) {
+                @let slot = slotFor(day.key, hour);
+                <button
+                  type="button"
+                  class="availability-cell"
+                  [ngClass]="cellClasses(slot)"
+                  [style.grid-row]="hourIndex + 1"
+                  [disabled]="disabled() || slot?.disabled"
+                  [attr.aria-label]="ariaLabel(day, slot)"
+                  (click)="selectSlot(slot)"
+                >
+                  <span class="sr-only">{{ ariaLabel(day, slot) }}</span>
+                </button>
+              }
+
+              @for (block of blocksForDay(day.key); track block.startTime + block.status + block.label) {
+                <button
+                  type="button"
+                  class="availability-block"
+                  [ngClass]="blockClasses(block)"
+                  [style.grid-row]="blockGridRow(block)"
+                  [disabled]="blockDisabled(block)"
+                  [attr.aria-label]="blockAriaLabel(day, block)"
+                  (click)="selectBlock(block)"
+                >
+                  <span>{{ block.startTime }} - {{ block.endTime }}</span>
+                  <strong>{{ block.label }}</strong>
+                </button>
+              }
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="availability-calendar__month" role="grid" aria-label="Calendario mensual">
+        @for (weekday of monthWeekdayLabels; track weekday) {
+          <div class="availability-calendar__month-weekday" role="columnheader">
+            {{ weekday }}
+          </div>
+        }
+
+        @for (day of days(); track day.key) {
+          <article
+            class="availability-calendar__month-day"
+            [class.is-today]="day.isToday"
+            [class.is-disabled]="day.disabled"
+            role="gridcell"
+          >
+            <header class="availability-calendar__month-date">
+              <strong>{{ monthDayNumber(day) }}</strong>
+            </header>
+
+            <div class="availability-calendar__month-items">
+              @if (day.disabled) {
+                <span class="month-pill month-pill--unavailable">
+                  No disponible
+                </span>
+              } @else {
+                @let busyBlocks = summaryBlocksForDay(day.key);
+                @if (busyBlocks.length) {
+                  @for (block of busyBlocks; track block.startTime + block.status + block.label) {
+                    <button
+                      type="button"
+                      class="month-pill"
+                      [ngClass]="'month-pill--' + block.status"
+                      [disabled]="blockDisabled(block)"
+                      [attr.aria-label]="blockAriaLabel(day, block)"
+                      (click)="selectBlock(block)"
+                    >
+                      {{ block.startTime }} - {{ block.endTime }} · {{ block.label }}
+                    </button>
+                  }
+                  @if (remainingBlocksForDay(day.key) > 0) {
+                    <span class="month-pill month-pill--neutral">
+                      +{{ remainingBlocksForDay(day.key) }} mas
+                    </span>
+                  }
+                } @else {
+                  <span class="availability-calendar__month-empty" aria-hidden="true"></span>
+                }
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>

@@ -1,0 +1,53 @@
+<section class="my-reservation-detail-page">
+  @if (loading()) {
+    <div class="app-state-panel">
+      <mat-spinner diameter="36" />
+      <p>Cargando detalle de reserva...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <app-page-header
+      kicker="Mis reservas"
+      title="Detalle no disponible"
+      subtitle="No fue posible mostrar esta reserva personal."
+      backLabel="Volver a mis reservas"
+      backLink="/mis-reservas"
+      statusLabel="Sin acceso"
+      statusVariant="danger"
+      statusIcon="warning"
+    />
+
+    <app-info-callout
+      variant="danger"
+      icon="warning"
+      [message]="errorMessage()"
+    />
+
+    <button mat-flat-button color="primary" type="button" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Volver a mis reservas
+    </button>
+  } @else if (reservation(); as selectedReservation) {
+    <app-page-header
+      kicker="Mis reservas"
+      [title]="selectedReservation.folio"
+      [subtitle]="selectedReservation.labName"
+      backLabel="Volver a mis reservas"
+      backLink="/mis-reservas"
+      [statusLabel]="statusLabel(selectedReservation.status)"
+      [statusVariant]="statusVariant(selectedReservation.status)"
+      [statusIcon]="statusIcon(selectedReservation.status)"
+    />
+
+    <app-my-reservation-detail
+      [reservation]="selectedReservation"
+      [logs]="logs()"
+      [dateLabel]="formatDate(selectedReservation)"
+      [timeLabel]="formatTime(selectedReservation)"
+      [protocolLoading]="protocolLoading()"
+      [canCancel]="canCancelReservation(selectedReservation)"
+      [cancelLoading]="cancelLoading()"
+      (downloadProtocol)="openProtocol($event)"
+      (cancelReservation)="confirmCancelReservation(selectedReservation)"
+    />
+  }
+</section>

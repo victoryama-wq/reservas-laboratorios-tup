@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userPath(uid) {
+      return /databases/(default)/documents/users/$(uid);
+    }
+
+    function currentUserDoc() {
+      return firestore.get(userPath(request.auth.uid));
+    }
+
+    function hasValidRole() {
+      return currentUserDoc().data.role in [
+        'docente',
+        'responsable_laboratorio',
+        'admin_sistemas',
+      ];
+    }
+
+    function hasActiveProfile() {
+      return isSignedIn()
+        && firestore.exists(userPath(request.auth.uid))
+        && currentUserDoc().data.active == true
+        && hasValidRole();
+    }
+
+    function hasRole(role) {
+      return hasActiveProfile() && currentUserDoc().data.role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('admin_sistemas');
+    }
+
+    function isAllowedProtocolFile() {
+      return request.resource.size <= 20 * 1024 * 1024
+        && request.resource.contentType.matches(
+          'application/pdf|image/png|image/jpeg|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        );
+    }
+
+    match /protocolUploads/{uid}/{uploadId}/{fileName} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow create, update: if isSignedIn()
+        && request.auth.uid == uid
+        && isAllowedProtocolFile();
+      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

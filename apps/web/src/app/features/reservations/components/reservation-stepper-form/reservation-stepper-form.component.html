@@ -1,0 +1,453 @@
+<app-section-card
+  title="Solicitud de reserva"
+  subtitle="Complete la informacion para crear la solicitud."
+  icon="description"
+>
+  <mat-stepper
+    [linear]="true"
+    [orientation]="stepperOrientation()"
+    [labelPosition]="stepperOrientation() === 'horizontal' ? 'bottom' : 'end'"
+    (selectionChange)="currentStepIndexChange.emit($event.selectedIndex)"
+  >
+    <ng-template matStepperIcon="number" let-index="index">
+      <span class="step-number">{{ index + 1 }}</span>
+    </ng-template>
+
+    <ng-template matStepperIcon="edit" let-index="index">
+      <span class="step-number">{{ index + 1 }}</span>
+    </ng-template>
+
+    <ng-template matStepperIcon="done" let-index="index">
+      <span class="step-number">{{ index + 1 }}</span>
+    </ng-template>
+
+    <mat-step [stepControl]="group('schedule')">
+      <form [formGroup]="group('schedule')" class="step-content">
+        <ng-template matStepLabel>Fecha</ng-template>
+
+        <div class="step-intro">
+          <app-icon-box icon="calendar_today" />
+          <div>
+            <h3>Fecha y horario</h3>
+            <p>El laboratorio se conserva precargado desde la ruta QR.</p>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Laboratorio</mat-label>
+          <input matInput [value]="selectedLabName()" readonly />
+          <mat-icon matIconSuffix>lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha de reserva</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker"
+            [min]="minDate()"
+            [max]="maxDate()"
+            formControlName="date"
+          />
+          <mat-datepicker-toggle matIconSuffix [for]="picker" />
+          <mat-datepicker #picker />
+          @if (hasRequiredError('schedule', 'date')) {
+            <mat-error>La fecha es requerida.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (dateInPastError()) {
+          <app-info-callout
+            variant="warning"
+            icon="warning"
+            message="La fecha no puede ser anterior a hoy."
+          />
+        }
+
+        <div class="two-columns">
+          <mat-form-field appearance="outline">
+            <mat-label>Hora de inicio</mat-label>
+            <input
+              matInput
+              type="time"
+              formControlName="startTime"
+            />
+            <mat-icon matIconSuffix>schedule</mat-icon>
+            @if (hasRequiredError('schedule', 'startTime')) {
+              <mat-error>La hora de inicio es requerida.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Hora de finalizacion</mat-label>
+            <input
+              matInput
+              type="time"
+              formControlName="endTime"
+            />
+            <mat-icon matIconSuffix>schedule</mat-icon>
+            @if (hasRequiredError('schedule', 'endTime')) {
+              <mat-error>La hora de finalizacion es requerida.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        @if (hasTimeRangeError()) {
+          <app-info-callout
+            variant="warning"
+            icon="warning"
+            message="La hora de finalizacion debe ser mayor que la hora de inicio."
+          />
+        }
+
+        @if (minNoticeWarning()) {
+          <app-info-callout
+            variant="warning"
+            icon="info"
+            [message]="
+              'Este laboratorio requiere ' +
+              minNoticeHours() +
+              ' horas de anticipacion. Backend validara esta regla de forma definitiva.'
+            "
+          />
+        }
+
+        <div class="step-actions">
+          <button mat-flat-button color="primary" matStepperNext [disabled]="disabled()">
+            Continuar
+            <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step [stepControl]="group('academic')">
+      <form [formGroup]="group('academic')" class="step-content">
+        <ng-template matStepLabel>Datos</ng-template>
+
+        <div class="step-intro">
+          <app-icon-box icon="school" />
+          <div>
+            <h3>Datos academicos</h3>
+            <p>Describa la asignatura, grupo y objetivo de la practica.</p>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Asignatura</mat-label>
+          <input matInput formControlName="subject" />
+          <mat-error>La asignatura es requerida.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Grupo</mat-label>
+          <input matInput formControlName="group" />
+          <mat-error>El grupo es requerido.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre de la practica</mat-label>
+          <input matInput formControlName="practiceName" />
+          <mat-error>El nombre de la practica es requerido.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Objetivo</mat-label>
+          <textarea matInput rows="4" formControlName="objective"></textarea>
+          <mat-error>El objetivo es requerido.</mat-error>
+        </mat-form-field>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious [disabled]="disabled()">Regresar</button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="disabled()">
+            Continuar
+            <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step [stepControl]="group('practice')">
+      <form [formGroup]="group('practice')" class="step-content">
+        <ng-template matStepLabel>Practica</ng-template>
+
+        <div class="step-intro">
+          <app-icon-box icon="science" />
+          <div>
+            <h3>Material y practica</h3>
+            <p>Indique materiales, tipo de practica y participantes externos.</p>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Material requerido</mat-label>
+          <textarea matInput rows="4" formControlName="materialRequired"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo de practica</mat-label>
+          <mat-select formControlName="practiceType">
+            @for (type of practiceTypes(); track type) {
+              <mat-option [value]="type">{{ type }}</mat-option>
+            }
+          </mat-select>
+          <mat-error>El tipo de practica es requerido.</mat-error>
+        </mat-form-field>
+
+        @if (isPracticeTypeOther()) {
+          <mat-form-field appearance="outline">
+            <mat-label>Especifique el tipo de practica</mat-label>
+            <input matInput formControlName="practiceTypeOther" maxlength="120" />
+            @if (hasPracticeTypeOtherError()) {
+              <mat-error>Debe especificar el tipo de practica.</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious [disabled]="disabled()">Regresar</button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="disabled()">
+            Continuar
+            <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step [stepControl]="group('risk')">
+      <form [formGroup]="group('risk')" class="step-content">
+        <ng-template matStepLabel>Riesgo</ng-template>
+
+        <div class="step-intro">
+          <app-icon-box icon="verified_user" />
+          <div>
+            <h3>Condiciones de seguridad y protocolo</h3>
+            <p>
+              Responda las preguntas para determinar si la solicitud requiere
+              protocolo.
+            </p>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>
+            ¿Se utilizaran sustancias, muestras biologicas o material
+            potencialmente riesgoso?
+          </mat-label>
+          <mat-select formControlName="risky">
+            @for (option of riskOptions(); track option.label) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+          <mat-error>Indique si la practica es riesgosa.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>
+            ¿Participan pacientes, usuarios simulados o poblacion externa?
+          </mat-label>
+          <mat-select formControlName="externalParticipants">
+            @for (option of riskOptions(); track option.label) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+          <mat-error>
+            Indique si participan pacientes, usuarios simulados o poblacion externa.
+          </mat-error>
+        </mat-form-field>
+
+        @if (protocolIsRequired()) {
+          <app-info-callout
+            variant="warning"
+            icon="warning"
+            message="Se requiere protocolo porque la practica involucra material potencialmente riesgoso o participacion de pacientes, usuarios simulados o poblacion externa."
+          />
+
+          <section class="protocol-panel">
+            <div class="protocol-panel__header">
+              <app-icon-box icon="attach_file" size="sm" />
+              <div>
+                <h3>Protocolo</h3>
+                <p>El archivo se cargara de forma privada antes de crear la solicitud.</p>
+              </div>
+            </div>
+
+            <div class="protocol-actions">
+              <input
+                type="file"
+                id="protocolFile"
+                (change)="onProtocolInputChange($event)"
+              />
+              <label for="protocolFile">
+                <mat-icon>upload_file</mat-icon>
+                Seleccionar archivo
+              </label>
+
+              @if (protocolFileName()) {
+                <button
+                  mat-button
+                  type="button"
+                  class="remove-protocol"
+                  (click)="protocolRemoved.emit()"
+                >
+                  <mat-icon>close</mat-icon>
+                  Quitar
+                </button>
+              }
+            </div>
+
+            <span class="protocol-summary">{{ protocolFileSummary() }}</span>
+
+            @if (uploadingProtocol()) {
+              <app-info-callout
+                variant="info"
+                icon="cloud_upload"
+                message="Cargando protocolo..."
+              />
+            }
+
+            @if (protocolWarning()) {
+              <app-info-callout
+                variant="warning"
+                icon="warning"
+                message="Debe seleccionar un protocolo para completar esta solicitud."
+              />
+            }
+          </section>
+        } @else {
+          <app-info-callout
+            variant="success"
+            icon="check_circle"
+            message="No se requiere protocolo para esta solicitud."
+          />
+        }
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious [disabled]="disabled()">Regresar</button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="disabled()">
+            Ver resumen
+            <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step>
+      <ng-template matStepLabel>Resumen</ng-template>
+
+      <div class="step-content">
+        <div class="step-intro">
+          <app-icon-box icon="fact_check" />
+          <div>
+            <h3>Resumen de solicitud</h3>
+            <p>Revise la informacion antes de crear la reserva.</p>
+          </div>
+        </div>
+
+        <section class="summary-grid">
+          <div class="summary-card">
+            <span>Laboratorio</span>
+            <strong>{{ selectedLabName() }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Fecha</span>
+            <strong>{{ formatDate(controlValue('schedule', 'date')) }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Horario</span>
+            <strong>
+              {{ displayValue('schedule', 'startTime') }} -
+              {{ displayValue('schedule', 'endTime') }}
+            </strong>
+          </div>
+          <div class="summary-card">
+            <span>Asignatura</span>
+            <strong>{{ displayValue('academic', 'subject') }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Grupo</span>
+            <strong>{{ displayValue('academic', 'group') }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Practica</span>
+            <strong>{{ displayValue('academic', 'practiceName') }}</strong>
+          </div>
+          <div class="summary-card wide">
+            <span>Objetivo</span>
+            <strong>{{ displayValue('academic', 'objective') }}</strong>
+          </div>
+          <div class="summary-card wide">
+            <span>Material</span>
+            <strong>
+              {{ displayValue('practice', 'materialRequired', 'Sin material especificado') }}
+            </strong>
+          </div>
+          <div class="summary-card">
+            <span>Tipo de practica</span>
+            <strong>{{ displayValue('practice', 'practiceType') }}</strong>
+          </div>
+          @if (isPracticeTypeOther()) {
+            <div class="summary-card">
+              <span>Especificacion</span>
+              <strong>{{ displayValue('practice', 'practiceTypeOther') }}</strong>
+            </div>
+          }
+          <div class="summary-card">
+            <span>Material riesgoso</span>
+            <strong>{{ yesNo(controlValue('risk', 'risky')) }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Pacientes, usuarios simulados o poblacion externa</span>
+            <strong>{{ yesNo(controlValue('risk', 'externalParticipants')) }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Protocolo requerido</span>
+            <strong>{{ protocolIsRequired() ? 'Si' : 'No' }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Protocolo adjunto</span>
+            <strong>
+              @if (protocolFileName()) {
+                {{ protocolFileName() }}
+              } @else {
+                No
+              }
+            </strong>
+          </div>
+        </section>
+
+        @if (protocolWarning()) {
+          <app-info-callout
+            variant="warning"
+            icon="warning"
+            message="Falta seleccionar protocolo. La validacion definitiva se realizara en backend."
+          />
+        }
+
+        @if (result(); as reservationResult) {
+          <section class="result-panel">
+            <span>Resultado</span>
+            <strong>{{ reservationResult.status }}</strong>
+            <p>{{ reservationResult.message }}</p>
+            <p>Folio: {{ reservationResult.folio }}</p>
+          </section>
+        }
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious [disabled]="submitting()">Regresar</button>
+          <button
+            mat-flat-button
+            color="primary"
+            [disabled]="submitting()"
+            (click)="submitReservation.emit()"
+          >
+            @if (submitting()) {
+              Enviando...
+            } @else {
+              {{ submitLabel() }}
+            }
+          </button>
+        </div>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</app-section-card>

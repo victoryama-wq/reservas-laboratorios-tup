@@ -1,0 +1,56 @@
+:host {
+  display: block;
+}
+
+.timeline {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.timeline__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.timeline__marker {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--info-bg);
+  color: var(--info-text);
+}
+
+.timeline__marker mat-icon {
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.timeline__content {
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  padding: 0.85rem;
+}
+
+.timeline__content p {
+  margin: 0.65rem 0 0;
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+.timeline__content small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.45rem;
+  color: var(--text-muted);
+}
+
+.timeline-empty {
+  color: var(--text-secondary);
+  margin: 0;
+}

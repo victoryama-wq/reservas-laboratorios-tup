@@ -1,0 +1,28 @@
+.reserve-page {
+  display: grid;
+  gap: 28px;
+}
+
+.state-panel {
+  min-height: 260px;
+}
+
+.state-panel p {
+  margin: 0;
+}
+
+.error {
+  color: #bd3232;
+}
+
+.reserve-layout {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 1180px) {
+  .reserve-layout {
+    grid-template-columns: minmax(0, 0.98fr) minmax(440px, 1.02fr);
+    align-items: start;
+  }
+}

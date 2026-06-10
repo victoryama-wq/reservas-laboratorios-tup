@@ -1,0 +1,41 @@
+<section class="reserve-page">
+  @if (loading()) {
+    <div class="state-panel app-state-panel">
+      <mat-spinner diameter="36" />
+      <p>Cargando laboratorio...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-panel app-state-panel error" role="alert">
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (!lab()) {
+    <div class="state-panel app-state-panel">
+      <p>El laboratorio {{ labSlug() }} no esta disponible.</p>
+      <a routerLink="/laboratorios">Volver al catalogo</a>
+    </div>
+  } @else {
+    <app-page-header
+      kicker="Reserva por laboratorio"
+      [title]="lab()?.name ?? ''"
+      subtitle="Revise la disponibilidad visual y complete el formulario de solicitud."
+      backLabel="Volver al catalogo"
+      backLink="/laboratorios"
+    />
+
+    @if (lab(); as selectedLab) {
+      <div class="reserve-layout">
+        <app-lab-calendar
+          [lab]="selectedLab"
+          [refreshKey]="calendarRefreshKey()"
+          [optimisticEvents]="optimisticCalendarEvents()"
+          (slotSelected)="onCalendarSlotSelected($event)"
+        />
+        <app-reservation-form
+          [lab]="selectedLab"
+          [calendarSlot]="selectedCalendarSlot()"
+          (reservationCreated)="onReservationCreated($event)"
+        />
+      </div>
+    }
+  }
+</section>

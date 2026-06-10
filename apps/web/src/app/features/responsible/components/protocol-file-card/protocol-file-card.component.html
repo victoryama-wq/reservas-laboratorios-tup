@@ -1,0 +1,33 @@
+<app-section-card title="Protocolo" icon="description">
+  @if (hasFile()) {
+    <div class="protocol-file">
+      <app-icon-box icon="description" variant="danger" />
+
+      <div class="protocol-file__body">
+        <strong>{{ fileName() }}</strong>
+        <p>
+          {{ fileType() || 'Archivo' }}
+          @if (fileSize()) {
+            <span> · {{ fileSize() }}</span>
+          }
+        </p>
+        <app-status-chip variant="info" icon="attach_file" label="Protocolo adjunto" />
+      </div>
+
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Abrir protocolo"
+        [disabled]="disabled()"
+        (click)="emitDownload()"
+      >
+        <mat-icon>download</mat-icon>
+      </button>
+    </div>
+  } @else {
+    <div class="protocol-empty">
+      <app-icon-box icon="description" variant="neutral" />
+      <p>No hay protocolo adjunto.</p>
+    </div>
+  }
+</app-section-card>

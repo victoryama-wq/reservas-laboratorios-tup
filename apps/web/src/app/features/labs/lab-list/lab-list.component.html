@@ -1,0 +1,170 @@
+<section class="lab-list">
+  <header class="catalog-header">
+    <div class="title-block">
+      <app-icon-box icon="science" variant="primary" size="lg" />
+      <div>
+        <p class="app-page-kicker">Escenarios academicos</p>
+        <h1 class="app-page-title">Laboratorios disponibles</h1>
+        <p class="app-page-subtitle">
+          Explora y reserva espacios academicos de acuerdo a tus necesidades.
+        </p>
+      </div>
+    </div>
+    <div class="catalog-summary" aria-label="Resumen del catalogo">
+      <mat-icon aria-hidden="true">inventory_2</mat-icon>
+      <div>
+        <span>Espacios activos</span>
+        <strong>{{ labs().length }}</strong>
+      </div>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="state-panel app-state-panel">
+      <mat-spinner diameter="36" />
+      <p>Cargando laboratorios...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-panel app-state-panel error" role="alert">
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (labs().length === 0) {
+    <div class="state-panel app-state-panel">
+      <p>No hay laboratorios activos disponibles en este momento.</p>
+    </div>
+  } @else {
+    <div class="catalog-tools" aria-label="Filtros del catalogo">
+      <mat-form-field
+        class="tool-field tool-field--search"
+        appearance="outline"
+        subscriptSizing="dynamic"
+      >
+        <mat-label>Buscar laboratorio</mat-label>
+        <input
+          matInput
+          type="search"
+          [value]="searchTerm()"
+          (input)="setSearchTerm($event)"
+          aria-label="Buscar laboratorios por nombre o descripcion"
+        />
+      </mat-form-field>
+
+      <mat-form-field
+        class="tool-field"
+        appearance="outline"
+        subscriptSizing="dynamic"
+      >
+        <mat-label>Tipo</mat-label>
+        <mat-select
+          [value]="typeFilter()"
+          (selectionChange)="setTypeFilter($event.value)"
+          aria-label="Filtrar por tipo de laboratorio"
+        >
+          <mat-option value="all">Todos</mat-option>
+          <mat-option value="health">Salud y simulacion</mat-option>
+          <mat-option value="technology">Tecnologia</mat-option>
+          <mat-option value="food">Alimentos y bebidas</mat-option>
+          <mat-option value="legal">Legal</mat-option>
+          <mat-option value="architecture">Arquitectura</mat-option>
+          <mat-option value="observation">Observacion</mat-option>
+          <mat-option value="research">Investigacion</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field
+        class="tool-field"
+        appearance="outline"
+        subscriptSizing="dynamic"
+      >
+        <mat-label>Ordenar</mat-label>
+        <mat-select
+          [value]="sortOrder()"
+          (selectionChange)="setSortOrder($event.value)"
+          aria-label="Ordenar laboratorios"
+        >
+          <mat-option value="nameAsc">Nombre A-Z</mat-option>
+          <mat-option value="nameDesc">Nombre Z-A</mat-option>
+          <mat-option value="noticeAsc">Menor anticipacion</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button
+        mat-stroked-button
+        type="button"
+        class="clear-filters-button"
+        [disabled]="!hasActiveFilters()"
+        (click)="clearFilters()"
+        aria-label="Limpiar filtros del catalogo"
+      >
+        <span>Limpiar</span>
+      </button>
+    </div>
+
+    @if (filteredLabs().length === 0) {
+      <div class="state-panel app-state-panel">
+        <p>No hay laboratorios que coincidan con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="results-meta" aria-live="polite">
+        Mostrando {{ filteredLabs().length }} de {{ labs().length }} espacios
+        reservables
+      </div>
+
+      <div class="labs-grid">
+        @for (lab of filteredLabs(); track lab.id) {
+          <mat-card class="lab-card">
+            <div class="lab-card__header">
+              <app-icon-box [icon]="labIcon(lab)" variant="primary" size="lg" />
+              <div class="lab-card__title-block">
+                <mat-card-title>{{ lab.name }}</mat-card-title>
+                <mat-card-subtitle>{{ lab.shortDescription }}</mat-card-subtitle>
+              </div>
+            </div>
+
+            <mat-card-content>
+              <p class="schedule">
+                <mat-icon aria-hidden="true">schedule</mat-icon>
+                <span>{{ scheduleInline(lab) }}</span>
+              </p>
+
+              <div class="lab-card__chips" aria-label="Reglas principales">
+                <app-status-chip
+                  variant="success"
+                  icon="check_circle"
+                  label="Disponible"
+                />
+                <app-status-chip
+                  variant="info"
+                  icon="event_available"
+                  [label]="minNoticeLabel(lab)"
+                />
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions class="lab-card__actions">
+              <a
+                mat-button
+                class="lab-card__detail-link"
+                [routerLink]="['/laboratorios', lab.id]"
+                [attr.aria-label]="'Ver detalle de ' + lab.name"
+              >
+                <mat-icon aria-hidden="true">visibility</mat-icon>
+                <span>Ver detalle</span>
+              </a>
+              <a
+                mat-flat-button
+                color="primary"
+                class="lab-card__reserve-button"
+                [routerLink]="['/reservar', lab.slug]"
+                [attr.aria-label]="'Reservar ' + lab.name"
+              >
+                <mat-icon aria-hidden="true">calendar_today</mat-icon>
+                <span>Reservar</span>
+              </a>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    }
+  }
+</section>

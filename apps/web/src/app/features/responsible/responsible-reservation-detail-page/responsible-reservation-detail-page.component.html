@@ -1,0 +1,71 @@
+<section class="detail-page">
+  @if (loading()) {
+    <div class="state-card app-state-panel">
+      <mat-progress-spinner mode="indeterminate" diameter="36" />
+      <p>Cargando reserva...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-card app-state-panel error">
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (reservation()) {
+    <app-page-header
+      kicker="Revision de reserva"
+      [title]="reservation()?.folio ?? 'Reserva'"
+      [subtitle]="reservation()?.labName"
+      backLabel="Volver a solicitudes"
+      backLink="/responsable/solicitudes"
+      [statusLabel]="reservation()?.status"
+      statusVariant="warning"
+      statusIcon="warning"
+    />
+
+    <div class="detail-grid">
+      <app-reservation-data-grid
+        class="reservation-data-card"
+        [reservation]="reservation()!"
+        [dateLabel]="formatDate()"
+        [timeLabel]="formatTime()"
+      />
+
+      <div class="protocol-stack">
+        @if (reservation()?.protocolFiles?.length) {
+          @for (file of reservation()?.protocolFiles; track file.storagePath) {
+            <app-protocol-file-card
+              [fileName]="file.fileName"
+              [fileType]="fileType(file)"
+              [fileSize]="formatFileSize(file.sizeBytes)"
+              (download)="openProtocol(file.storagePath)"
+            />
+          }
+
+          @if (protocolMessage()) {
+            <app-info-callout
+              variant="warning"
+              icon="info"
+              [message]="protocolMessage()"
+            />
+          }
+        } @else {
+          <app-protocol-file-card />
+        }
+      </div>
+
+      <app-reservation-timeline [events]="timelineEvents()" />
+    </div>
+
+    @if (reservation()?.status === 'PENDIENTE_VALIDACION') {
+      <app-decision-panel
+        class="decision-card"
+        [approvalNote]="approvalNote"
+        [rejectionReason]="rejectionReason"
+        [loading]="submitting()"
+        [disabled]="submitting()"
+        (approvalNoteChange)="approvalNote = $event"
+        (rejectionReasonChange)="rejectionReason = $event"
+        (approve)="approve()"
+        (reject)="reject()"
+      />
+    }
+  }
+</section>

@@ -1,0 +1,23 @@
+{
+  "name": "reserva-de-laboratorios",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@angular/cli": "^21.2.11",
+    "firebase-tools": "^15.18.0"
+  },
+  "dependencies": {
+    "firebase": "^12.13.0"
+  }
+}

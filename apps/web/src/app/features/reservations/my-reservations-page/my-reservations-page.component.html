@@ -1,0 +1,141 @@
+<section class="my-reservations-page">
+  <div class="my-reservations-page__header">
+    <app-page-header
+      kicker="Reservas"
+      title="Mis reservas"
+      subtitle="Consulta el historial y estatus de tus solicitudes personales."
+    />
+
+    <div class="summary-card" aria-label="Total de reservas personales">
+      <app-icon-box icon="event_available" />
+      <div>
+        <span>Reservas</span>
+        <strong>{{ reservations().length }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters-panel">
+    <mat-form-field appearance="outline">
+      <mat-label>Buscar</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        type="search"
+        placeholder="Folio o laboratorio"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Estatus</mat-label>
+      <mat-select
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event)"
+      >
+        @for (option of statusOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Revision</mat-label>
+      <mat-select
+        [ngModel]="reviewFilter()"
+        (ngModelChange)="reviewFilter.set($event)"
+      >
+        <mat-option value="all">Todas</mat-option>
+        <mat-option value="required">Requieren revision</mat-option>
+        <mat-option value="not-required">Sin revision requerida</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Desde</mat-label>
+      <input
+        matInput
+        type="date"
+        [ngModel]="startDateFilter()"
+        (ngModelChange)="startDateFilter.set($event)"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Hasta</mat-label>
+      <input
+        matInput
+        type="date"
+        [ngModel]="endDateFilter()"
+        (ngModelChange)="endDateFilter.set($event)"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Ordenar</mat-label>
+      <mat-select
+        [ngModel]="sortOrder()"
+        (ngModelChange)="sortOrder.set($event)"
+      >
+        <mat-option value="recent">Mas recientes</mat-option>
+        <mat-option value="upcoming">Proximas primero</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-stroked-button type="button" (click)="resetFilters()">
+      <mat-icon>refresh</mat-icon>
+      Limpiar
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="app-state-panel">
+      <mat-spinner diameter="36" />
+      <p>Cargando tus reservas...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <app-info-callout
+      variant="danger"
+      icon="warning"
+      [message]="errorMessage()"
+    />
+  } @else if (!reservations().length) {
+    <div class="app-state-panel">
+      <app-icon-box icon="event_busy" />
+      <h2>Aun no tienes reservas</h2>
+      <p>
+        Cuando generes una solicitud, aparecera aqui con su estatus y detalle.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/laboratorios">
+        Ver laboratorios
+        <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+      </a>
+    </div>
+  } @else if (!filteredReservations().length) {
+    <div class="app-state-panel">
+      <app-icon-box icon="filter_alt_off" />
+      <h2>Sin resultados</h2>
+      <p>Ajusta los filtros para ver mas reservas personales.</p>
+      <button mat-stroked-button type="button" (click)="resetFilters()">
+        Limpiar filtros
+      </button>
+    </div>
+  } @else {
+    <p class="results-caption">
+      Mostrando {{ filteredReservations().length }} de
+      {{ reservations().length }} reservas personales.
+    </p>
+
+    <div class="reservations-grid">
+      @for (reservation of filteredReservations(); track reservation.id) {
+        <app-my-reservation-card
+          [reservation]="reservation"
+          [dateLabel]="formatDate(reservation)"
+          [timeLabel]="formatTime(reservation)"
+          (viewDetails)="viewDetails($event)"
+        />
+      }
+    </div>
+  }
+</section>

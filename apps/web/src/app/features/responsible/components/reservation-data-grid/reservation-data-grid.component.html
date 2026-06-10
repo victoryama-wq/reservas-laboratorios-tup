@@ -1,0 +1,14 @@
+<app-section-card
+  title="Datos de la reserva"
+  subtitle="Informacion general de la solicitud"
+  icon="calendar_today"
+>
+  <dl class="reservation-data-grid">
+    @for (field of items(); track field.label) {
+      <div>
+        <dt>{{ field.label }}</dt>
+        <dd>{{ valueOrFallback(field.value) }}</dd>
+      </div>
+    }
+  </dl>
+</app-section-card>

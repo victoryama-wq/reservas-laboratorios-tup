@@ -1,0 +1,79 @@
+<section class="responsible-page">
+  <app-page-header
+    kicker="Responsable"
+    title="Solicitudes pendientes"
+    subtitle="Revisa las solicitudes de reserva que requieren tu validacion."
+  >
+    <button
+      page-actions
+      mat-stroked-button
+      class="refresh-button"
+      type="button"
+      (click)="loadReservations()"
+    >
+      <mat-icon class="text-[20px]">refresh</mat-icon>
+      Actualizar
+    </button>
+  </app-page-header>
+
+  @if (loading()) {
+    <div class="state-card app-state-panel">
+      <mat-progress-spinner mode="indeterminate" diameter="36" />
+      <p>Cargando solicitudes...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-card app-state-panel error">
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else {
+    <div class="summary-row">
+      <div class="stat-card">
+        <app-icon-box icon="description" />
+        <div>
+          <p>Total pendientes</p>
+          <strong>{{ filteredReservations().length }}</strong>
+        </div>
+      </div>
+      <div class="mini-stat">
+        <strong>{{ riskCount() }}</strong>
+        <span>Con riesgo</span>
+      </div>
+      <div class="mini-stat">
+        <strong>{{ protocolCount() }}</strong>
+        <span>Con protocolo</span>
+      </div>
+    </div>
+
+    <div class="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Laboratorio</mat-label>
+        <mat-select
+          [value]="selectedLab()"
+          (selectionChange)="selectedLab.set($event.value)"
+        >
+          <mat-option value="all">Todos</mat-option>
+          @for (lab of labOptions(); track lab.id) {
+            <mat-option [value]="lab.id">{{ lab.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (filteredReservations().length) {
+      <div class="request-grid">
+        @for (reservation of filteredReservations(); track reservation.id) {
+          <app-pending-request-card
+            [request]="reservation"
+            [dateLabel]="formatDate(reservation)"
+            [timeLabel]="formatTime(reservation)"
+            (review)="onReviewRequest($event)"
+          />
+        }
+      </div>
+    } @else {
+      <div class="state-card">
+        <p>No hay solicitudes pendientes para revisar.</p>
+      </div>
+    }
+  }
+</section>

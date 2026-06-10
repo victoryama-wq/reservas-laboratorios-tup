@@ -1,0 +1,56 @@
+<app-section-card
+  title="Decision"
+  subtitle="Revise la informacion de la reserva y tome una decision."
+  icon="verified_user"
+>
+  <div class="decision-panel">
+    <div class="decision-panel__fields">
+      <mat-form-field appearance="outline">
+        <mat-label>Nota de aprobacion opcional</mat-label>
+        <textarea
+          matInput
+          rows="3"
+          [attr.maxlength]="maxLength()"
+          [value]="approvalNote()"
+          (input)="updateApprovalNote($any($event.target).value)"
+        ></textarea>
+        <mat-hint align="end">{{ approvalNote().length }}/{{ maxLength() }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Motivo de rechazo</mat-label>
+        <textarea
+          matInput
+          rows="3"
+          [attr.maxlength]="maxLength()"
+          [value]="rejectionReason()"
+          (input)="updateRejectionReason($any($event.target).value)"
+        ></textarea>
+        <mat-hint align="end">{{ rejectionReason().length }}/{{ maxLength() }}</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div class="decision-panel__actions">
+      <button
+        mat-stroked-button
+        class="reject-button"
+        type="button"
+        [disabled]="disabled() || loading()"
+        (click)="emitReject()"
+      >
+        <mat-icon>close</mat-icon>
+        {{ rejectLabel() }}
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        [disabled]="disabled() || loading()"
+        (click)="emitApprove()"
+      >
+        <mat-icon>check</mat-icon>
+        {{ approveLabel() }}
+      </button>
+    </div>
+  </div>
+</app-section-card>

@@ -1,0 +1,73 @@
+<section class="lab-detail">
+  @if (loading()) {
+    <div class="state-panel app-state-panel">
+      <mat-spinner diameter="36" />
+      <p>Cargando laboratorio...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-panel app-state-panel error" role="alert">
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (!lab()) {
+    <div class="state-panel app-state-panel">
+      <p>El laboratorio solicitado no esta disponible.</p>
+      <a mat-button routerLink="/laboratorios">Volver al catalogo</a>
+    </div>
+  } @else {
+    <app-page-header
+      kicker="Detalle de laboratorio"
+      [title]="lab()?.name ?? ''"
+      [subtitle]="lab()?.description ?? ''"
+      backLabel="Volver al catalogo"
+      backLink="/laboratorios"
+      statusLabel="Disponible"
+      statusVariant="success"
+      statusIcon="check_circle"
+    />
+
+    @if (lab(); as selectedLab) {
+      <div class="detail-layout">
+        <aside class="summary-card">
+          <h2>Resumen del laboratorio</h2>
+          <dl>
+            <div>
+              <app-icon-box icon="schedule" variant="primary" />
+              <div>
+                <dt>Horario general</dt>
+                <dd>{{ scheduleSummary(selectedLab) }}</dd>
+              </div>
+            </div>
+            <div>
+              <app-icon-box icon="event_available" variant="primary" />
+              <div>
+                <dt>Anticipacion minima</dt>
+                <dd>{{ minNoticeLabel(selectedLab) }}</dd>
+              </div>
+            </div>
+            <div>
+              <app-icon-box icon="verified_user" variant="primary" />
+              <div>
+                <dt>Validaciones requeridas</dt>
+                <dd>Validacion y protocolo si hay riesgo.</dd>
+              </div>
+            </div>
+          </dl>
+
+          <a
+            mat-flat-button
+            color="primary"
+            [routerLink]="['/reservar', selectedLab.slug]"
+            [attr.aria-label]="'Reservar ' + selectedLab.name"
+          >
+            <mat-icon aria-hidden="true">calendar_today</mat-icon>
+            Reservar este laboratorio
+          </a>
+        </aside>
+
+        <section class="availability-section">
+          <app-lab-calendar [lab]="selectedLab" />
+        </section>
+      </div>
+    }
+  }
+</section>
