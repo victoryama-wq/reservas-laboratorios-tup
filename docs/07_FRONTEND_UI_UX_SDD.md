@@ -749,3 +749,22 @@ Reglas visuales:
   romper el sistema visual;
 - este ajuste es solo de interfaz y no cambia servicios, rutas, validaciones,
   Cloud Functions ni reglas de seguridad.
+
+## Actualizacion Fase 16C: UI de reglas y bloqueos
+
+La ruta `/admin/reglas` debe mantener la identidad visual operativa morada y
+usar componentes reutilizables:
+
+- `AppPageHeaderComponent`;
+- `AppSectionCardComponent`;
+- `AppStatusChipComponent`;
+- `AppInfoCalloutComponent`.
+
+La vista debe incluir dos secciones por tabs:
+
+1. Reglas especiales por laboratorio.
+2. Bloqueos extraordinarios globales o por laboratorio.
+
+Los formularios administrativos se abren en dialogs responsive, usan Angular
+Material para controles y Tailwind/clases globales para layout. Los cambios se
+envian a Cloud Functions, nunca con `updateDoc` directo desde Angular.

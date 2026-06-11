@@ -451,3 +451,33 @@ Ambas funciones rechazan campos arbitrarios fuera del contrato y registran:
 
 No validan `calendarId` contra Google Calendar API en esta fase; solo exigen
 texto no vacio.
+
+## Actualizacion Fase 16C: admin rules functions
+
+Se agregan callables HTTPS Function v2 para Admin/Sistemas:
+
+```text
+adminCreateSpecialRule
+adminUpdateSpecialRule
+adminCreateBlockedPeriod
+adminUpdateBlockedPeriod
+```
+
+Validaciones comunes:
+
+- `request.auth` obligatorio;
+- perfil `users/{uid}` existente, activo y con rol `admin_sistemas`;
+- rechazo de campos no permitidos;
+- fechas y horas con formato valido;
+- laboratorios existentes cuando aplique;
+- auditoria en `auditEvents`.
+
+`adminCreateSpecialRule` y `adminUpdateSpecialRule` escriben dentro de
+`labs/{labId}.specialRules` y no borran otras reglas del arreglo.
+
+`adminCreateBlockedPeriod` y `adminUpdateBlockedPeriod` escriben en
+`blockedPeriods` y usan `active: false` como baja logica.
+
+`createReservation` y `approveReservation` quedan integradas con
+`blockedPeriods` activos. Las reglas de seguridad siguen bloqueando escritura
+directa critica desde el frontend.

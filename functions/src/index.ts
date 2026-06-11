@@ -16,5 +16,11 @@ export {adminPreauthorizeUser} from
   "./modules/admin/admin-preauthorize-user.function";
 export {adminCreateLab, adminUpdateLab} from
   "./modules/admin/admin-lab.function";
+export {
+  adminCreateSpecialRule,
+  adminUpdateSpecialRule,
+  adminCreateBlockedPeriod,
+  adminUpdateBlockedPeriod,
+} from "./modules/admin/admin-rules.function";
 export {ensureUserProfile} from
   "./modules/users/ensure-user-profile.function";

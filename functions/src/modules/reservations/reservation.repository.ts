@@ -9,6 +9,7 @@ import {
 
 import {
   AppUser,
+  BlockedPeriodDoc,
   LabDoc,
   ReservationDoc,
   ReservationStatus,
@@ -157,6 +158,44 @@ export class ReservationRepository {
               endAt,
               reservationStart,
               reservationEnd,
+          );
+        });
+  }
+
+  /**
+   * Finds active blocked periods that affect a requested lab and range.
+   *
+   * @param {string} labId Laboratory id.
+   * @param {Date} startAt Start date.
+   * @param {Date} endAt End date.
+   * @return {Promise<BlockedPeriodDoc[]>} Matching blocked periods.
+   */
+  async findActiveBlockedPeriods(
+      labId: string,
+      startAt: Date,
+      endAt: Date,
+  ): Promise<BlockedPeriodDoc[]> {
+    const snapshot = await this.db
+        .collection("blockedPeriods")
+        .where("active", "==", true)
+        .get();
+
+    return snapshot.docs
+        .map((document) => document.data() as BlockedPeriodDoc)
+        .filter((period) => {
+          if (
+            period.scope === "lab" &&
+            !(period.labIds ?? []).includes(labId)
+          ) {
+            return false;
+          }
+          const periodStart = this.toDate(period.startAt);
+          const periodEnd = this.toDate(period.endAt);
+
+          return Boolean(
+              periodStart &&
+              periodEnd &&
+              rangesOverlap(startAt, endAt, periodStart, periodEnd),
           );
         });
   }

@@ -509,3 +509,51 @@ Eventos de auditoria esperados:
 
 - `auditEvents.action = ADMIN_CREATE_LAB`
 - `auditEvents.action = ADMIN_UPDATE_LAB`
+
+## Actualizacion Fase 16C: specialRules y blockedPeriods
+
+`labs/{labId}.specialRules` queda habilitado para gestion desde
+`/admin/reglas`. Cada regla conserva el modelo `LabSpecialRule`:
+
+```ts
+interface LabSpecialRule {
+  id: string;
+  name: string;
+  active: boolean;
+  termStart?: string;
+  termEnd?: string;
+  daysOfWeek?: number[];
+  blockedStart?: string;
+  blockedEnd?: string;
+  fullDayBlocked?: boolean;
+  reason: string;
+}
+```
+
+`blockedPeriods` mantiene el modelo ya definido para bloqueos extraordinarios:
+
+```ts
+interface BlockedPeriodDoc {
+  id: string;
+  name: string;
+  description?: string;
+  reason: string;
+  scope: 'global' | 'lab';
+  labIds?: string[];
+  startAt: Timestamp;
+  endAt: Timestamp;
+  fullDay: boolean;
+  active: boolean;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+```
+
+Reglas de datos:
+
+- `scope = global` aplica a todos los laboratorios y guarda `labIds: []`;
+- `scope = lab` exige al menos un laboratorio existente;
+- no se borran reglas ni bloqueos desde la interfaz, se desactivan con
+  `active: false`;
+- cada creacion/actualizacion genera un evento en `auditEvents`.

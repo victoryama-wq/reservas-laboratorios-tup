@@ -118,6 +118,21 @@ export const createReservation = onCall(
       let calendarErrorReason: string | undefined;
 
       if (!rejectionDecision) {
+        const blockedPeriods = await reservationRepository
+            .findActiveBlockedPeriods(lab.id, startAt, endAt);
+
+        if (blockedPeriods.length) {
+          rejectionDecision = {
+            status: "RECHAZADA_REGLA_HORARIO",
+            reason: [
+              "El horario solicitado esta bloqueado",
+              "por una restriccion institucional.",
+            ].join(" "),
+          };
+        }
+      }
+
+      if (!rejectionDecision) {
         const conflicts = await reservationRepository.runTransaction(
             (transaction) => reservationRepository.findBlockingConflicts(
                 transaction,

@@ -191,3 +191,15 @@ Secuencia técnica oficial para protocolos:
 4. createReservation verifica existencia, propiedad y validez del archivo.
 5. createReservation vincula protocolFiles a la reserva.
 6. Una función programada futura podrá limpiar archivos huérfanos.
+## Actualizacion Fase 16C: bloqueos y Google Calendar
+
+Los bloqueos extraordinarios configurados en `blockedPeriods` no crean eventos
+automaticos en Google Calendar.
+
+La integracion con Google Calendar permanece en los puntos de reserva:
+
+- `createReservation` valida disponibilidad externa antes de confirmar;
+- `approveReservation` valida disponibilidad externa y crea evento al aprobar.
+
+Si un bloqueo administrativo aplica, la reserva se rechaza o la aprobacion se
+detiene antes de intentar crear evento en Google Calendar.

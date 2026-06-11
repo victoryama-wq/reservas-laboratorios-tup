@@ -173,6 +173,25 @@ git diff --check
 git status --short
 ```
 
+## Pruebas Fase 16C: reglas y bloqueos
+
+Agregar o ejecutar pruebas manuales para:
+
+- `/admin/reglas` carga en primera navegacion sin segundo clic;
+- Admin/Sistemas puede crear regla especial por laboratorio;
+- Admin/Sistemas puede editar regla especial existente;
+- Admin/Sistemas puede activar/desactivar regla especial;
+- regla parcial exige `blockedEnd > blockedStart`;
+- regla de dia completo no exige horas;
+- Admin/Sistemas puede crear bloqueo global;
+- Admin/Sistemas puede crear bloqueo por uno o varios laboratorios;
+- bloqueo por laboratorio exige `labIds`;
+- `endAt <= startAt` se rechaza en backend;
+- crear reserva dentro de bloqueo activo queda `RECHAZADA_REGLA_HORARIO`;
+- aprobar reserva pendiente dentro de bloqueo activo se detiene;
+- Angular usa callables admin y no escritura directa;
+- cada cambio genera `auditEvents`.
+
 ## Pruebas Fase 16A.1: autoalta y prealta
 
 Agregar o ejecutar pruebas manuales para:

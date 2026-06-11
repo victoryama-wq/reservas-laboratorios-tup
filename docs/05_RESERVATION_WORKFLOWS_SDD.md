@@ -155,3 +155,19 @@ CALENDAR_ERROR
 EMAIL_ERROR
 
 RECHAZADA_CONFLICTO queda reservado exclusivamente para traslapes de horario.
+## Actualizacion Fase 16C: flujo con reglas y bloqueos
+
+Durante `createReservation`, despues de validar usuario, laboratorio, fechas,
+horario base, anticipacion minima y reglas especiales, el backend tambien debe
+consultar `blockedPeriods` activos.
+
+Si existe traslape con un bloqueo global o un bloqueo del laboratorio
+solicitado, la solicitud no debe confirmarse ni quedar pendiente. Debe quedar
+rechazada con `RECHAZADA_REGLA_HORARIO` y mensaje claro.
+
+Durante `approveReservation`, el responsable o Admin/Sistemas debe pasar por la
+misma revalidacion antes de crear evento en Google Calendar. Si un bloqueo fue
+creado entre la solicitud y la aprobacion, la aprobacion debe detenerse.
+
+La administracion de reglas y bloqueos se realiza desde `/admin/reglas` y no
+desde el flujo docente.

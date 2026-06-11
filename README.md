@@ -1081,3 +1081,36 @@ escritorio y tablet:
 
 Este ajuste es solo visual. No modifica servicios, rutas, validaciones,
 Cloud Functions ni reglas de seguridad.
+
+## Panel Admin/Sistemas Fase 16C: reglas y bloqueos
+
+La ruta `/admin/reglas` permite a `admin_sistemas` gestionar excepciones
+operativas sin escribir reservas directamente desde Angular.
+
+Cloud Functions disponibles:
+
+```text
+adminCreateSpecialRule
+adminUpdateSpecialRule
+adminCreateBlockedPeriod
+adminUpdateBlockedPeriod
+```
+
+Alcance implementado:
+
+- crear, editar, activar y desactivar `labs/{labId}.specialRules`;
+- crear, editar, activar y desactivar documentos en `blockedPeriods`;
+- registrar auditoria en `auditEvents`;
+- validar bloqueos activos al crear reservas;
+- revalidar bloqueos activos antes de aprobar reservas pendientes.
+
+Los bloqueos extraordinarios no crean eventos en Google Calendar por si mismos.
+Solo impiden que una reserva sea creada o aprobada dentro del rango bloqueado.
+La sincronizacion con Google Calendar sigue ocurriendo cuando una reserva queda
+confirmada o confirmada tras validacion.
+
+No se hizo deploy ni commit en esta fase. Comando recomendado cuando se autorice:
+
+```bash
+npx firebase deploy --only functions --project reservas-laboratorios-tup
+```

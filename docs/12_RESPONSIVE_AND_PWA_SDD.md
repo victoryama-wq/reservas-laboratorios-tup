@@ -377,3 +377,16 @@ Reglas responsive:
   evitar recortes o desalineaciones;
 - los campos `calendarId`, correos y ruta QR deben permitir corte de linea y no
   provocar overflow horizontal.
+## Actualizacion Fase 16C: responsive de reglas administrativas
+
+La vista `/admin/reglas` debe funcionar en escritorio y tablet con cards
+responsivas. En movil, las acciones deben apilarse verticalmente y los dialogs
+deben usar:
+
+```text
+width: min(760px, calc(100vw - 32px))
+max-height: calc(100vh - 32px)
+```
+
+Los filtros y selects deben ocupar ancho completo en pantallas pequenas. No se
+deben crear tablas horizontales para reglas o bloqueos en esta fase.

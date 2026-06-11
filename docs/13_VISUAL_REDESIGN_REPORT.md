@@ -1331,3 +1331,18 @@ Regla para futuros dialogos administrativos:
   alto y `line-height` definidos;
 - evitar scroll horizontal salvo que sea una navegacion de tabs o contenido
   deliberadamente desplazable.
+## Fase 16C: reglas y bloqueos administrativos
+
+Se agrego la pantalla `/admin/reglas` con la misma linea visual del panel
+Admin/Sistemas:
+
+- encabezado con kicker, titulo y subtitulo;
+- cards blancas `rounded-2xl` con bordes suaves;
+- chips compactos para activo/inactivo;
+- callouts para alcance y seguridad;
+- dialogs Material responsive;
+- iconografia Material centrada y completa;
+- tipografia Inter y paleta operativa morada.
+
+El cambio es visual y administrativo. No altera rutas publicas, roles ni
+permisos existentes. Las acciones criticas se delegan a Cloud Functions.

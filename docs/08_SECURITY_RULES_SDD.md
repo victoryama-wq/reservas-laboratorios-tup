@@ -152,3 +152,18 @@ Requisitos:
 Las reglas actuales permiten lectura admin de `labs` y lectura de laboratorios
 activos a usuarios con perfil activo. No se requiere abrir escritura directa
 amplia para esta fase.
+## Actualizacion Fase 16C: permisos para reglas y bloqueos
+
+Las escrituras criticas de reglas especiales y bloqueos extraordinarios se
+realizan mediante Cloud Functions con Admin SDK.
+
+Modelo esperado:
+
+- solo `admin_sistemas` puede crear o editar reglas y bloqueos;
+- usuarios autenticados con perfil activo pueden leer bloqueos necesarios para
+  disponibilidad visual;
+- el frontend docente no debe mostrar motivos administrativos sensibles;
+- `reservationLogs` y `auditEvents` siguen escribiendose solo desde backend.
+
+No se requiere exponer `calendarId`, secretos ni enlaces publicos a Storage
+para administrar reglas o bloqueos.

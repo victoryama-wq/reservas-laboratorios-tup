@@ -85,6 +85,7 @@ export const approveReservation = onCall(
 
       validateReservationReviewTiming(context.lab, startAt, endAt, new Date());
       await assertProtocolFilesExist(context.reservation);
+      await assertNoBlockedPeriodConflict(context, startAt, endAt);
       await assertNoInternalConflict(context, startAt, endAt);
 
       try {
@@ -547,6 +548,35 @@ async function assertNoInternalConflict(
     throw new HttpsError(
         "failed-precondition",
         "Existe una reserva traslapada para este laboratorio.",
+    );
+  }
+}
+
+/**
+ * Validates configured blocked periods before approval.
+ *
+ * @param {ReviewContext} context Review context.
+ * @param {Date} startAt Start date.
+ * @param {Date} endAt End date.
+ */
+async function assertNoBlockedPeriodConflict(
+    context: ReviewContext,
+    startAt: Date,
+    endAt: Date,
+): Promise<void> {
+  const blockedPeriods = await context.repository.findActiveBlockedPeriods(
+      context.reservation.labId,
+      startAt,
+      endAt,
+  );
+
+  if (blockedPeriods.length) {
+    throw new HttpsError(
+        "failed-precondition",
+        [
+          "El horario solicitado esta bloqueado",
+          "por una restriccion institucional.",
+        ].join(" "),
     );
   }
 }

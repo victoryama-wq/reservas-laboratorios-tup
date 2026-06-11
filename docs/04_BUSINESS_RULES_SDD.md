@@ -194,3 +194,28 @@ Al aprobar una reserva pendiente, approveReservation debe revalidar el
 protocolo con la misma regla:
 
 protocolRequired = risky === true || externalParticipants === true
+
+## Actualizacion Fase 16C: bloqueos administrativos
+
+Admin/Sistemas puede configurar dos tipos de restriccion operativa:
+
+1. Reglas especiales por laboratorio en `labs/{labId}.specialRules`.
+2. Bloqueos extraordinarios en `blockedPeriods`.
+
+Las reservas deben ser rechazadas por regla de horario cuando el rango
+solicitado intersecta una regla o bloqueo activo aplicable.
+
+Estatus esperado:
+
+```text
+RECHAZADA_REGLA_HORARIO
+```
+
+La validacion se ejecuta en backend en:
+
+- `createReservation`, antes de confirmar o dejar pendiente una reserva;
+- `approveReservation`, antes de crear evento en Google Calendar.
+
+Los bloqueos extraordinarios no modifican reservas ya existentes ni crean
+eventos por si mismos en Google Calendar. Solo bloquean nuevas confirmaciones
+o aprobaciones dentro del rango configurado.
