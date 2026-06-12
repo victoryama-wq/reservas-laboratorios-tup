@@ -211,3 +211,24 @@ Agregar o ejecutar pruebas manuales para:
 - Angular no crea perfiles ni escribe roles directamente;
 - `/admin/usuarios` lista usuarios y preautorizados pendientes en la primera
   navegacion, sin requerir segundo clic.
+
+## Pruebas Fase 16D: reserva con formulario en dialogo
+
+Validaciones obligatorias:
+
+- abrir `/reservar/:labSlug` en movil, tablet y escritorio;
+- confirmar que el calendario ocupa la superficie principal;
+- confirmar que existe la accion `Nueva solicitud`;
+- abrir el dialogo sin seleccionar horario y capturar fecha/hora manualmente;
+- seleccionar un slot disponible y abrir el dialogo;
+- confirmar que se precargan fecha, hora de inicio y hora de finalizacion;
+- completar una reserva no riesgosa y confirmar que el dialogo se cierra;
+- confirmar que el calendario se refresca o muestra evento optimista para
+  estatus bloqueantes;
+- completar una solicitud con protocolo y confirmar que conserva la carga real
+  de archivo;
+- provocar un error controlado y confirmar que el dialogo permanece abierto;
+- confirmar que no hay overflow horizontal en el dialogo;
+- confirmar que botones, foco, iconos y textos son accesibles y legibles;
+- confirmar que no cambia la estructura del payload enviado a
+  `createReservation`.

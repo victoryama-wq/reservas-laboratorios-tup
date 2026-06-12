@@ -1,25 +1,41 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { EventInput } from '@fullcalendar/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { AppPageHeaderComponent } from '../../../shared/components';
+import {
+  AppInfoCalloutComponent,
+  AppPageHeaderComponent,
+  AppSectionCardComponent,
+} from '../../../shared/components';
 import { LabDoc } from '../../../shared/models';
 import { AvailabilitySlot } from '../../calendar/components';
 import { LabCalendarComponent } from '../../calendar/lab-calendar/lab-calendar.component';
 import { LabService } from '../../labs/services/lab.service';
 import {
   ReservationCreatedEvent,
-  ReservationFormComponent,
 } from '../reservation-form/reservation-form.component';
+import {
+  ReservationFormDialogComponent,
+  ReservationFormDialogData,
+} from '../components';
 
 @Component({
   selector: 'app-reserve-lab-page',
   imports: [
+    AppInfoCalloutComponent,
     AppPageHeaderComponent,
+    AppSectionCardComponent,
     LabCalendarComponent,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
     MatProgressSpinnerModule,
-    ReservationFormComponent,
+    MatSnackBarModule,
     RouterLink,
   ],
   templateUrl: './reserve-lab-page.component.html',
@@ -28,6 +44,8 @@ import {
 export class ReserveLabPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly labService = inject(LabService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   protected readonly lab = signal<LabDoc | null>(null);
   protected readonly loading = signal(true);
@@ -61,6 +79,48 @@ export class ReserveLabPageComponent implements OnInit {
 
   protected onCalendarSlotSelected(slot: AvailabilitySlot): void {
     this.selectedCalendarSlot.set(slot);
+  }
+
+  protected openReservationDialog(selectedLab: LabDoc): void {
+    const dialogRef = this.dialog.open<
+      ReservationFormDialogComponent,
+      ReservationFormDialogData,
+      ReservationCreatedEvent
+    >(ReservationFormDialogComponent, {
+      width: 'min(1120px, calc(100vw - 32px))',
+      maxWidth: 'calc(100vw - 24px)',
+      maxHeight: 'calc(100vh - 32px)',
+      autoFocus: 'dialog',
+      restoreFocus: true,
+      ariaLabel: 'Nueva solicitud de reserva',
+      panelClass: 'reservation-form-dialog-panel',
+      data: {
+        lab: selectedLab,
+        calendarSlot: this.selectedCalendarSlot(),
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((event) => {
+      if (!event) {
+        return;
+      }
+
+      this.onReservationCreated(event);
+      this.showReservationResultMessage(event);
+    });
+  }
+
+  protected selectedSlotSummary(): string {
+    const slot = this.selectedCalendarSlot();
+
+    if (!slot) {
+      return '';
+    }
+
+    const date = this.formatDayKey(slot.dayKey);
+    const endTime = slot.endTime ? ` - ${slot.endTime}` : '';
+
+    return `${date}, ${slot.startTime}${endTime}`;
   }
 
   protected onReservationCreated(event: ReservationCreatedEvent): void {
@@ -106,5 +166,62 @@ export class ReserveLabPageComponent implements OnInit {
       'CONFIRMADA_TRAS_VALIDACION',
       'ERROR_CALENDAR',
     ].includes(status);
+  }
+
+  private showReservationResultMessage(event: ReservationCreatedEvent): void {
+    const status = event.result.status;
+
+    if (status === 'CONFIRMADA' || status === 'CONFIRMADA_TRAS_VALIDACION') {
+      this.snackBar.open(
+        'Reserva confirmada. Se agrego al calendario institucional.',
+        'Cerrar',
+        { duration: 6500, panelClass: ['app-snackbar--success'] },
+      );
+      return;
+    }
+
+    if (status === 'PENDIENTE_VALIDACION') {
+      this.snackBar.open(
+        'Solicitud enviada. Quedo pendiente de revision por el responsable.',
+        'Cerrar',
+        { duration: 7000, panelClass: ['app-snackbar--info'] },
+      );
+      return;
+    }
+
+    if (status === 'ERROR_CALENDAR') {
+      this.snackBar.open(
+        'La solicitud requiere revision tecnica por un error de calendario.',
+        'Cerrar',
+        { duration: 7500, panelClass: ['app-snackbar--warning'] },
+      );
+      return;
+    }
+
+    if (status.startsWith('RECHAZADA')) {
+      this.snackBar.open(
+        'No fue posible confirmar la solicitud. Revise el motivo indicado.',
+        'Cerrar',
+        { duration: 7500, panelClass: ['app-snackbar--warning'] },
+      );
+      return;
+    }
+
+    this.snackBar.open(
+      event.result.message ?? 'Solicitud procesada correctamente.',
+      'Cerrar',
+      { duration: 6500, panelClass: ['app-snackbar--info'] },
+    );
+  }
+
+  private formatDayKey(dayKey: string): string {
+    const date = new Date(`${dayKey}T00:00:00`);
+
+    return new Intl.DateTimeFormat('es-MX', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
   }
 }

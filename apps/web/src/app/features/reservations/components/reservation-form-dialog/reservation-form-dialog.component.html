@@ -1,0 +1,39 @@
+<section
+  class="reservation-form-dialog"
+  role="group"
+  aria-labelledby="reservation-form-dialog-title"
+>
+  <header class="reservation-form-dialog__header">
+    <div class="reservation-form-dialog__title">
+      <app-icon-box icon="edit_calendar" />
+      <div class="min-w-0">
+        <p class="app-page-kicker">Nueva solicitud</p>
+        <h2 id="reservation-form-dialog-title" class="m-0 text-2xl font-bold tracking-tight text-slate-950">
+          Nueva solicitud de reserva
+        </h2>
+        <p class="m-0 mt-1 text-sm leading-6 text-slate-600">
+          {{ data.lab.name }}
+        </p>
+      </div>
+    </div>
+
+    <button
+      mat-icon-button
+      type="button"
+      aria-label="Cerrar formulario de reserva"
+      [disabled]="submitting()"
+      mat-dialog-close
+    >
+      <mat-icon aria-hidden="true">close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="reservation-form-dialog__content">
+    <app-reservation-form
+      [lab]="data.lab"
+      [calendarSlot]="data.calendarSlot"
+      (submittingChange)="onSubmittingChange($event)"
+      (reservationCreated)="onReservationCreated($event)"
+    />
+  </mat-dialog-content>
+</section>

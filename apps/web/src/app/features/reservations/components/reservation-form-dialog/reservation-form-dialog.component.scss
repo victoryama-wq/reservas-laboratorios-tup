@@ -1,0 +1,44 @@
+:host {
+  display: block;
+  max-width: 100%;
+}
+
+.reservation-form-dialog {
+  display: grid;
+  max-height: calc(100vh - 32px);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.reservation-form-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.reservation-form-dialog__title {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.reservation-form-dialog__content {
+  max-height: calc(100vh - 150px);
+  padding: 24px !important;
+  overflow: auto;
+}
+
+@media (max-width: 640px) {
+  .reservation-form-dialog__header {
+    padding: 18px 16px 14px;
+  }
+
+  .reservation-form-dialog__content {
+    max-height: calc(100vh - 132px);
+    padding: 16px !important;
+  }
+}

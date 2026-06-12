@@ -390,3 +390,28 @@ max-height: calc(100vh - 32px)
 
 Los filtros y selects deben ocupar ancho completo en pantallas pequenas. No se
 deben crear tablas horizontales para reglas o bloqueos en esta fase.
+
+## Actualizacion Fase 16D: responsive de reserva por laboratorio
+
+La ruta `/reservar/:labSlug` debe comportarse como una experiencia
+mobile-first basada en:
+
+- calendario de disponibilidad como superficie principal;
+- card de accion `Nueva solicitud` para abrir el formulario;
+- dialogo responsive para el formulario de reserva;
+- una columna en movil y tablet estrecha;
+- calendario amplio y card lateral de accion en escritorio;
+- sin overflow horizontal en el dialogo ni en el calendario;
+- cierre protegido del dialogo durante el envio;
+- cierre automatico del dialogo solo cuando la solicitud se procesa;
+- permanencia del dialogo si ocurre un error para no perder datos capturados.
+
+Dimensiones recomendadas para el dialogo de reserva:
+
+- escritorio: `min(1120px, calc(100vw - 32px))`;
+- movil: no exceder `calc(100vw - 24px)`;
+- altura maxima: `calc(100vh - 32px)`;
+- contenido con scroll interno.
+
+La seleccion de calendario puede seguir precargando el formulario sin cambiar
+los nombres de controles ni la estructura del payload.

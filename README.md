@@ -1114,3 +1114,38 @@ No se hizo deploy ni commit en esta fase. Comando recomendado cuando se autorice
 ```bash
 npx firebase deploy --only functions --project reservas-laboratorios-tup
 ```
+
+## Fase 16D: reserva con calendario amplio y formulario en dialogo
+
+La ruta `/reservar/:labSlug` fue ajustada visualmente para dar prioridad al
+calendario de disponibilidad. El formulario de solicitud ya no queda fijo al
+lado del calendario; ahora se abre en un dialogo responsive mediante el boton
+`Nueva solicitud`.
+
+Comportamiento:
+
+- el calendario conserva la seleccion de horario y la disponibilidad visual;
+- si el usuario selecciona un horario, el formulario del dialogo se abre con
+  fecha, hora inicial y hora final precargadas;
+- si no hay seleccion, el formulario permite capturar fecha y horarios
+  manualmente;
+- el dialogo reutiliza el mismo `ReservationFormComponent` y
+  `ReservationStepperFormComponent`;
+- el formulario conserva Reactive Forms, validaciones, carga de protocolo,
+  payload y llamada a `createReservation`;
+- al crear una reserva correctamente, el dialogo se cierra y el calendario se
+  refresca con el evento optimista cuando el estatus bloquea horario;
+- si hay error de envio, el dialogo permanece abierto y conserva los datos
+  capturados.
+
+Mensajes visibles:
+
+- `CONFIRMADA`: reserva confirmada y agregada al calendario institucional;
+- `PENDIENTE_VALIDACION`: solicitud enviada y pendiente de revision;
+- `RECHAZADA_*`: solicitud no confirmada, revisar motivo;
+- `ERROR_CALENDAR`: solicitud requiere revision tecnica por calendario.
+
+Este ajuste es solo de interfaz y experiencia de usuario. No modifica rutas,
+roles, permisos, modelos, servicios, Cloud Functions, reglas de negocio,
+Firestore Rules, Storage Rules, Google Calendar API, Gmail API ni estructura del
+payload de reserva.

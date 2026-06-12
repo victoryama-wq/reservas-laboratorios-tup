@@ -67,6 +67,7 @@ export class ReservationFormComponent {
   readonly lab = input.required<LabDoc>();
   readonly calendarSlot = input<AvailabilitySlot | null>(null);
   readonly reservationCreated = output<ReservationCreatedEvent>();
+  readonly submittingChange = output<boolean>();
 
   private readonly formBuilder = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
@@ -273,6 +274,7 @@ export class ReservationFormComponent {
 
     try {
       this.submitting.set(true);
+      this.submittingChange.emit(true);
       const protocolFiles = await this.uploadProtocolFilesIfNeeded(
         mustUploadProtocol,
       );
@@ -280,13 +282,13 @@ export class ReservationFormComponent {
       const result = await this.reservationService.createReservation(payload);
       this.result.set(result);
       this.reservationCreated.emit({ result, payload });
-      this.snackBar.open(result.message, 'Cerrar', { duration: 6500 });
     } catch (error) {
       this.snackBar.open(this.getReadableError(error), 'Cerrar', {
         duration: 6500,
       });
     } finally {
       this.submitting.set(false);
+      this.submittingChange.emit(false);
     }
   }
 

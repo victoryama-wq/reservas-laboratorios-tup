@@ -1346,3 +1346,58 @@ Admin/Sistemas:
 
 El cambio es visual y administrativo. No altera rutas publicas, roles ni
 permisos existentes. Las acciones criticas se delegan a Cloud Functions.
+
+## Fase 16D: reserva con calendario amplio y formulario modal
+
+Se refactorizo visualmente la ruta `/reservar/:labSlug` para reducir saturacion
+en escritorio y mejorar la experiencia de captura:
+
+- el calendario queda como superficie principal de disponibilidad;
+- la solicitud se inicia desde una card lateral o superior con boton
+  `Nueva solicitud`;
+- el formulario se abre en `ReservationFormDialogComponent`, un dialogo
+  Material responsive;
+- el dialogo reutiliza `ReservationFormComponent` y
+  `ReservationStepperFormComponent`;
+- la seleccion previa de calendario se conserva y precarga fecha, hora de
+  inicio y hora de finalizacion en el formulario;
+- el dialogo se bloquea durante el envio para evitar cierre accidental;
+- si la solicitud se procesa, el dialogo se cierra y el calendario se refresca
+  con el evento optimista cuando el estatus bloquea horario;
+- si hay error, el dialogo permanece abierto y conserva los datos capturados.
+
+Archivos nuevos:
+
+```text
+apps/web/src/app/features/reservations/components/reservation-form-dialog/reservation-form-dialog.component.ts
+apps/web/src/app/features/reservations/components/reservation-form-dialog/reservation-form-dialog.component.html
+apps/web/src/app/features/reservations/components/reservation-form-dialog/reservation-form-dialog.component.scss
+```
+
+Archivos ajustados:
+
+```text
+apps/web/src/app/features/reservations/reserve-lab-page/reserve-lab-page.component.ts
+apps/web/src/app/features/reservations/reserve-lab-page/reserve-lab-page.component.html
+apps/web/src/app/features/reservations/reserve-lab-page/reserve-lab-page.component.scss
+apps/web/src/app/features/reservations/reservation-form/reservation-form.component.ts
+apps/web/src/app/features/reservations/components/index.ts
+apps/web/src/styles.scss
+```
+
+No se modifico logica de negocio, payload, rutas, modelos, servicios de reserva,
+Cloud Functions, Calendar API ni Gmail API. El cambio se limita a layout,
+dialogo, mensajes visuales y preservacion del flujo existente.
+
+### Ajuste Fase 16D.1: campos de fecha y hora en formulario modal
+
+Se ajusto la experiencia del formulario de nueva solicitud dentro del dialogo:
+
+- el campo completo `Fecha de reserva` abre el datepicker al hacer clic, no
+  solo el icono del calendario;
+- los campos de hora conservan `type="time"` y usan el control nativo del
+  navegador, sin icono Material duplicado;
+- se amplio el espacio interno de los campos de hora para evitar recortes en
+  formatos regionales como `p. m.`;
+- el ajuste es visual/accesible y no modifica controles, validaciones,
+  payload, servicios ni backend.

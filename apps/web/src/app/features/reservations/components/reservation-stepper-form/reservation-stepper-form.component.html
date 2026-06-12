@@ -39,7 +39,11 @@
           <mat-icon matIconSuffix>lock</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field
+          appearance="outline"
+          class="app-reservation-date-field"
+          (click)="openDatepicker(picker)"
+        >
           <mat-label>Fecha de reserva</mat-label>
           <input
             matInput
@@ -64,27 +68,25 @@
         }
 
         <div class="two-columns">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="app-reservation-time-field">
             <mat-label>Hora de inicio</mat-label>
             <input
               matInput
               type="time"
               formControlName="startTime"
             />
-            <mat-icon matIconSuffix>schedule</mat-icon>
             @if (hasRequiredError('schedule', 'startTime')) {
               <mat-error>La hora de inicio es requerida.</mat-error>
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="app-reservation-time-field">
             <mat-label>Hora de finalizacion</mat-label>
             <input
               matInput
               type="time"
               formControlName="endTime"
             />
-            <mat-icon matIconSuffix>schedule</mat-icon>
             @if (hasRequiredError('schedule', 'endTime')) {
               <mat-error>La hora de finalizacion es requerida.</mat-error>
             }

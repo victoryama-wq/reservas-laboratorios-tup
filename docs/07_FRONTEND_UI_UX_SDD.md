@@ -768,3 +768,38 @@ La vista debe incluir dos secciones por tabs:
 Los formularios administrativos se abren en dialogs responsive, usan Angular
 Material para controles y Tailwind/clases globales para layout. Los cambios se
 envian a Cloud Functions, nunca con `updateDoc` directo desde Angular.
+
+## Actualizacion Fase 16D: reserva con formulario en dialogo
+
+La ruta `/reservar/:labSlug` debe priorizar la disponibilidad visual del
+laboratorio. El calendario debe ocupar la mayor superficie util y el formulario
+de reserva debe abrirse desde una accion clara, por ejemplo `Nueva solicitud`.
+
+Reglas de interfaz:
+
+- no mostrar el formulario completo fijo al costado del calendario cuando eso
+  comprima la disponibilidad;
+- mostrar una card de accion con el horario seleccionado cuando exista;
+- permitir abrir el formulario aunque no exista horario seleccionado, para
+  captura manual;
+- abrir el formulario en un dialogo Angular Material responsive;
+- el dialogo debe usar ancho amplio en escritorio y casi todo el viewport en
+  movil, con scroll interno y sin overflow horizontal;
+- el formulario del dialogo debe reutilizar los componentes existentes de
+  reserva, no duplicar markup ni crear un segundo flujo;
+- si el usuario selecciono un slot disponible, el formulario debe precargar los
+  controles existentes de fecha, hora inicial y hora final;
+- si `createReservation` falla, el dialogo no debe cerrarse y debe conservar la
+  informacion capturada;
+- si `createReservation` devuelve resultado, el dialogo puede cerrarse y la
+  pagina debe mostrar un mensaje claro por estatus.
+
+Mensajes recomendados:
+
+- `CONFIRMADA`: `Reserva confirmada. Se agrego al calendario institucional.`
+- `PENDIENTE_VALIDACION`: `Solicitud enviada. Quedo pendiente de revision por el responsable.`
+- `RECHAZADA_*`: `No fue posible confirmar la solicitud. Revise el motivo indicado.`
+- `ERROR_CALENDAR`: `La solicitud requiere revision tecnica por un error de calendario.`
+
+Esta fase es visual. No debe modificar payload, validaciones backend, servicios
+de reserva, rutas, guards, roles, estatus, reglas de seguridad ni integraciones.

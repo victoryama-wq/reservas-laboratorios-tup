@@ -17,24 +17,56 @@
     <app-page-header
       kicker="Reserva por laboratorio"
       [title]="lab()?.name ?? ''"
-      subtitle="Revise la disponibilidad visual y complete el formulario de solicitud."
+      subtitle="Revise la disponibilidad visual y cree una solicitud cuando tenga definido el horario."
       backLabel="Volver al catalogo"
       backLink="/laboratorios"
     />
 
     @if (lab(); as selectedLab) {
       <div class="reserve-layout">
-        <app-lab-calendar
-          [lab]="selectedLab"
-          [refreshKey]="calendarRefreshKey()"
-          [optimisticEvents]="optimisticCalendarEvents()"
-          (slotSelected)="onCalendarSlotSelected($event)"
-        />
-        <app-reservation-form
-          [lab]="selectedLab"
-          [calendarSlot]="selectedCalendarSlot()"
-          (reservationCreated)="onReservationCreated($event)"
-        />
+        <aside class="reservation-action-panel">
+          <app-section-card
+            title="Nueva solicitud"
+            subtitle="Abra el formulario cuando tenga listo el horario de la reserva."
+            icon="edit_calendar"
+          >
+            <div class="reservation-action-panel__content">
+              @if (selectedCalendarSlot()) {
+                <app-info-callout
+                  variant="success"
+                  icon="calendar_today"
+                  title="Horario seleccionado"
+                  [message]="selectedSlotSummary()"
+                />
+              } @else {
+                <app-info-callout
+                  variant="info"
+                  icon="touch_app"
+                  message="Puede seleccionar un horario disponible en el calendario o capturarlo manualmente en el formulario."
+                />
+              }
+
+              <button
+                mat-flat-button
+                type="button"
+                class="reservation-action-panel__button"
+                (click)="openReservationDialog(selectedLab)"
+              >
+                <mat-icon aria-hidden="true">add_circle</mat-icon>
+                Nueva solicitud
+              </button>
+            </div>
+          </app-section-card>
+        </aside>
+
+        <div class="reservation-calendar-panel">
+          <app-lab-calendar
+            [lab]="selectedLab"
+            [refreshKey]="calendarRefreshKey()"
+            [optimisticEvents]="optimisticCalendarEvents()"
+            (slotSelected)="onCalendarSlotSelected($event)"
+          />
+        </div>
       </div>
     }
   }
