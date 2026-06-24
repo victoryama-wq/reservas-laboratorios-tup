@@ -230,6 +230,25 @@ Agregar o ejecutar pruebas manuales para:
 - el frontend no debe mostrar el texto tecnico `internal`; debe presentar un
   mensaje administrativo claro.
 
+## Pruebas QA posterior a Fase 17: refresco de perfil y rol en header
+
+Agregar o ejecutar pruebas manuales para:
+
+- entrar con un usuario `docente` y confirmar que el header muestre `Docente`;
+- cerrar sesion y entrar con un usuario `admin_sistemas`;
+- confirmar que durante la carga del perfil el header muestre
+  `Validando perfil...` o un estado neutro, nunca `Docente`;
+- confirmar que al terminar la carga el header muestre `Admin` o
+  `Admin/Sistemas` y los accesos administrativos;
+- entrar con un usuario recien preautorizado como `admin_sistemas` y confirmar
+  que despues del primer login se vea el rol admin sin esperar minutos;
+- recargar el navegador con sesion admin y confirmar que no aparece `Docente`
+  como rol temporal;
+- entrar con un usuario `responsable_laboratorio` y confirmar que muestre
+  `Responsable`, que vea accesos Responsable y que no vea accesos Admin;
+- si el perfil esta inactivo, falta o tiene rol no valido, confirmar que el
+  header muestre un estado neutro o acceso pendiente y no un rol inventado.
+
 ## Pruebas Fase 16D: reserva con formulario en dialogo
 
 Validaciones obligatorias:

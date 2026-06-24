@@ -111,6 +111,20 @@ Actualizacion de estabilizacion del login local:
 - si ya existe sesion valida y perfil activo, debe redirigir segun rol;
 - para pruebas locales debe preferirse `http://localhost:4200/login` sobre `http://127.0.0.1:4200/login`, salvo que `127.0.0.1` este autorizado explicitamente en Firebase Authentication.
 
+Actualizacion QA posterior a Fase 17:
+
+- el AppShell/Header no debe mostrar `Docente` como valor por defecto cuando el
+  perfil aun no esta confirmado;
+- durante la carga o refresco de `users/{uid}` debe mostrarse un estado neutro
+  como `Validando perfil...`;
+- los enlaces de Responsable y Admin/Sistemas solo deben aparecer cuando el
+  perfil activo confirmado tenga `role === 'responsable_laboratorio'` o
+  `role === 'admin_sistemas'`, segun corresponda;
+- al cambiar de cuenta, recargar la app o reclamar una prealta, la interfaz no
+  debe reutilizar datos visuales de un perfil anterior;
+- si el rol no es reconocido, la UI debe indicar `Rol no valido` o acceso
+  pendiente, nunca caer a `Docente`.
+
 Elementos
 Logo institucional.
 Nombre del sistema.

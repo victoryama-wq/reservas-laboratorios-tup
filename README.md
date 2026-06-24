@@ -170,6 +170,17 @@ detenido en la pantalla de login durante la validacion del perfil. El boton
 `Ingresar con Google` debe mostrar el logotipo multicolor de Google, no una
 letra generica.
 
+Actualizacion QA posterior a Fase 17:
+
+- el header no debe mostrar `Docente` como rol fallback mientras el perfil se
+  esta cargando o validando;
+- el perfil `users/{uid}` se lee de forma fresca desde Firestore al restaurar
+  sesion o completar login;
+- la navegacion de Responsable y Admin/Sistemas solo se muestra cuando existe
+  un perfil activo confirmado para el UID autenticado actual;
+- si el perfil aun no esta confirmado, el header muestra `Validando perfil...`
+  o un estado neutro como `Perfil pendiente`, nunca un rol inventado.
+
 Las reservas, reglas de negocio criticas, Google Calendar API y Gmail API ya se
 ejecutan desde Cloud Functions. Angular conserva solo validaciones de apoyo y no
 escribe reservas directamente en Firestore.

@@ -1,106 +1,127 @@
 <div class="app-shell">
-  <mat-toolbar class="app-header">
-    <a class="brand" routerLink="/" aria-label="Ir al inicio">
-      <span class="brand-mark" aria-hidden="true">TUP</span>
-      <span class="brand-text">{{ systemName }}</span>
-    </a>
+  @if (profileState$ | async; as state) {
+    <mat-toolbar class="app-header">
+      <a class="brand" routerLink="/" aria-label="Ir al inicio">
+        <span class="brand-mark" aria-hidden="true">TUP</span>
+        <span class="brand-text">{{ systemName }}</span>
+      </a>
 
-    <nav class="nav-actions" aria-label="Navegacion principal">
-      @if (user$ | async; as user) {
-        <a
-          mat-button
-          routerLink="/laboratorios"
-          routerLinkActive="active-link"
-        >
-          Laboratorios
-        </a>
-        <a
-          mat-button
-          routerLink="/mis-reservas"
-          routerLinkActive="active-link"
-        >
-          Mis reservas
-        </a>
-
-        @if (canSeeResponsibleNav$ | async) {
+      <nav class="nav-actions" aria-label="Navegacion principal">
+        @if (state.kind === 'ready') {
           <a
             mat-button
-            routerLink="/responsable/solicitudes"
+            routerLink="/laboratorios"
             routerLinkActive="active-link"
           >
-            Responsable
+            Laboratorios
           </a>
+          <a
+            mat-button
+            routerLink="/mis-reservas"
+            routerLinkActive="active-link"
+          >
+            Mis reservas
+          </a>
+
+          @if (canSeeResponsibleNav$ | async) {
+            <a
+              mat-button
+              routerLink="/responsable/solicitudes"
+              routerLinkActive="active-link"
+            >
+              Responsable
+            </a>
+          }
+
+          @if (canSeeAdminNav$ | async) {
+            <a
+              mat-button
+              routerLink="/admin/dashboard"
+              routerLinkActive="active-link"
+            >
+              Panel Admin
+            </a>
+            <a
+              mat-button
+              routerLink="/admin/usuarios"
+              routerLinkActive="active-link"
+            >
+              Usuarios
+            </a>
+            <a
+              mat-button
+              routerLink="/admin/laboratorios"
+              routerLinkActive="active-link"
+            >
+              Laboratorios admin
+            </a>
+            <a
+              mat-button
+              routerLink="/admin/reglas"
+              routerLinkActive="active-link"
+            >
+              Reglas
+            </a>
+            <a
+              mat-button
+              routerLink="/admin/bitacora"
+              routerLinkActive="active-link"
+            >
+              Bitacora
+            </a>
+          }
+        } @else if (state.kind === 'signed-out') {
+          <a mat-button routerLink="/login" routerLinkActive="active-link">
+            Ingresar
+          </a>
+        } @else {
+          <span class="nav-loading">Validando perfil...</span>
         }
+      </nav>
 
-        @if (canSeeAdminNav$ | async) {
-          <a
-            mat-button
-            routerLink="/admin/dashboard"
-            routerLinkActive="active-link"
-          >
-            Panel Admin
-          </a>
-          <a
-            mat-button
-            routerLink="/admin/usuarios"
-            routerLinkActive="active-link"
-          >
-            Usuarios
-          </a>
-          <a
-            mat-button
-            routerLink="/admin/laboratorios"
-            routerLinkActive="active-link"
-          >
-            Laboratorios admin
-          </a>
-          <a
-            mat-button
-            routerLink="/admin/reglas"
-            routerLinkActive="active-link"
-          >
-            Reglas
-          </a>
-          <a
-            mat-button
-            routerLink="/admin/bitacora"
-            routerLinkActive="active-link"
-          >
-            Bitácora
-          </a>
-        }
-      } @else {
-        <a mat-button routerLink="/login" routerLinkActive="active-link">
-          Ingresar
-        </a>
-      }
-    </nav>
-
-    <div class="header-user">
-      @if (user$ | async; as user) {
-        @if (profile$ | async; as profileResult) {
+      <div class="header-user">
+        @if (state.kind === 'ready') {
           <span class="notification-dot" aria-hidden="true"></span>
           <div class="user-avatar" aria-hidden="true">
-            {{ getInitials(profileResult.profile?.displayName, user.email) }}
+            {{ getInitials(state.profile.displayName, state.user.email) }}
           </div>
           <div class="user-copy">
-            <span>{{ profileResult.profile?.displayName || user.email }}</span>
-            <small>{{ getRoleLabel(profileResult.profile?.role) }}</small>
+            <span>{{ state.profile.displayName || state.user.email }}</span>
+            <small>{{ getRoleLabel(state.profile.role) }}</small>
+          </div>
+        } @else if (state.kind === 'loading') {
+          <div class="user-avatar" aria-hidden="true">
+            {{ getInitials(undefined, state.user.email) }}
+          </div>
+          <div class="user-copy">
+            <span>{{ state.user.email }}</span>
+            <small>Validando perfil...</small>
+          </div>
+        } @else if (state.kind === 'unavailable') {
+          <div class="user-avatar" aria-hidden="true">
+            {{ getInitials(undefined, state.user.email) }}
+          </div>
+          <div class="user-copy">
+            <span>{{ state.user.email }}</span>
+            <small>{{ getUnavailableProfileLabel(state.status) }}</small>
           </div>
         } @else {
-          <div class="user-avatar" aria-hidden="true">
-            {{ getInitials(undefined, user.email) }}
-          </div>
-          <span class="user-email">{{ user.email }}</span>
+          <span class="secure-label">Conexion segura</span>
         }
-        <button mat-button class="sign-out-button" type="button" (click)="signOut()">
-          Cerrar sesion
-        </button>
-      } @else {
-        <span class="secure-label">Conexion segura</span>
-      }
-    </div>
-  </mat-toolbar>
+
+        @if (state.kind !== 'signed-out') {
+          <button
+            mat-button
+            class="sign-out-button"
+            type="button"
+            (click)="signOut()"
+          >
+            Cerrar sesion
+          </button>
+        }
+      </div>
+    </mat-toolbar>
+  }
 
   <main class="main-content">
     <router-outlet />

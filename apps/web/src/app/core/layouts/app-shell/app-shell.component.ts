@@ -8,10 +8,29 @@ import {
   RouterLinkActive,
   RouterOutlet,
 } from '@angular/router';
-import { from, map, of, switchMap } from 'rxjs';
+import { User } from 'firebase/auth';
+import {
+  catchError,
+  from,
+  map,
+  of,
+  shareReplay,
+  startWith,
+  switchMap,
+} from 'rxjs';
 
+import { AppUser, UserRole } from '../../../shared/models';
 import { AuthService } from '../../services/auth.service';
-import { UserProfileService } from '../../services/user-profile.service';
+import {
+  UserProfileService,
+  UserProfileStatus,
+} from '../../services/user-profile.service';
+
+type ShellProfileState =
+  | { kind: 'signed-out' }
+  | { kind: 'loading'; user: User }
+  | { kind: 'ready'; user: User; profile: AppUser }
+  | { kind: 'unavailable'; user: User; status: UserProfileStatus };
 
 @Component({
   selector: 'app-shell',
@@ -32,24 +51,44 @@ export class AppShellComponent {
   private readonly router = inject(Router);
 
   protected readonly systemName = 'Sistema Web de Reservas de Laboratorios';
-  protected readonly user$ = this.authService.authState$;
-  protected readonly profile$ = this.user$.pipe(
-    switchMap((user) =>
-      user ? from(this.profileService.getProfile(user.uid)) : of(null),
+  protected readonly profileState$ = this.authService.authState$.pipe(
+    switchMap((user) => {
+      if (!user) {
+        return of({ kind: 'signed-out' } as ShellProfileState);
+      }
+
+      return from(this.profileService.getProfile(user.uid)).pipe(
+        map((result): ShellProfileState => {
+          if (
+            result.status === 'active' &&
+            result.profile &&
+            result.profile.uid === user.uid
+          ) {
+            return { kind: 'ready', user, profile: result.profile };
+          }
+
+          return { kind: 'unavailable', user, status: result.status };
+        }),
+        startWith({ kind: 'loading', user } as ShellProfileState),
+        catchError(() =>
+          of({ kind: 'unavailable', user, status: 'error' } as ShellProfileState),
+        ),
+      );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  protected readonly canSeeResponsibleNav$ = this.profileState$.pipe(
+    map(
+      (state) =>
+        state.kind === 'ready' &&
+        (state.profile.role === 'responsable_laboratorio' ||
+          state.profile.role === 'admin_sistemas'),
     ),
   );
-  protected readonly canSeeResponsibleNav$ = this.profile$.pipe(
+  protected readonly canSeeAdminNav$ = this.profileState$.pipe(
     map(
-      (result) =>
-        result?.status === 'active' &&
-        (result.profile?.role === 'responsable_laboratorio' ||
-          result.profile?.role === 'admin_sistemas'),
-    ),
-  );
-  protected readonly canSeeAdminNav$ = this.profile$.pipe(
-    map(
-      (result) =>
-        result?.status === 'active' && result.profile?.role === 'admin_sistemas',
+      (state) =>
+        state.kind === 'ready' && state.profile.role === 'admin_sistemas',
     ),
   );
 
@@ -71,7 +110,7 @@ export class AppShellComponent {
     return (words[0]?.[0] ?? 'T').concat(words[1]?.[0] ?? 'U').toUpperCase();
   }
 
-  protected getRoleLabel(role: string | undefined): string {
+  protected getRoleLabel(role: UserRole | undefined): string {
     if (role === 'admin_sistemas') {
       return 'Admin';
     }
@@ -80,6 +119,26 @@ export class AppShellComponent {
       return 'Responsable';
     }
 
-    return 'Docente';
+    if (role === 'docente') {
+      return 'Docente';
+    }
+
+    return 'Rol no valido';
+  }
+
+  protected getUnavailableProfileLabel(status: UserProfileStatus): string {
+    if (status === 'missing') {
+      return 'Perfil pendiente';
+    }
+
+    if (status === 'inactive') {
+      return 'Perfil inactivo';
+    }
+
+    if (status === 'invalid-role') {
+      return 'Rol no valido';
+    }
+
+    return 'Perfil en validacion';
   }
 }

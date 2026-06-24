@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDocFromServer } from 'firebase/firestore';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 import {
@@ -46,13 +46,16 @@ export class UserProfileService {
   async getProfile(uid: string): Promise<UserProfileResult> {
     try {
       const profileRef = doc(this.firestore, 'users', uid);
-      const snapshot = await getDoc(profileRef);
+      const snapshot = await getDocFromServer(profileRef);
 
       if (!snapshot.exists()) {
         return { status: 'missing', profile: null };
       }
 
-      const profile = snapshot.data() as AppUser;
+      const profile = {
+        ...(snapshot.data() as AppUser),
+        uid,
+      };
 
       if (!this.isValidRole(profile.role)) {
         return { status: 'invalid-role', profile: null };

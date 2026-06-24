@@ -101,6 +101,22 @@ Actualizacion de consistencia tipografica:
   navegacion, formularios, dialogos y componentes futuros no mezclen fuentes ni
   caigan a estilos serif o nativos del navegador.
 
+### Estado visual de rol en AppShell/Header
+
+El header principal debe mostrar rol y accesos solo cuando el perfil
+`users/{uid}` este confirmado como activo para el usuario autenticado actual.
+
+Reglas:
+
+- no usar `Docente` como fallback visual mientras se carga el perfil;
+- durante la restauracion de sesion, cambio de cuenta o reclamo de prealta, usar
+  un texto neutro como `Validando perfil...`;
+- si el perfil esta pendiente, inactivo o tiene rol no valido, mostrar un estado
+  neutro como `Perfil pendiente`, `Perfil inactivo` o `Rol no valido`;
+- los accesos `Responsable` y `Admin/Sistemas` solo deben renderizarse despues
+  de confirmar el rol real del perfil;
+- no reutilizar visualmente datos de un perfil anterior cuando cambia el UID.
+
 Jerarquia visual usada:
 
 - kicker: texto pequeño, uppercase, con tracking amplio y color violeta;

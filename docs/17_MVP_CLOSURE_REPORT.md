@@ -264,6 +264,34 @@ No se identificaron pendientes bloqueantes con la evidencia tecnica disponible.
 5. Preparar plan post-MVP para reportes avanzados y limpieza de archivos huerfanos.
 6. Revisar budgets de Angular antes de crecimiento de nuevos modulos.
 
+## 19.1. Seguimiento QA posterior: refresco de perfil en AppShell
+
+Durante QA posterior a Fase 17 se observo una latencia visual donde el header
+podia mostrar `Docente` temporalmente para un usuario cuyo perfil real ya era
+`admin_sistemas`.
+
+Clasificacion: `MEDIO`.
+
+Resolucion aplicada:
+
+- el AppShell ya no usa `Docente` como fallback cuando el perfil no esta
+  confirmado;
+- mientras se lee `users/{uid}`, el header muestra `Validando perfil...`;
+- el rol y la navegacion se renderizan solo con perfil activo confirmado;
+- la lectura de perfil se fuerza desde Firestore server para evitar cache visual
+  obsoleto despues de login, prealta, cambio de cuenta o recarga;
+- los estados `missing`, `inactive`, `invalid-role` y `error` muestran etiquetas
+  neutras y no habilitan navegacion por rol.
+
+Validacion tecnica requerida para cerrar este seguimiento:
+
+```powershell
+npm --prefix apps/web run build
+npm --prefix functions run lint
+npm --prefix functions run build
+git diff --check
+```
+
 ## 20. Revision de seguridad por codigo
 
 Estado: `PASS` en busqueda orientativa.
