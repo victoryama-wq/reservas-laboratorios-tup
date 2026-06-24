@@ -695,8 +695,27 @@ La pantalla de acceso pendiente debe explicar que:
 La ruta `/admin/usuarios` debe incluir una accion visible para agregar
 responsable/coordinador. El dialog debe pedir nombre opcional, correo
 institucional, rol oficial, estado activo y laboratorios asignados si el rol es
-`responsable_laboratorio`. Tambien debe listar preautorizados pendientes y
-mantener estados de carga/vacio/error sin quedarse en `Cargando...`.
+`responsable_laboratorio`. Tambien debe listar preautorizados pendientes,
+reclamados y revocados, y mantener estados de carga/vacio/error sin quedarse en
+`Cargando...`.
+
+## Actualizacion Fase 16F: UI de revocacion y suspension
+
+`/admin/usuarios` debe mostrar que los usuarios existentes no se eliminan para
+conservar trazabilidad. Para impedir el acceso se usa suspension del perfil
+con `active: false`.
+
+Las prealtas no reclamadas pueden revocarse con un dialogo de confirmacion y
+motivo opcional. La tarjeta de prealta debe indicar claramente:
+
+- `Pendiente`: prealta activa sin reclamar;
+- `Reclamada`: ya existe usuario real y los cambios van sobre `users/{uid}`;
+- `Revocada`: prealta inactiva o con `revokedAt`.
+
+El boton `Revocar prealta` solo debe mostrarse si la prealta no fue reclamada,
+esta activa y no tiene `revokedAt`. La vista no debe mostrar el UID como dato
+principal de usuarios existentes; debe priorizar nombre, correo, rol, estado de
+acceso y laboratorios asignados.
 
 ## Actualizacion Fase 16B: UI de gestion de laboratorios
 
@@ -803,3 +822,32 @@ Mensajes recomendados:
 
 Esta fase es visual. No debe modificar payload, validaciones backend, servicios
 de reserva, rutas, guards, roles, estatus, reglas de seguridad ni integraciones.
+
+## Actualizacion Fase 16E: Mis reservas recientes e historico
+
+La pantalla `/mis-reservas` debe mostrar por defecto la vista `Recientes` para
+evitar saturacion visual del panel docente.
+
+Regla de interfaz:
+
+- `Recientes`: reservas futuras, reservas de los ultimos 3 meses y reservas
+  antiguas con estatus `PENDIENTE_VALIDACION`, `CONFIRMADA`,
+  `CONFIRMADA_TRAS_VALIDACION` o `ERROR_CALENDAR`;
+- `Historico`: reservas anteriores a 3 meses que no estan pendientes ni
+  bloqueando horario;
+- `Todas`: reservas personales sin corte temporal.
+
+La vista debe incluir un mensaje visible:
+
+```text
+Por defecto se muestran reservas recientes y futuras. Las reservas anteriores a 3 meses permanecen disponibles en Historico.
+```
+
+Estados vacios recomendados:
+
+- `Sin reservas recientes.`
+- `No hay reservas historicas.`
+
+Esta separacion es visual. No debe eliminar documentos de `reservations`,
+`reservationLogs`, `notifications` ni `auditEvents`; tampoco debe modificar
+Cloud Functions, estatus, rutas, reglas de negocio ni permisos.

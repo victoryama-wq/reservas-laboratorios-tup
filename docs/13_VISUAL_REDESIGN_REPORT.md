@@ -1262,6 +1262,27 @@ Regla de continuidad:
 Las pantallas administrativas futuras deben conservar esta misma linea visual,
 cerrar `loading` explicitamente y renderizar datos en la primera navegacion.
 
+## Fase 16F: Revocacion visual de prealtas
+
+Se ajusta `/admin/usuarios` para mantener trazabilidad administrativa sin
+acciones destructivas:
+
+- la seccion de prealtas muestra estados `Pendiente`, `Reclamada` y `Revocada`
+  con `AppStatusChipComponent`;
+- el boton `Revocar prealta` aparece solo en prealtas activas, no reclamadas y
+  no revocadas;
+- la revocacion usa un dialogo institucional con motivo opcional, advertencia y
+  acciones claras;
+- los usuarios existentes muestran `Estado de acceso` en lugar de destacar UID
+  como dato principal;
+- los errores tecnicos de revocacion no se muestran como `internal`; la UI
+  presenta un mensaje administrativo claro para Admin/Sistemas;
+- se conserva la linea visual: Inter, cards blancas, chips compactos, iconos
+  completos y callouts con la paleta morada operativa.
+
+La regla de producto queda documentada en UI: no se eliminan usuarios
+existentes; se suspenden con `active: false`.
+
 ## Fase 16B: Gestion visual de laboratorios
 
 Se amplia `/admin/laboratorios` como pantalla operativa de gestion completa,
@@ -1399,5 +1420,37 @@ Se ajusto la experiencia del formulario de nueva solicitud dentro del dialogo:
   navegador, sin icono Material duplicado;
 - se amplio el espacio interno de los campos de hora para evitar recortes en
   formatos regionales como `p. m.`;
+- se agregaron reglas visuales para los subcampos nativos WebKit de
+  hora/minuto/a. m./p. m. usados por Chrome y Edge;
 - el ajuste es visual/accesible y no modifica controles, validaciones,
   payload, servicios ni backend.
+
+## Fase 16E: Mis reservas recientes e historico
+
+Se ajusto la pantalla `/mis-reservas` para reducir saturacion visual sin perder
+trazabilidad institucional.
+
+Cambios visuales:
+
+- se agrego selector de vista `Recientes`, `Historico` y `Todas`;
+- la vista por defecto es `Recientes`;
+- se agrego callout informativo sobre la conservacion de reservas antiguas;
+- los estados vacios ahora distinguen `Sin reservas recientes` y
+  `No hay reservas historicas`;
+- los filtros existentes se conservan dentro de cada vista;
+- el selector usa superficies claras, bordes suaves, foco visible y la paleta
+  operativa morada.
+
+Regla funcional documentada:
+
+- `Recientes` muestra reservas futuras, reservas de los ultimos 3 meses y
+  reservas antiguas con estatus `PENDIENTE_VALIDACION`, `CONFIRMADA`,
+  `CONFIRMADA_TRAS_VALIDACION` o `ERROR_CALENDAR`;
+- `Historico` muestra reservas anteriores a 3 meses que no estan pendientes ni
+  bloqueando horario;
+- `Todas` muestra todas las reservas personales.
+
+No se eliminan documentos de Firestore. Permanecen intactas las colecciones
+`reservations`, `reservationLogs`, `notifications` y `auditEvents`. Tampoco se
+modifican Cloud Functions, Calendar API, Gmail API, rutas, roles, payloads ni
+reglas de negocio.

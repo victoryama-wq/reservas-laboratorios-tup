@@ -16,6 +16,32 @@
   </div>
 
   <div class="filters-panel">
+    <div
+      class="view-toggle"
+      aria-label="Vista de reservas"
+      role="tablist"
+    >
+      @for (option of viewOptions; track option.value) {
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="viewMode() === option.value"
+          [class.view-toggle__button--active]="viewMode() === option.value"
+          class="view-toggle__button"
+          (click)="setViewMode(option.value)"
+        >
+          <span>{{ option.label }}</span>
+          <small>{{ option.description }}</small>
+        </button>
+      }
+    </div>
+
+    <app-info-callout
+      variant="info"
+      icon="info"
+      message="Por defecto se muestran reservas recientes y futuras. Las reservas anteriores a 3 meses permanecen disponibles en Historico."
+    />
+
     <mat-form-field appearance="outline">
       <mat-label>Buscar</mat-label>
       <mat-icon matPrefix>search</mat-icon>
@@ -112,23 +138,23 @@
         <mat-icon iconPositionEnd>arrow_forward</mat-icon>
       </a>
     </div>
-  } @else if (!filteredReservations().length) {
+  } @else if (!displayedReservations().length) {
     <div class="app-state-panel">
       <app-icon-box icon="filter_alt_off" />
-      <h2>Sin resultados</h2>
-      <p>Ajusta los filtros para ver mas reservas personales.</p>
+      <h2>{{ emptyStateTitle() }}</h2>
+      <p>{{ emptyStateMessage() }}</p>
       <button mat-stroked-button type="button" (click)="resetFilters()">
         Limpiar filtros
       </button>
     </div>
   } @else {
     <p class="results-caption">
-      Mostrando {{ filteredReservations().length }} de
+      Mostrando {{ displayedReservations().length }} de
       {{ reservations().length }} reservas personales.
     </p>
 
     <div class="reservations-grid">
-      @for (reservation of filteredReservations(); track reservation.id) {
+      @for (reservation of displayedReservations(); track reservation.id) {
         <app-my-reservation-card
           [reservation]="reservation"
           [dateLabel]="formatDate(reservation)"

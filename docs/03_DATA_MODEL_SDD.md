@@ -463,6 +463,9 @@ interface PreauthorizedUserDoc {
   active: boolean;
   claimedByUid?: string;
   claimedAt?: Timestamp;
+  revokedBy?: string;
+  revokedAt?: Timestamp;
+  revocationReason?: string;
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -472,6 +475,18 @@ interface PreauthorizedUserDoc {
 Cuando `claimedByUid` existe, la prealta ya fue reclamada por un usuario real
 de Firebase Authentication y los cambios posteriores deben hacerse sobre
 `users/{uid}` mediante `adminUpdateUser`.
+
+Cuando `revokedAt` existe o `active === false`, la prealta queda revocada o
+inactiva y no debe ser reclamada por `ensureUserProfile`. La revocacion conserva
+el documento para trazabilidad y registra:
+
+- `revokedBy`: UID de Admin/Sistemas que revoco la prealta;
+- `revokedAt`: fecha/hora de revocacion;
+- `revocationReason`: motivo opcional capturado en UI.
+
+Los documentos `users/{uid}` existentes no se eliminan como mecanismo de
+baja. El bloqueo de acceso se modela con `active: false` para conservar
+relaciones historicas con reservas, bitacoras, notificaciones y auditoria.
 
 ## Actualizacion Fase 16B: administracion de labs
 

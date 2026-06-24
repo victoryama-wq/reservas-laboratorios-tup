@@ -415,3 +415,19 @@ Dimensiones recomendadas para el dialogo de reserva:
 
 La seleccion de calendario puede seguir precargando el formulario sin cambiar
 los nombres de controles ni la estructura del payload.
+
+## Actualizacion Fase 16E: responsive de Mis reservas
+
+La ruta `/mis-reservas` debe mantener una experiencia mobile-first con:
+
+- selector de vista `Recientes`, `Historico` y `Todas`;
+- filtros apilados en movil y distribuidos en grid en escritorio;
+- cards de reserva en una columna en movil, dos columnas en tablet y hasta tres
+  columnas en escritorio amplio;
+- callout informativo visible sobre la conservacion del historico;
+- estados vacios claros para recientes e historico;
+- sin tablas anchas ni overflow horizontal.
+
+La clasificacion temporal es solo visual. No debe eliminar documentos ni
+modificar rutas, servicios, guards, payloads, Cloud Functions o reglas de
+seguridad.

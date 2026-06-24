@@ -32,11 +32,20 @@ import {
   AdminPreauthorizeUserDialogResult,
 } from '../components/admin-preauthorize-user-dialog/admin-preauthorize-user-dialog.component';
 import {
+  AdminRevokePreauthorizationDialogComponent,
+  AdminRevokePreauthorizationDialogResult,
+} from '../components/admin-revoke-preauthorization-dialog/admin-revoke-preauthorization-dialog.component';
+import {
   AdminUsersService,
   AdminUserView,
 } from '../services/admin-users.service';
 
 type ActiveFilter = 'all' | 'active' | 'inactive';
+type PreauthorizationStatus = {
+  label: string;
+  variant: StatusChipVariant;
+  icon: string;
+};
 
 @Component({
   selector: 'app-admin-users-page',
@@ -66,7 +75,7 @@ type ActiveFilter = 'all' | 'active' | 'inactive';
         <app-info-callout
           variant="info"
           icon="verified_user"
-          message="Los docentes con correo tup-dNUMEROS@tecplayacar.edu.mx se registran automaticamente al iniciar sesion. Usa prealta solo para responsables/coordinadores."
+          message="Los docentes con correo tup-dNUMEROS@tecplayacar.edu.mx se registran automaticamente al iniciar sesion. Usa prealta solo para responsables/coordinadores. Los usuarios existentes no se eliminan: para impedir acceso, suspende el perfil."
         />
 
         <button
@@ -142,19 +151,19 @@ type ActiveFilter = 'all' | 'active' | 'inactive';
         />
       } @else {
         <app-section-card
-          title="Responsables preautorizados pendientes"
-          subtitle="Correos institucionales que aun no han iniciado sesion con Google."
+          title="Prealtas administrativas"
+          subtitle="Correos institucionales preautorizados, reclamados o revocados."
           icon="how_to_reg"
         >
-          @if (pendingPreauthorizations.length === 0) {
+          @if (preauthorizations.length === 0) {
             <app-info-callout
               variant="info"
               icon="check_circle"
-              message="No hay responsables o coordinadores pendientes de reclamar prealta."
+              message="No hay prealtas administrativas registradas."
             />
           } @else {
             <div class="mt-5 grid gap-4 xl:grid-cols-2">
-              @for (preauth of pendingPreauthorizations; track preauth.email) {
+              @for (preauth of preauthorizations; track preauth.email) {
                 <article class="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <header class="flex flex-wrap items-start justify-between gap-4">
                     <div class="min-w-0">
@@ -170,26 +179,71 @@ type ActiveFilter = 'all' | 'active' | 'inactive';
                     </div>
 
                     <app-status-chip
-                      [variant]="preauth.active ? 'success' : 'neutral'"
-                      [icon]="preauth.active ? 'check_circle' : 'pause_circle'"
-                      [label]="preauth.active ? 'Activa' : 'Inactiva'"
+                      [variant]="preauthorizationStatus(preauth).variant"
+                      [icon]="preauthorizationStatus(preauth).icon"
+                      [label]="preauthorizationStatus(preauth).label"
                     />
                   </header>
 
-                  <div class="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
-                    <span class="font-bold text-violet-700">
-                      Laboratorios asignados
-                    </span>
-                    <p class="m-0 mt-1">
-                      {{ assignedLabNamesForIds(preauth.labsAssigned) }}
-                    </p>
-                    <span class="mt-3 block font-bold text-violet-700">
-                      Actualizada
-                    </span>
-                    <p class="m-0 mt-1">
-                      {{ preauthService.formatDate(preauth.updatedDate) }}
-                    </p>
+                  <div class="grid gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700 sm:grid-cols-2">
+                    <div>
+                      <span class="font-bold text-violet-700">
+                        Laboratorios asignados
+                      </span>
+                      <p class="m-0 mt-1">
+                        {{ assignedLabNamesForIds(preauth.labsAssigned) }}
+                      </p>
+                    </div>
+                    <div>
+                      <span class="font-bold text-violet-700">
+                        Actualizada
+                      </span>
+                      <p class="m-0 mt-1">
+                        {{ preauthService.formatDate(preauth.updatedDate) }}
+                      </p>
+                    </div>
+                    @if (preauth.claimedByUid) {
+                      <div class="sm:col-span-2">
+                        <span class="font-bold text-violet-700">
+                          Estado
+                        </span>
+                        <p class="m-0 mt-1">
+                          Prealta reclamada. Los cambios posteriores se hacen
+                          en usuarios existentes.
+                        </p>
+                      </div>
+                    }
+                    @if (preauth.revokedDate) {
+                      <div class="sm:col-span-2">
+                        <span class="font-bold text-violet-700">
+                          Revocada
+                        </span>
+                        <p class="m-0 mt-1">
+                          {{ preauthService.formatDate(preauth.revokedDate) }}
+                        </p>
+                        @if (preauth.revocationReason) {
+                          <p class="m-0 mt-2 text-slate-600">
+                            {{ preauth.revocationReason }}
+                          </p>
+                        }
+                      </div>
+                    }
                   </div>
+
+                  @if (canRevokePreauthorization(preauth)) {
+                    <footer class="flex justify-end">
+                      <button
+                        mat-stroked-button
+                        color="warn"
+                        type="button"
+                        [disabled]="busyPreauthorizationEmail === preauth.email"
+                        (click)="revokePreauthorization(preauth)"
+                      >
+                        <mat-icon>person_off</mat-icon>
+                        Revocar prealta
+                      </button>
+                    </footer>
+                  }
                 </article>
               }
             </div>
@@ -239,10 +293,10 @@ type ActiveFilter = 'all' | 'active' | 'inactive';
                   <div class="grid gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700 md:grid-cols-2">
                     <div>
                       <span class="font-bold text-violet-700">
-                        Identificador
+                        Estado de acceso
                       </span>
-                      <p class="m-0 mt-1 break-all">
-                        {{ user.uid }}
+                      <p class="m-0 mt-1">
+                        {{ user.active ? 'Puede iniciar sesion' : 'Acceso suspendido' }}
                       </p>
                     </div>
                     <div>
@@ -293,10 +347,11 @@ export class AdminUsersPageComponent implements OnInit {
 
   protected users: AdminUserView[] = [];
   protected labs: AdminLabView[] = [];
-  protected pendingPreauthorizations: PreauthorizedUserView[] = [];
+  protected preauthorizations: PreauthorizedUserView[] = [];
   protected loading = true;
   protected errorMessage = '';
   protected busyUid = '';
+  protected busyPreauthorizationEmail = '';
   protected currentUid: string | null = null;
   protected searchTerm = '';
   protected roleFilter: UserRole | 'all' = 'all';
@@ -356,6 +411,42 @@ export class AdminUsersPageComponent implements OnInit {
     return 'neutral';
   }
 
+  protected preauthorizationStatus(
+    preauthorization: PreauthorizedUserView,
+  ): PreauthorizationStatus {
+    if (preauthorization.claimedByUid) {
+      return {
+        label: 'Reclamada',
+        variant: 'success',
+        icon: 'how_to_reg',
+      };
+    }
+
+    if (preauthorization.revokedDate || preauthorization.active === false) {
+      return {
+        label: 'Revocada',
+        variant: 'danger',
+        icon: 'person_off',
+      };
+    }
+
+    return {
+      label: 'Pendiente',
+      variant: 'warning',
+      icon: 'pending',
+    };
+  }
+
+  protected canRevokePreauthorization(
+    preauthorization: PreauthorizedUserView,
+  ): boolean {
+    return (
+      !preauthorization.claimedByUid &&
+      preauthorization.active !== false &&
+      !preauthorization.revokedDate
+    );
+  }
+
   protected assignedLabNames(user: AdminUserView): string {
     return this.assignedLabNamesForIds(user.labsAssigned);
   }
@@ -402,6 +493,57 @@ export class AdminUsersPageComponent implements OnInit {
       });
     } finally {
       this.loading = false;
+      this.changeDetector.detectChanges();
+    }
+  }
+
+  protected async revokePreauthorization(
+    preauthorization: PreauthorizedUserView,
+  ): Promise<void> {
+    if (!this.canRevokePreauthorization(preauthorization)) {
+      return;
+    }
+
+    const result = await firstValueFrom(
+      this.dialog
+        .open<
+          AdminRevokePreauthorizationDialogComponent,
+          unknown,
+          AdminRevokePreauthorizationDialogResult
+        >(AdminRevokePreauthorizationDialogComponent, {
+          width: 'min(640px, 94vw)',
+          data: {
+            preauthorization,
+            labsLabel: this.assignedLabNamesForIds(
+              preauthorization.labsAssigned,
+            ),
+            roleLabel: this.roleLabel(preauthorization.role),
+          },
+        })
+        .afterClosed(),
+    );
+
+    if (!result) {
+      return;
+    }
+
+    this.busyPreauthorizationEmail = preauthorization.email;
+    this.changeDetector.detectChanges();
+    try {
+      const response = await this.preauthService.revokePreauthorizedUser({
+        email: preauthorization.email,
+        reason: result.reason,
+      });
+      this.snackBar.open(response.message, 'Cerrar', {
+        duration: 4500,
+      });
+      await this.loadData(false);
+    } catch (error) {
+      this.snackBar.open(this.toRevokePreauthorizationError(error), 'Cerrar', {
+        duration: 6500,
+      });
+    } finally {
+      this.busyPreauthorizationEmail = '';
       this.changeDetector.detectChanges();
     }
   }
@@ -461,14 +603,14 @@ export class AdminUsersPageComponent implements OnInit {
         this.authService.authState$.pipe(take(1)),
       );
       this.currentUid = currentUser?.uid ?? null;
-      const [users, labs, pendingPreauthorizations] = await Promise.all([
+      const [users, labs, preauthorizations] = await Promise.all([
         this.usersService.listUsers(),
         this.labsService.listLabs(),
-        this.preauthService.listPendingPreauthorizations(),
+        this.preauthService.listPreauthorizations(),
       ]);
       this.users = users;
       this.labs = labs;
-      this.pendingPreauthorizations = pendingPreauthorizations;
+      this.preauthorizations = preauthorizations;
       this.errorMessage = '';
     } catch (error) {
       this.errorMessage = this.toErrorMessage(error);
@@ -476,6 +618,17 @@ export class AdminUsersPageComponent implements OnInit {
       this.loading = false;
       this.changeDetector.detectChanges();
     }
+  }
+
+  private toRevokePreauthorizationError(error: unknown): string {
+    if (error instanceof Error) {
+      const message = error.message.trim();
+      if (message && message.toLowerCase() !== 'internal') {
+        return message;
+      }
+    }
+
+    return 'No fue posible revocar la prealta. Intente de nuevo o revise la bitacora tecnica.';
   }
 
   private toErrorMessage(error: unknown): string {

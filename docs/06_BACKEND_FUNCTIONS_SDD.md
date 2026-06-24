@@ -408,6 +408,8 @@ Reglas:
 - si no existe y hay prealta activa sin reclamar para ese correo, crea
   `users/{uid}`, marca la prealta como reclamada y registra
   `PREAUTHORIZED_USER_CLAIMED`;
+- las prealtas con `active !== true`, `claimedByUid` o `revokedAt` no pueden
+  reclamarse;
 - si no existe perfil ni prealta valida, devuelve `PENDING_ACCESS`.
 
 ## Actualizacion Fase 16A.1: adminPreauthorizeUser
@@ -420,6 +422,27 @@ acepta `email`, `displayName`, `role`, `active` y `labsAssigned`. El rol debe
 ser `responsable_laboratorio` o `admin_sistemas`; no se usa para docentes con
 patron `tup-dNUMEROS`. Cada laboratorio asignado debe existir en `labs`. La
 funcion registra `auditEvents.action = ADMIN_PREAUTHORIZE_USER`.
+
+## Actualizacion Fase 16F: adminRevokePreauthorizedUser
+
+Callable administrativa para revocar prealtas no reclamadas en
+`preauthorizedUsers/{email}`.
+
+Solo puede ejecutarla un perfil activo con rol `admin_sistemas`. El input solo
+acepta `email` y `reason` opcional. La funcion:
+
+- valida autenticacion, perfil activo y rol `admin_sistemas`;
+- normaliza el correo en minusculas;
+- exige que la prealta exista;
+- rechaza la revocacion si `claimedByUid` ya existe;
+- actualiza la prealta con `active: false`, `revokedBy`, `revokedAt`,
+  `revocationReason` cuando aplique y `updatedAt`;
+- sanitiza la metadata de auditoria para evitar valores `undefined` en
+  `actorEmail`, `role` o `labsAssigned`;
+- registra `auditEvents.action = ADMIN_REVOKE_PREAUTHORIZED_USER`.
+
+No borra documentos de `preauthorizedUsers` ni de `users`. Los usuarios ya
+existentes deben suspenderse con `adminUpdateUser` usando `active: false`.
 
 ## Actualizacion Fase 16B: adminCreateLab y adminUpdateLab
 

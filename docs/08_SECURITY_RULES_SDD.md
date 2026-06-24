@@ -127,6 +127,22 @@ Admin/Sistemas para responsables/coordinadores y admins. Desde cliente:
 Angular no debe escribir `role`, `active`, `labsAssigned` ni documentos de
 prealta con `setDoc` o `updateDoc`.
 
+## Actualizacion Fase 16F: revocacion segura
+
+La revocacion de prealtas debe ejecutarse exclusivamente mediante
+`adminRevokePreauthorizedUser` con Admin SDK. Firestore Rules no deben permitir
+al cliente actualizar ni borrar directamente `preauthorizedUsers`.
+
+Requisitos:
+
+- solo `admin_sistemas` autenticado y activo puede revocar;
+- una prealta con `claimedByUid` no puede revocarse;
+- la revocacion actualiza `active: false`, `revokedBy`, `revokedAt`,
+  `revocationReason` opcional y `updatedAt`;
+- debe registrarse `auditEvents.action = ADMIN_REVOKE_PREAUTHORIZED_USER`;
+- los documentos `users/{uid}` existentes no se borran; se suspenden con
+  `active: false` mediante `adminUpdateUser`.
+
 ## Actualizacion Fase 16B: seguridad de laboratorios
 
 La gestion critica de laboratorios se realiza mediante Cloud Functions:

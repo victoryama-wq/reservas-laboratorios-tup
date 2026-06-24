@@ -8,6 +8,9 @@ export interface PreauthorizedUserDoc {
   active: boolean;
   claimedByUid?: string;
   claimedAt?: Timestamp;
+  revokedBy?: string;
+  revokedAt?: Timestamp;
+  revocationReason?: string;
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;

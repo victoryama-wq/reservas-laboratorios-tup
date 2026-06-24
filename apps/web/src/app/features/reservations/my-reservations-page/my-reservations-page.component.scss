@@ -46,6 +46,70 @@
   button {
     min-height: 3.25rem;
   }
+
+  > app-info-callout,
+  > .view-toggle {
+    grid-column: 1 / -1;
+  }
+}
+
+.view-toggle {
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.35rem;
+}
+
+.view-toggle__button {
+  align-items: flex-start;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: grid;
+  gap: 0.15rem;
+  justify-items: start;
+  min-height: auto !important;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+
+  span {
+    color: inherit;
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+
+  small {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(99, 102, 241, 0.28);
+    outline-offset: 2px;
+  }
+
+  &:hover {
+    background: var(--surface);
+    border-color: var(--border-soft);
+    color: var(--brand-primary);
+  }
+}
+
+.view-toggle__button--active {
+  background: var(--surface);
+  border-color: rgba(91, 33, 182, 0.24);
+  box-shadow: 0 12px 28px rgba(33, 0, 93, 0.1);
+  color: var(--brand-primary);
 }
 
 .results-caption {
@@ -72,6 +136,10 @@
 
   .filters-panel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .view-toggle {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .reservations-grid {

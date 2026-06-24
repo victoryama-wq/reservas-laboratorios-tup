@@ -37,6 +37,9 @@ interface PreauthorizedUserDoc {
   active: boolean;
   claimedByUid?: string;
   claimedAt?: Timestamp;
+  revokedBy?: string;
+  revokedAt?: Timestamp;
+  revocationReason?: string;
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -202,7 +205,7 @@ async function claimPreauthorizedProfile(
 
     const preauth = preauthSnapshot.data() as PreauthorizedUserDoc;
 
-    if (preauth.claimedByUid) {
+    if (preauth.claimedByUid || preauth.active !== true || preauth.revokedAt) {
       return;
     }
 

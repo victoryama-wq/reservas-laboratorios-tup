@@ -1019,6 +1019,17 @@ Responsables/coordinadores se preautorizan desde `/admin/usuarios` mediante
 `preauthorizedUsers/{email}` y se reclama cuando la persona inicia sesion con
 Google por primera vez.
 
+Las prealtas que todavia no han sido reclamadas pueden revocarse desde
+`/admin/usuarios` mediante `adminRevokePreauthorizedUser`. La revocacion es
+logica: el documento permanece en `preauthorizedUsers`, queda `active: false`
+y registra `revokedBy`, `revokedAt` y `revocationReason` cuando se capture
+motivo. `ensureUserProfile` ignora prealtas inactivas o revocadas. La auditoria
+sanitiza metadata incompleta para evitar errores tecnicos `internal`.
+
+Los usuarios ya existentes en `users/{uid}` no se eliminan fisicamente. Para
+impedir acceso se usa suspension del perfil con `active: false` desde
+`adminUpdateUser`, conservando reservas, bitacoras, notificaciones y auditoria.
+
 Angular no crea perfiles ni escribe `role`, `active` o `labsAssigned`
 directamente en Firestore.
 
@@ -1149,3 +1160,40 @@ Este ajuste es solo de interfaz y experiencia de usuario. No modifica rutas,
 roles, permisos, modelos, servicios, Cloud Functions, reglas de negocio,
 Firestore Rules, Storage Rules, Google Calendar API, Gmail API ni estructura del
 payload de reserva.
+
+## Fase 16E: Mis reservas recientes e historico
+
+La ruta `/mis-reservas` ahora evita saturar el panel docente con solicitudes
+antiguas sin eliminar documentos de Firestore.
+
+Vista por defecto:
+
+- `Recientes`: muestra reservas futuras, reservas de los ultimos 3 meses y
+  reservas con estatus bloqueante o pendiente aunque sean anteriores.
+
+Vistas disponibles:
+
+- `Historico`: muestra reservas anteriores a 3 meses que no tienen estatus
+  bloqueante o pendiente.
+- `Todas`: muestra todas las reservas personales sin corte temporal.
+
+Estatus que permanecen visibles en `Recientes` aunque sean antiguos:
+
+```text
+PENDIENTE_VALIDACION
+CONFIRMADA
+CONFIRMADA_TRAS_VALIDACION
+ERROR_CALENDAR
+```
+
+La fase no elimina reservas antiguas ni borra documentos relacionados. Se
+conservan:
+
+- `reservations`;
+- `reservationLogs`;
+- `notifications`;
+- `auditEvents`.
+
+El filtro es solo de interfaz en Angular. La consulta sigue restringida al
+usuario autenticado mediante `teacherUid === currentUser.uid`; no se exponen
+`calendarId`, rutas internas de Storage ni reservas de otros usuarios.

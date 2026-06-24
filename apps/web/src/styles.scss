@@ -396,17 +396,54 @@ a {
   overflow: visible;
 }
 
+.app-reservation-time-field .mat-mdc-form-field-flex {
+  min-width: 0;
+}
+
 .app-reservation-time-field .mat-mdc-form-field-infix {
   min-height: 64px;
+  width: auto;
+  min-width: 0;
   padding-top: 20px !important;
   padding-bottom: 12px !important;
 }
 
 .app-reservation-time-field input[type='time'] {
-  min-width: 9rem;
-  line-height: 1.5;
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  box-sizing: border-box;
+  overflow: visible;
+  line-height: 1.6;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
+}
+
+.app-reservation-time-field input[type='time']::-webkit-datetime-edit {
+  display: inline-flex;
+  min-width: max-content;
+  align-items: center;
+  overflow: visible;
+  padding: 0 8px 0 0;
+}
+
+.app-reservation-time-field input[type='time']::-webkit-datetime-edit-hour-field,
+.app-reservation-time-field input[type='time']::-webkit-datetime-edit-minute-field,
+.app-reservation-time-field input[type='time']::-webkit-datetime-edit-text {
+  padding-inline: 1px;
+}
+
+.app-reservation-time-field input[type='time']::-webkit-datetime-edit-ampm-field {
+  min-width: 3.5rem;
+  overflow: visible;
+  padding-inline: 4px;
+}
+
+.app-reservation-time-field input[type='time']::-webkit-calendar-picker-indicator {
+  width: 22px;
+  height: 22px;
+  margin-left: 10px;
+  padding: 2px;
 }
 
 .admin-lab-dialog-panel .mat-mdc-tab-header {

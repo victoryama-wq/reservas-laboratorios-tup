@@ -124,3 +124,16 @@ Cuando una cuenta preautorizada inicia sesion por primera vez,
 `users/{uid}` con el UID generado por Firebase Authentication. Ningun usuario
 puede asignarse su propio rol, activarse o modificar `labsAssigned` desde
 Angular.
+
+## Actualizacion Fase 16F: revocacion y suspension
+
+Admin/Sistemas puede revocar una prealta administrativa no reclamada desde
+`/admin/usuarios`. La revocacion no elimina el documento: actualiza
+`preauthorizedUsers/{email}` con `active: false`, `revokedBy`, `revokedAt` y
+motivo opcional. Una prealta revocada no puede ser reclamada por
+`ensureUserProfile`.
+
+Los usuarios que ya existen en `users/{uid}` no se borran fisicamente para
+conservar trazabilidad institucional. Si se debe impedir el acceso, el perfil
+se suspende mediante `adminUpdateUser` con `active: false`. Las reservas,
+bitacoras, notificaciones y auditorias historicas permanecen intactas.

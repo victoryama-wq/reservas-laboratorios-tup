@@ -22,6 +22,9 @@ export interface PreauthorizedUserView {
   active: boolean;
   claimedByUid?: string;
   claimedDate: Date | null;
+  revokedBy?: string;
+  revokedDate: Date | null;
+  revocationReason?: string;
   createdBy: string;
   createdDate: Date | null;
   updatedDate: Date | null;
@@ -35,6 +38,9 @@ interface PreauthorizedUserDoc {
   active?: boolean;
   claimedByUid?: string;
   claimedAt?: unknown;
+  revokedBy?: string;
+  revokedAt?: unknown;
+  revocationReason?: string;
   createdBy?: string;
   createdAt?: unknown;
   updatedAt?: unknown;
@@ -55,6 +61,17 @@ export interface AdminPreauthorizeUserOutput {
   message: string;
 }
 
+export interface AdminRevokePreauthorizedUserInput {
+  email: string;
+  reason?: string;
+}
+
+export interface AdminRevokePreauthorizedUserOutput {
+  email: string;
+  revoked: true;
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -62,13 +79,21 @@ export class AdminPreauthorizedUsersService {
   private readonly firestore = inject<Firestore>(FIREBASE_FIRESTORE);
   private readonly functions = inject<Functions>(FIREBASE_FUNCTIONS);
 
-  async listPendingPreauthorizations(): Promise<PreauthorizedUserView[]> {
+  async listPreauthorizations(): Promise<PreauthorizedUserView[]> {
     const snapshot = await getDocs(collection(this.firestore, 'preauthorizedUsers'));
 
     return snapshot.docs
       .map((document) =>
         this.toView(document.data() as PreauthorizedUserDoc, document.id),
       )
+      .sort((first, second) =>
+        first.email.localeCompare(second.email, 'es-MX'),
+      );
+  }
+
+  async listPendingPreauthorizations(): Promise<PreauthorizedUserView[]> {
+    const preauthorizations = await this.listPreauthorizations();
+    return preauthorizations
       .filter((preauth) => !preauth.claimedByUid)
       .sort((first, second) =>
         first.email.localeCompare(second.email, 'es-MX'),
@@ -82,6 +107,17 @@ export class AdminPreauthorizedUsersService {
       AdminPreauthorizeUserInput,
       AdminPreauthorizeUserOutput
     >(this.functions, 'adminPreauthorizeUser');
+    const result = await callable(input);
+    return result.data;
+  }
+
+  async revokePreauthorizedUser(
+    input: AdminRevokePreauthorizedUserInput,
+  ): Promise<AdminRevokePreauthorizedUserOutput> {
+    const callable = httpsCallable<
+      AdminRevokePreauthorizedUserInput,
+      AdminRevokePreauthorizedUserOutput
+    >(this.functions, 'adminRevokePreauthorizedUser');
     const result = await callable(input);
     return result.data;
   }
@@ -112,6 +148,9 @@ export class AdminPreauthorizedUsersService {
       active: preauth.active === true,
       claimedByUid: preauth.claimedByUid,
       claimedDate: this.toDate(preauth.claimedAt),
+      revokedBy: preauth.revokedBy,
+      revokedDate: this.toDate(preauth.revokedAt),
+      revocationReason: preauth.revocationReason,
       createdBy: preauth.createdBy ?? '',
       createdDate: this.toDate(preauth.createdAt),
       updatedDate: this.toDate(preauth.updatedAt),

@@ -14,6 +14,8 @@ export {adminUpdateUser} from
   "./modules/admin/admin-update-user.function";
 export {adminPreauthorizeUser} from
   "./modules/admin/admin-preauthorize-user.function";
+export {adminRevokePreauthorizedUser} from
+  "./modules/admin/admin-revoke-preauthorized-user.function";
 export {adminCreateLab, adminUpdateLab} from
   "./modules/admin/admin-lab.function";
 export {

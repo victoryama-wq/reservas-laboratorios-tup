@@ -9,6 +9,7 @@ apps/web/.angular/
 .angular/
 
 .firebase/
+.codex-local/
 firebase-debug.log
 firebase-debug.*.log
 firestore-debug.log

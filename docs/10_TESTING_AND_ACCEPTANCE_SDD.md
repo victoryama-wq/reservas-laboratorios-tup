@@ -212,6 +212,24 @@ Agregar o ejecutar pruebas manuales para:
 - `/admin/usuarios` lista usuarios y preautorizados pendientes en la primera
   navegacion, sin requerir segundo clic.
 
+## Pruebas Fase 16F: revocacion de prealtas
+
+Agregar o ejecutar pruebas manuales para:
+
+- Admin/Sistemas puede revocar una prealta activa no reclamada;
+- la revocacion deja `active: false`, `revokedBy`, `revokedAt`,
+  `revocationReason` si se capturo motivo y `updatedAt`;
+- se registra `auditEvents.action = ADMIN_REVOKE_PREAUTHORIZED_USER`;
+- una prealta revocada no puede ser reclamada por `ensureUserProfile`;
+- una prealta con `claimedByUid` no muestra accion de revocacion;
+- los usuarios existentes se suspenden con `active: false` y no se eliminan;
+- `/admin/usuarios` muestra estados `Pendiente`, `Reclamada` y `Revocada`;
+- el UID no se usa como dato principal en las tarjetas de usuarios existentes.
+- si Firestore recibe una prealta heredada con datos incompletos, la
+  revocacion no debe fallar por metadata de auditoria `undefined`;
+- el frontend no debe mostrar el texto tecnico `internal`; debe presentar un
+  mensaje administrativo claro.
+
 ## Pruebas Fase 16D: reserva con formulario en dialogo
 
 Validaciones obligatorias:
@@ -232,3 +250,34 @@ Validaciones obligatorias:
 - confirmar que botones, foco, iconos y textos son accesibles y legibles;
 - confirmar que no cambia la estructura del payload enviado a
   `createReservation`.
+
+## Pruebas Fase 16E: Mis reservas recientes e historico
+
+Validaciones obligatorias:
+
+- abrir `/mis-reservas` con usuario docente o admin que tenga reservas propias;
+- confirmar que la vista inicial sea `Recientes`;
+- confirmar que `Recientes` muestra reservas futuras;
+- confirmar que `Recientes` muestra reservas de los ultimos 3 meses;
+- confirmar que `Recientes` conserva reservas antiguas con estatus
+  `PENDIENTE_VALIDACION`, `CONFIRMADA`, `CONFIRMADA_TRAS_VALIDACION` o
+  `ERROR_CALENDAR`;
+- confirmar que `Historico` muestra reservas anteriores a 3 meses que no estan
+  pendientes ni bloqueando horario;
+- confirmar que `Todas` muestra todas las reservas personales;
+- confirmar que los filtros existentes por estatus, revision, fecha, busqueda y
+  orden siguen funcionando dentro de cada vista;
+- confirmar que una cuenta no ve reservas de otros usuarios;
+- confirmar que no se muestra `calendarId` ni rutas internas de Storage;
+- confirmar que no se ejecutan borrados de `reservations`, `reservationLogs`,
+  `notifications` ni `auditEvents`.
+
+Validaciones tecnicas:
+
+```bash
+npm --prefix apps/web run build
+npm --prefix functions run lint
+npm --prefix functions run build
+git diff --check
+git status --short
+```

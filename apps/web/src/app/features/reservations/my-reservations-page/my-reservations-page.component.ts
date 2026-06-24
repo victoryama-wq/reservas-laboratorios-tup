@@ -23,6 +23,7 @@ import {
 type StatusFilter = ReservationStatus | 'all';
 type ReviewFilter = 'all' | 'required' | 'not-required';
 type SortOrder = 'recent' | 'upcoming';
+type ReservationsViewMode = 'recent' | 'history' | 'all';
 
 @Component({
   selector: 'app-my-reservations-page',
@@ -56,6 +57,29 @@ export class MyReservationsPageComponent implements OnInit {
   protected readonly startDateFilter = signal('');
   protected readonly endDateFilter = signal('');
   protected readonly sortOrder = signal<SortOrder>('recent');
+  protected readonly viewMode = signal<ReservationsViewMode>('recent');
+
+  protected readonly viewOptions: Array<{
+    value: ReservationsViewMode;
+    label: string;
+    description: string;
+  }> = [
+    {
+      value: 'recent',
+      label: 'Recientes',
+      description: 'Futuras y ultimos 3 meses',
+    },
+    {
+      value: 'history',
+      label: 'Historico',
+      description: 'Anteriores a 3 meses',
+    },
+    {
+      value: 'all',
+      label: 'Todas',
+      description: 'Sin corte temporal',
+    },
+  ];
 
   protected readonly statusOptions: Array<{
     value: StatusFilter;
@@ -133,6 +157,48 @@ export class MyReservationsPageComponent implements OnInit {
       });
   });
 
+  protected readonly displayedReservations = computed(() => {
+    const mode = this.viewMode();
+
+    return this.filteredReservations().filter((reservation) => {
+      if (mode === 'all') {
+        return true;
+      }
+
+      return mode === 'history'
+        ? this.isHistoricReservation(reservation)
+        : this.isRecentReservation(reservation);
+    });
+  });
+
+  protected readonly emptyStateTitle = computed(() => {
+    const mode = this.viewMode();
+
+    if (mode === 'recent') {
+      return 'Sin reservas recientes';
+    }
+
+    if (mode === 'history') {
+      return 'No hay reservas historicas';
+    }
+
+    return 'Sin resultados';
+  });
+
+  protected readonly emptyStateMessage = computed(() => {
+    const mode = this.viewMode();
+
+    if (mode === 'recent') {
+      return 'Las reservas futuras y de los ultimos 3 meses apareceran aqui.';
+    }
+
+    if (mode === 'history') {
+      return 'Las reservas anteriores a 3 meses apareceran aqui sin eliminarse del sistema.';
+    }
+
+    return 'Ajusta los filtros para ver mas reservas personales.';
+  });
+
   ngOnInit(): void {
     void this.loadReservations();
   }
@@ -162,6 +228,11 @@ export class MyReservationsPageComponent implements OnInit {
     this.startDateFilter.set('');
     this.endDateFilter.set('');
     this.sortOrder.set('recent');
+    this.viewMode.set('recent');
+  }
+
+  protected setViewMode(mode: ReservationsViewMode): void {
+    this.viewMode.set(mode);
   }
 
   protected formatDate(reservation: MyReservationView): string {
@@ -192,5 +263,50 @@ export class MyReservationsPageComponent implements OnInit {
     }
 
     return date;
+  }
+
+  private isRecentReservation(reservation: MyReservationView): boolean {
+    if (this.mustRemainVisibleByStatus(reservation.status)) {
+      return true;
+    }
+
+    const startDate = reservation.startDate;
+
+    if (!startDate) {
+      return true;
+    }
+
+    return startDate.getTime() >= this.recentCutoffDate().getTime();
+  }
+
+  private isHistoricReservation(reservation: MyReservationView): boolean {
+    if (this.mustRemainVisibleByStatus(reservation.status)) {
+      return false;
+    }
+
+    const startDate = reservation.startDate;
+
+    if (!startDate) {
+      return false;
+    }
+
+    return startDate.getTime() < this.recentCutoffDate().getTime();
+  }
+
+  private mustRemainVisibleByStatus(status: ReservationStatus): boolean {
+    return (
+      status === 'PENDIENTE_VALIDACION' ||
+      status === 'CONFIRMADA' ||
+      status === 'CONFIRMADA_TRAS_VALIDACION' ||
+      status === 'ERROR_CALENDAR'
+    );
+  }
+
+  private recentCutoffDate(): Date {
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 3);
+    cutoff.setHours(0, 0, 0, 0);
+
+    return cutoff;
   }
 }
