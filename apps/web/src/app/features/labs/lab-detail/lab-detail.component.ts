@@ -11,6 +11,11 @@ import {
   AppPageHeaderComponent,
 } from '../../../shared/components';
 import { LabCalendarComponent } from '../../calendar/lab-calendar/lab-calendar.component';
+import { LabImageCarouselComponent } from '../components/lab-image-carousel/lab-image-carousel.component';
+import {
+  LabGalleryViewImage,
+  LabGalleryViewService,
+} from '../services/lab-gallery-view.service';
 import { LabService } from '../services/lab.service';
 
 @Component({
@@ -23,6 +28,7 @@ import { LabService } from '../services/lab.service';
     MatIconModule,
     MatProgressSpinnerModule,
     LabCalendarComponent,
+    LabImageCarouselComponent,
     RouterLink,
   ],
   templateUrl: './lab-detail.component.html',
@@ -31,10 +37,14 @@ import { LabService } from '../services/lab.service';
 export class LabDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly labService = inject(LabService);
+  private readonly labGalleryViewService = inject(LabGalleryViewService);
 
   protected readonly lab = signal<LabDoc | null>(null);
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal('');
+  protected readonly galleryImages = signal<LabGalleryViewImage[]>([]);
+  protected readonly galleryLoading = signal(false);
+  protected readonly galleryErrorMessage = signal('');
 
   ngOnInit(): void {
     const labId = this.route.snapshot.paramMap.get('labId');
@@ -49,6 +59,9 @@ export class LabDetailComponent implements OnInit {
       next: (lab) => {
         this.lab.set(lab);
         this.loading.set(false);
+        if (lab) {
+          void this.loadGallery(lab);
+        }
       },
       error: () => {
         this.errorMessage.set('No fue posible cargar el laboratorio.');
@@ -65,5 +78,32 @@ export class LabDetailComponent implements OnInit {
     return lab.minNoticeHours > 0
       ? `${lab.minNoticeHours} horas`
       : 'Sin anticipacion minima';
+  }
+
+  private async loadGallery(lab: LabDoc): Promise<void> {
+    this.galleryLoading.set(true);
+    this.galleryErrorMessage.set('');
+    this.galleryImages.set([]);
+
+    try {
+      const images = await this.labGalleryViewService.resolveGalleryImages(
+        lab.gallery,
+        lab.coverImageId,
+        lab.name,
+      );
+      this.galleryImages.set(images);
+      if ((lab.gallery ?? []).some((image) => image.active) &&
+        images.length === 0) {
+        this.galleryErrorMessage.set(
+          'No fue posible cargar las imagenes de este laboratorio.',
+        );
+      }
+    } catch {
+      this.galleryErrorMessage.set(
+        'No fue posible cargar las imagenes de este laboratorio.',
+      );
+    } finally {
+      this.galleryLoading.set(false);
+    }
   }
 }

@@ -1239,3 +1239,23 @@ Seguridad:
 
 El carrusel publico en catalogo/detalle queda diferido. Esta fase solo prepara
 modelo, reglas de Storage, carga admin y validacion backend.
+
+## Fase 17B.2: carrusel en detalle de laboratorio
+
+La ruta `/laboratorios/:labId` muestra un carrusel visual responsive cuando el
+laboratorio tiene imagenes activas en `labs/{labId}.gallery`.
+
+Comportamiento:
+
+- usa solo imagenes con `active: true`;
+- coloca primero la imagen marcada en `coverImageId`;
+- resuelve URLs temporales con Firebase Storage SDK desde `storagePath`;
+- no guarda `downloadUrl` en Firestore;
+- omite imagenes que no puedan cargarse por permisos o archivo inexistente;
+- muestra fallback institucional si no hay imagenes activas o todas fallan;
+- no muestra `storagePath` ni `calendarId` al usuario final;
+- mantiene intactos el resumen lateral, el boton `Reservar este laboratorio`
+  y el calendario `app-lab-calendar`.
+
+El carrusel es solo de lectura y no modifica laboratorios, reservas, Calendar,
+Gmail, roles ni estatus.

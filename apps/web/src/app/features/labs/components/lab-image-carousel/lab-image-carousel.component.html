@@ -1,0 +1,76 @@
+<section class="lab-carousel" aria-label="Galeria del laboratorio">
+  @if (loading()) {
+    <div class="lab-carousel__fallback">
+      <mat-spinner diameter="34" />
+      <p>Cargando galeria...</p>
+    </div>
+  } @else if (currentImage(); as image) {
+    <figure class="lab-carousel__figure">
+      <img
+        class="lab-carousel__image"
+        [src]="image.src"
+        [alt]="image.alt"
+      />
+
+      @if (showControls()) {
+        <button
+          mat-icon-button
+          type="button"
+          class="lab-carousel__control lab-carousel__control--previous"
+          aria-label="Imagen anterior del laboratorio"
+          (click)="goToPrevious()"
+        >
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="lab-carousel__control lab-carousel__control--next"
+          aria-label="Imagen siguiente del laboratorio"
+          (click)="goToNext()"
+        >
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      }
+
+      <figcaption class="lab-carousel__caption">
+        <div>
+          <p class="lab-carousel__kicker">
+            {{ image.isCover ? 'Imagen principal' : 'Galeria del laboratorio' }}
+          </p>
+          <h2>{{ labName() }}</h2>
+          @if (image.caption) {
+            <p>{{ image.caption }}</p>
+          }
+        </div>
+      </figcaption>
+    </figure>
+
+    @if (showControls()) {
+      <div class="lab-carousel__indicators" aria-label="Selector de imagenes">
+        @for (galleryImage of images(); track galleryImage.id; let index = $index) {
+          <button
+            type="button"
+            [class.is-active]="index === activeIndex()"
+            [attr.aria-label]="'Mostrar imagen ' + (index + 1) + ' de ' + labName()"
+            [attr.aria-current]="index === activeIndex() ? 'true' : null"
+            (click)="goToImage(index)"
+          ></button>
+        }
+      </div>
+    }
+  } @else {
+    <div class="lab-carousel__fallback">
+      <span class="lab-carousel__fallback-icon" aria-hidden="true">
+        <mat-icon>photo_library</mat-icon>
+      </span>
+      <p class="lab-carousel__kicker">Galeria</p>
+      <h2>{{ labName() }}</h2>
+      <p>Galeria no disponible por el momento.</p>
+      @if (errorMessage()) {
+        <p class="lab-carousel__error">{{ errorMessage() }}</p>
+      }
+    </div>
+  }
+</section>

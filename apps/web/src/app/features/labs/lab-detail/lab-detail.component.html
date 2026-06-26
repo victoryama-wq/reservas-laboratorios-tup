@@ -26,6 +26,13 @@
     />
 
     @if (lab(); as selectedLab) {
+      <app-lab-image-carousel
+        [images]="galleryImages()"
+        [labName]="selectedLab.name"
+        [loading]="galleryLoading()"
+        [errorMessage]="galleryErrorMessage()"
+      />
+
       <div class="detail-layout">
         <aside class="summary-card">
           <h2>Resumen del laboratorio</h2>

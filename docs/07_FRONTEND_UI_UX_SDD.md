@@ -888,3 +888,26 @@ Requisitos visuales:
 
 Esta fase no implementa carrusel publico en `/laboratorios` ni
 `/laboratorios/:labId`. La galeria queda preparada para una fase posterior.
+
+## Actualizacion Fase 17B.2: carrusel en detalle de laboratorio
+
+La vista `/laboratorios/:labId` debe mostrar un carrusel visual cuando existan
+imagenes activas en `labs/{labId}.gallery`.
+
+Reglas visuales:
+
+- ubicar el carrusel despues del encabezado y antes del layout principal;
+- conservar resumen lateral, boton `Reservar este laboratorio` y calendario;
+- usar card blanca, bordes suaves, `rounded-2xl`, sombra ligera e identidad
+  operativa morada;
+- usar imagen con `object-fit: cover`;
+- mostrar caption visible si existe;
+- mostrar controles anterior/siguiente solo si hay mas de una imagen;
+- mostrar indicadores accesibles;
+- en movil usar ancho completo y altura moderada, sin scroll horizontal;
+- si no hay imagenes o no cargan, mostrar fallback:
+  `Galeria no disponible por el momento.`
+
+El carrusel no debe consultar Firestore, modificar laboratorio, subir imagenes
+ni llamar Cloud Functions. La resolucion de URLs temporales desde Storage debe
+hacerse en un servicio de lectura.

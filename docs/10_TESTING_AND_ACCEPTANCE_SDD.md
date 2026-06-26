@@ -207,6 +207,36 @@ git diff --check
 git status --short
 ```
 
+## Pruebas Fase 17B.2: carrusel en detalle de laboratorio
+
+Validaciones obligatorias:
+
+- entrar con usuario autenticado y perfil activo;
+- abrir `/laboratorios/:labId` con imagenes activas;
+- confirmar que aparece el carrusel despues del encabezado;
+- confirmar que la imagen `coverImageId` aparece primero;
+- confirmar botones anterior/siguiente cuando hay mas de una imagen;
+- confirmar indicadores y foco visible;
+- confirmar que `alt` y `caption` se usan en la vista;
+- abrir laboratorio sin imagenes activas y confirmar fallback institucional;
+- simular imagen faltante o sin permiso y confirmar que no bloquea toda la
+  vista;
+- confirmar que resumen lateral, boton de reserva y calendario siguen
+  visibles y funcionales;
+- confirmar que no se muestra `storagePath`;
+- confirmar que no se muestra `calendarId`;
+- probar responsive en 360, 390, 414, 768, 820, 1024, 1366 y 1440 px.
+
+Validaciones tecnicas:
+
+```bash
+npm --prefix apps/web run build
+npm --prefix functions run lint
+npm --prefix functions run build
+git diff --check
+git status --short
+```
+
 ## Pruebas Fase 16C: reglas y bloqueos
 
 Agregar o ejecutar pruebas manuales para:

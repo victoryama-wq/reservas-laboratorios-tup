@@ -1491,3 +1491,23 @@ del sistema visual.
 
 No se implementa carrusel publico todavia. La galeria queda preparada para
 catalogo/detalle en una fase posterior.
+
+## Fase 17B.2: carrusel en detalle de laboratorio
+
+Se agrego un carrusel de imagenes a `/laboratorios/:labId` siguiendo el sistema
+visual institucional:
+
+- superficie blanca con borde suave, radio amplio y sombra ligera;
+- imagen principal con `object-fit: cover`;
+- degradado inferior para legibilidad de titulo y caption;
+- controles con Material Icons, foco visible y contraste suficiente;
+- indicadores compactos;
+- fallback institucional con icono `photo_library`;
+- comportamiento responsive mobile-first.
+
+El carrusel se inserta despues del encabezado de pagina y antes del layout con
+resumen/calendario. No desplaza ni modifica el calendario de disponibilidad ni
+el flujo de reserva.
+
+Las URLs se resuelven temporalmente en memoria desde Firebase Storage SDK. No
+se guardan `downloadUrl` en Firestore ni se muestran rutas internas de Storage.

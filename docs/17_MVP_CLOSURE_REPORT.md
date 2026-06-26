@@ -368,3 +368,27 @@ Fuera de alcance:
 - reservas;
 - Calendar API;
 - Gmail API.
+
+## 24. Seguimiento Fase 17B.2: carrusel en detalle de laboratorio
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Alcance:
+
+- componente `LabImageCarouselComponent` para `/laboratorios/:labId`;
+- servicio `LabGalleryViewService` para resolver URLs temporales desde Storage;
+- ordenamiento de imagenes activas con `coverImageId` primero;
+- fallback institucional si no hay imagenes o no cargan;
+- integracion despues del encabezado y antes del resumen/calendario;
+- documentacion actualizada.
+
+Fuera de alcance:
+
+- cambios en Admin/Laboratorios;
+- cambios en carga de imagenes;
+- cambios en Storage Rules;
+- backend;
+- reservas;
+- Calendar API;
+- Gmail API.
