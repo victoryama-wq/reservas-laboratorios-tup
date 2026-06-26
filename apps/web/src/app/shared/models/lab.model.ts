@@ -7,6 +7,8 @@ export interface LabDoc {
   description: string;
   shortDescription?: string;
   imageUrl?: string;
+  gallery?: LabGalleryImage[];
+  coverImageId?: string;
   calendarId: string;
   calendarSharedWith?: string;
   location?: string;
@@ -39,6 +41,25 @@ export interface DaySchedule {
   enabled: boolean;
   start: string;
   end: string;
+}
+
+export type LabGalleryImageContentType =
+  | 'image/jpeg'
+  | 'image/png'
+  | 'image/webp';
+
+export interface LabGalleryImage {
+  id: string;
+  storagePath: string;
+  fileName: string;
+  contentType: LabGalleryImageContentType;
+  sizeBytes: number;
+  alt?: string;
+  caption?: string;
+  order: number;
+  active: boolean;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface LabSpecialRule {

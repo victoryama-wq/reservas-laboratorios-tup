@@ -173,6 +173,40 @@ git diff --check
 git status --short
 ```
 
+## Pruebas Fase 17B.1: galeria admin de laboratorios
+
+Validaciones obligatorias:
+
+- abrir `/admin/laboratorios` como `admin_sistemas`;
+- crear o editar laboratorio y abrir pestana `Galeria`;
+- subir imagen JPG, PNG y WebP valida menor o igual a 5 MB;
+- confirmar que archivos se almacenan en
+  `labImages/{labId}/gallery/{imageId}/{fileName}`;
+- intentar subir archivo no permitido y confirmar rechazo visual;
+- intentar subir imagen mayor a 5 MB y confirmar rechazo visual;
+- confirmar que el contador no permite mas de 8 imagenes activas;
+- capturar `alt` y `caption`;
+- mover imagenes arriba/abajo y guardar;
+- seleccionar portada y confirmar `coverImageId`;
+- desactivar imagen portada y confirmar que se selecciona otra portada o se
+  limpia portada;
+- confirmar que Firestore guarda metadata en `labs/{labId}.gallery`;
+- confirmar que no se guarda `downloadUrl`;
+- confirmar que `imageUrl` sigue existiendo como campo legado opcional;
+- confirmar que usuarios no admin no pueden subir imagenes;
+- confirmar que usuarios con perfil activo pueden leer previews;
+- confirmar que no cambia catalogo publico ni detalle publico en esta fase.
+
+Validaciones tecnicas:
+
+```bash
+npm --prefix apps/web run build
+npm --prefix functions run lint
+npm --prefix functions run build
+git diff --check
+git status --short
+```
+
 ## Pruebas Fase 16C: reglas y bloqueos
 
 Agregar o ejecutar pruebas manuales para:

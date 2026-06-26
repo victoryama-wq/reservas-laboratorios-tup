@@ -865,3 +865,26 @@ Estados vacios recomendados:
 Esta separacion es visual. No debe eliminar documentos de `reservations`,
 `reservationLogs`, `notifications` ni `auditEvents`; tampoco debe modificar
 Cloud Functions, estatus, rutas, reglas de negocio ni permisos.
+
+## Actualizacion Fase 17B.1: UI admin para galeria de laboratorios
+
+El dialogo de alta/edicion de laboratorios debe incluir una pestana `Galeria`
+para Admin/Sistemas.
+
+Requisitos visuales:
+
+- conservar el sistema visual institucional morado documentado;
+- usar Angular Material para dialogo, tabs, botones, formularios y progreso;
+- usar Tailwind/clases globales para layout, espaciado, bordes y superficies;
+- mostrar contador `N de 8 imagenes activas`;
+- mostrar ayuda visible sobre formatos JPG/PNG/WebP y limite de 5 MB;
+- permitir preview privado de imagenes subidas;
+- permitir capturar `alt` y `caption`;
+- permitir activar/desactivar imagen sin borrar archivo;
+- permitir mover imagenes arriba/abajo;
+- permitir seleccionar portada;
+- no mostrar ni guardar URLs publicas;
+- conservar `imageUrl` como campo legado opcional.
+
+Esta fase no implementa carrusel publico en `/laboratorios` ni
+`/laboratorios/:labId`. La galeria queda preparada para una fase posterior.

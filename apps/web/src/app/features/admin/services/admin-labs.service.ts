@@ -12,7 +12,11 @@ import {
   FIREBASE_FIRESTORE,
   FIREBASE_FUNCTIONS,
 } from '../../../core/firebase/firebase.providers';
-import { LabDoc, WeeklySchedule } from '../../../shared/models';
+import {
+  LabDoc,
+  LabGalleryImage,
+  WeeklySchedule,
+} from '../../../shared/models';
 
 export interface AdminLabView extends LabDoc {
   id: string;
@@ -26,6 +30,8 @@ export interface AdminCreateLabInput {
   description: string;
   shortDescription?: string;
   imageUrl?: string;
+  gallery?: LabGalleryImage[];
+  coverImageId?: string;
   calendarId: string;
   location?: string;
   responsibleUids: string[];
@@ -114,6 +120,8 @@ export class AdminLabsService {
       description: lab.description ?? '',
       shortDescription: lab.shortDescription ?? '',
       imageUrl: lab.imageUrl ?? '',
+      gallery: lab.gallery ?? [],
+      coverImageId: lab.coverImageId ?? '',
       calendarId: lab.calendarId ?? '',
       location: lab.location ?? '',
       active: Boolean(lab.active),

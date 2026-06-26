@@ -343,3 +343,28 @@ Justificacion:
 - Warnings de build: no bloqueantes y ya documentados.
 
 El sistema queda tecnicamente apto para smoke manual final con cuentas reales y datos `QA-F17` antes de declararlo `MVP APROBADO` sin observaciones.
+
+## 23. Seguimiento Fase 17B.1: galeria privada de laboratorios
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Alcance:
+
+- `LabDoc` extendido con `gallery` y `coverImageId`;
+- Storage path `labImages/{labId}/gallery/{imageId}/{fileName}`;
+- reglas de Storage para lectura autenticada activa y escritura admin;
+- validacion backend en `adminCreateLab` y `adminUpdateLab`;
+- servicio Angular admin para carga de imagenes;
+- pestana `Galeria` en dialogo de laboratorios;
+- metadata sin `downloadUrl` publica;
+- `imageUrl` preservado como campo legado.
+
+Fuera de alcance:
+
+- carrusel publico en catalogo/detalle;
+- eliminacion automatica de archivos;
+- QR;
+- reservas;
+- Calendar API;
+- Gmail API.

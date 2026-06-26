@@ -572,3 +572,47 @@ Reglas de datos:
 - no se borran reglas ni bloqueos desde la interfaz, se desactivan con
   `active: false`;
 - cada creacion/actualizacion genera un evento en `auditEvents`.
+
+## Actualizacion Fase 17B.1: galeria de imagenes de laboratorios
+
+`labs/{labId}` incorpora metadata opcional para una galeria privada de imagenes.
+No se crean colecciones nuevas para esta fase.
+
+Campos agregados a `LabDoc`:
+
+```ts
+interface LabDoc {
+  gallery?: LabGalleryImage[];
+  coverImageId?: string;
+}
+
+type LabGalleryImageContentType =
+  | 'image/jpeg'
+  | 'image/png'
+  | 'image/webp';
+
+interface LabGalleryImage {
+  id: string;
+  storagePath: string;
+  fileName: string;
+  contentType: LabGalleryImageContentType;
+  sizeBytes: number;
+  alt?: string;
+  caption?: string;
+  order: number;
+  active: boolean;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+}
+```
+
+Reglas del modelo:
+
+- `storagePath` debe pertenecer a
+  `labImages/{labId}/gallery/{imageId}/{fileName}`;
+- no se permite guardar `downloadUrl` en la metadata;
+- maximo 8 imagenes activas por laboratorio;
+- `coverImageId` debe apuntar a una imagen activa de `gallery`;
+- `imageUrl` permanece como campo legado opcional y no sustituye a
+  `gallery`;
+- los archivos fisicos no se eliminan automaticamente en esta fase.

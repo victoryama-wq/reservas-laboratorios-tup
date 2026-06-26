@@ -44,12 +44,23 @@ service firebase.storage {
         );
     }
 
+    function isAllowedLabImage() {
+      return request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/jpeg|image/png|image/webp');
+    }
+
     match /protocolUploads/{uid}/{uploadId}/{fileName} {
       allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
       allow create, update: if isSignedIn()
         && request.auth.uid == uid
         && isAllowedProtocolFile();
       allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    match /labImages/{labId}/gallery/{imageId}/{fileName} {
+      allow read: if hasActiveProfile();
+      allow create, update: if isAdmin() && isAllowedLabImage();
+      allow delete: if isAdmin();
     }
 
     match /{allPaths=**} {

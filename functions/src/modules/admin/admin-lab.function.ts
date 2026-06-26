@@ -8,12 +8,26 @@ import {
   onCall,
 } from "firebase-functions/v2/https";
 
-import {AppUser, LabDoc, WeeklySchedule} from "../../shared/models";
+import {
+  AppUser,
+  LabDoc,
+  LabGalleryImage,
+  LabGalleryImageContentType,
+  WeeklySchedule,
+} from "../../shared/models";
 
 const REGION = "us-central1";
 const INSTITUTIONAL_DOMAIN = "@tecplayacar.edu.mx";
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+const MAX_GALLERY_IMAGES = 8;
+const MAX_LAB_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_GALLERY_TEXT_LENGTH = 120;
+const LAB_IMAGE_CONTENT_TYPES = new Set<LabGalleryImageContentType>([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
 const VALID_RESPONSIBLE_ROLES = new Set([
   "responsable_laboratorio",
   "admin_sistemas",
@@ -34,6 +48,8 @@ const ALLOWED_INPUT_KEYS = new Set([
   "description",
   "shortDescription",
   "imageUrl",
+  "gallery",
+  "coverImageId",
   "calendarId",
   "location",
   "responsibleUids",
@@ -68,6 +84,8 @@ interface ParsedLabInput {
   description?: string;
   shortDescription?: string;
   imageUrl?: string;
+  gallery?: LabGalleryImage[];
+  coverImageId?: string;
   calendarId?: string;
   location?: string;
   responsibleUids?: string[];
@@ -123,6 +141,8 @@ export const adminCreateLab = onCall(
           description: input.description,
           shortDescription: input.shortDescription,
           imageUrl: input.imageUrl,
+          gallery: input.gallery,
+          coverImageId: input.coverImageId,
           calendarId: input.calendarId,
           location: input.location,
           responsibleUids: input.responsibleUids,
@@ -304,6 +324,8 @@ function parseCreateInput(
     ),
     shortDescription: input.shortDescription ?? "",
     imageUrl: input.imageUrl ?? "",
+    gallery: input.gallery ?? [],
+    coverImageId: input.coverImageId ?? "",
     calendarId: requireText(
         input.calendarId,
         "El calendarId es obligatorio.",
@@ -371,13 +393,22 @@ function parseBaseInput(data: unknown): ParsedLabInput {
     );
   }
 
+  const labId = optionalText(data.labId);
+  const slug = data.slug === undefined ? undefined : requireSlug(data.slug);
+  const storageLabId = labId ?? slug;
+  const gallery = parseGallery(data.gallery, storageLabId);
+  const coverImageId = optionalText(data.coverImageId);
+  validateCoverImageId(coverImageId, gallery);
+
   return {
-    labId: optionalText(data.labId),
+    labId,
     name: optionalText(data.name),
-    slug: data.slug === undefined ? undefined : requireSlug(data.slug),
+    slug,
     description: optionalText(data.description),
     shortDescription: optionalText(data.shortDescription),
     imageUrl: optionalText(data.imageUrl),
+    gallery,
+    coverImageId,
     calendarId: optionalText(data.calendarId),
     location: optionalText(data.location),
     responsibleUids: parseStringList(data.responsibleUids, "responsibleUids"),
@@ -429,6 +460,8 @@ function buildLabPatch(
   setIfDefined(patch, "description", input.description);
   setIfDefined(patch, "shortDescription", input.shortDescription);
   setIfDefined(patch, "imageUrl", input.imageUrl);
+  setIfDefined(patch, "gallery", input.gallery);
+  setIfDefined(patch, "coverImageId", input.coverImageId);
   setIfDefined(patch, "calendarId", input.calendarId);
   setIfDefined(patch, "location", input.location);
   setIfDefined(patch, "responsibleUids", input.responsibleUids);
@@ -471,6 +504,301 @@ function setIfDefined<K extends keyof LabDoc>(
   if (value !== undefined) {
     patch[key] = value;
   }
+}
+
+const ALLOWED_GALLERY_KEYS = new Set([
+  "id",
+  "storagePath",
+  "fileName",
+  "contentType",
+  "sizeBytes",
+  "alt",
+  "caption",
+  "order",
+  "active",
+  "createdAt",
+  "updatedAt",
+]);
+
+/**
+ * Parses and validates laboratory gallery metadata.
+ *
+ * @param {unknown} value Candidate gallery.
+ * @param {string | undefined} labId Lab id used in Storage path.
+ * @return {LabGalleryImage[] | undefined} Gallery metadata.
+ */
+function parseGallery(
+    value: unknown,
+    labId: string | undefined,
+): LabGalleryImage[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Array.isArray(value)) {
+    throw new HttpsError(
+        "invalid-argument",
+        "gallery debe ser un arreglo.",
+    );
+  }
+
+  if (value.length > MAX_GALLERY_IMAGES) {
+    throw new HttpsError(
+        "invalid-argument",
+        `gallery no puede exceder ${MAX_GALLERY_IMAGES} imagenes.`,
+    );
+  }
+
+  if (!labId) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Debe indicar labId o slug para validar la galeria.",
+    );
+  }
+
+  const seenIds = new Set<string>();
+  const gallery = value.map((item) => parseGalleryImage(item, labId, seenIds));
+  const activeCount = gallery.filter((image) => image.active).length;
+
+  if (activeCount > MAX_GALLERY_IMAGES) {
+    throw new HttpsError(
+        "invalid-argument",
+        `Solo se permiten ${MAX_GALLERY_IMAGES} imagenes activas.`,
+    );
+  }
+
+  return gallery.sort((first, second) => first.order - second.order);
+}
+
+/**
+ * Parses one gallery image metadata entry.
+ *
+ * @param {unknown} value Candidate entry.
+ * @param {string} labId Lab id used in Storage path.
+ * @param {Set<string>} seenIds Already used image IDs.
+ * @return {LabGalleryImage} Valid image metadata.
+ */
+function parseGalleryImage(
+    value: unknown,
+    labId: string,
+    seenIds: Set<string>,
+): LabGalleryImage {
+  if (!isRecord(value)) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Cada imagen de gallery debe ser un objeto.",
+    );
+  }
+
+  const unknownKeys = Object.keys(value).filter(
+      (key) => !ALLOWED_GALLERY_KEYS.has(key),
+  );
+  if (unknownKeys.length > 0) {
+    throw new HttpsError(
+        "invalid-argument",
+        "gallery contiene campos no permitidos.",
+    );
+  }
+
+  const id = requireText(value.id, "Cada imagen debe tener id.");
+  if (seenIds.has(id)) {
+    throw new HttpsError(
+        "invalid-argument",
+        `Imagen duplicada en gallery: ${id}.`,
+    );
+  }
+  seenIds.add(id);
+
+  const storagePath = requireText(
+      value.storagePath,
+      "Cada imagen debe tener storagePath.",
+  );
+  const expectedPrefix = `labImages/${labId}/gallery/${id}/`;
+  if (!storagePath.startsWith(expectedPrefix)) {
+    throw new HttpsError(
+        "invalid-argument",
+        "storagePath de imagen no pertenece al laboratorio indicado.",
+    );
+  }
+
+  const fileName = requireText(
+      value.fileName,
+      "Cada imagen debe tener fileName.",
+  );
+  const contentType = parseLabImageContentType(value.contentType);
+  const sizeBytes = parseLabImageSize(value.sizeBytes);
+  const order = parseGalleryOrder(value.order);
+  const active = requireBoolean(
+      value.active,
+      "active de imagen debe ser booleano.",
+  );
+  const alt = optionalLimitedText(value.alt, "alt");
+  const caption = optionalLimitedText(value.caption, "caption");
+
+  return {
+    id,
+    storagePath,
+    fileName,
+    contentType,
+    sizeBytes,
+    alt,
+    caption,
+    order,
+    active,
+    createdAt: parseGalleryTimestamp(value.createdAt, "createdAt"),
+    updatedAt: value.updatedAt === undefined ?
+      undefined :
+      parseGalleryTimestamp(value.updatedAt, "updatedAt"),
+  };
+}
+
+/**
+ * Validates gallery cover image.
+ *
+ * @param {string | undefined} coverImageId Candidate cover image id.
+ * @param {LabGalleryImage[] | undefined} gallery Parsed gallery.
+ */
+function validateCoverImageId(
+    coverImageId: string | undefined,
+    gallery: LabGalleryImage[] | undefined,
+): void {
+  if (!coverImageId) {
+    return;
+  }
+
+  const cover = gallery?.find((image) =>
+    image.id === coverImageId && image.active,
+  );
+  if (!cover) {
+    throw new HttpsError(
+        "invalid-argument",
+        "coverImageId debe corresponder a una imagen activa de gallery.",
+    );
+  }
+}
+
+/**
+ * Parses allowed laboratory image content type.
+ *
+ * @param {unknown} value Candidate content type.
+ * @return {LabGalleryImageContentType} Content type.
+ */
+function parseLabImageContentType(
+    value: unknown,
+): LabGalleryImageContentType {
+  if (typeof value !== "string" ||
+    !LAB_IMAGE_CONTENT_TYPES.has(value as LabGalleryImageContentType)) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Tipo de imagen no permitido.",
+    );
+  }
+
+  return value as LabGalleryImageContentType;
+}
+
+/**
+ * Parses image size.
+ *
+ * @param {unknown} value Candidate size.
+ * @return {number} Size in bytes.
+ */
+function parseLabImageSize(value: unknown): number {
+  if (typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    value <= 0 ||
+    value > MAX_LAB_IMAGE_SIZE_BYTES) {
+    throw new HttpsError(
+        "invalid-argument",
+        "El tamano de imagen excede el limite permitido.",
+    );
+  }
+
+  return Math.floor(value);
+}
+
+/**
+ * Parses gallery image order.
+ *
+ * @param {unknown} value Candidate order.
+ * @return {number} Order.
+ */
+function parseGalleryOrder(value: unknown): number {
+  if (typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    value < 0) {
+    throw new HttpsError(
+        "invalid-argument",
+        "order de imagen debe ser numerico mayor o igual a cero.",
+    );
+  }
+
+  return Math.floor(value);
+}
+
+/**
+ * Parses optional gallery text.
+ *
+ * @param {unknown} value Candidate text.
+ * @param {string} field Field name.
+ * @return {string | undefined} Sanitized text.
+ */
+function optionalLimitedText(
+    value: unknown,
+    field: string,
+): string | undefined {
+  const text = optionalText(value);
+  if (text === undefined || text === "") {
+    return undefined;
+  }
+
+  if (text.length > MAX_GALLERY_TEXT_LENGTH) {
+    throw new HttpsError(
+        "invalid-argument",
+        `${field} no puede exceder ${MAX_GALLERY_TEXT_LENGTH} caracteres.`,
+    );
+  }
+
+  return text;
+}
+
+/**
+ * Parses Timestamp-like values from callable payloads.
+ *
+ * @param {unknown} value Candidate timestamp.
+ * @param {string} field Field name.
+ * @return {Timestamp} Timestamp.
+ */
+function parseGalleryTimestamp(value: unknown, field: string): Timestamp {
+  if (value instanceof Timestamp) {
+    return value;
+  }
+
+  if (isRecord(value)) {
+    const seconds = typeof value.seconds === "number" ?
+      value.seconds :
+      value._seconds;
+    const nanoseconds = typeof value.nanoseconds === "number" ?
+      value.nanoseconds :
+      value._nanoseconds;
+
+    if (typeof seconds === "number" &&
+      typeof nanoseconds === "number") {
+      return new Timestamp(seconds, nanoseconds);
+    }
+  }
+
+  if (typeof value === "string") {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return Timestamp.fromDate(date);
+    }
+  }
+
+  throw new HttpsError(
+      "invalid-argument",
+      `${field} de imagen debe ser una fecha valida.`,
+  );
 }
 
 /**

@@ -1208,3 +1208,34 @@ conservan:
 El filtro es solo de interfaz en Angular. La consulta sigue restringida al
 usuario autenticado mediante `teacherUid === currentUser.uid`; no se exponen
 `calendarId`, rutas internas de Storage ni reservas de otros usuarios.
+
+## Fase 17B.1: galeria privada de laboratorios
+
+La administracion de laboratorios ahora permite preparar una galeria privada de
+imagenes por laboratorio desde `/admin/laboratorios`.
+
+Modelo:
+
+- metadata en `labs/{labId}.gallery`;
+- portada seleccionada con `labs/{labId}.coverImageId`;
+- `imageUrl` se conserva solo como campo legado opcional;
+- maximo 8 imagenes activas por laboratorio;
+- imagenes JPG, PNG o WebP;
+- tamano maximo 5 MB por imagen.
+
+Ruta de Storage:
+
+```text
+labImages/{labId}/gallery/{imageId}/{fileName}
+```
+
+Seguridad:
+
+- solo usuarios autenticados con perfil activo pueden leer imagenes;
+- solo `admin_sistemas` puede subir o actualizar imagenes de galeria;
+- no se guardan `downloadUrl` publicas en Firestore;
+- no se borran archivos automaticamente en esta fase;
+- la desactivacion de imagenes conserva trazabilidad.
+
+El carrusel publico en catalogo/detalle queda diferido. Esta fase solo prepara
+modelo, reglas de Storage, carga admin y validacion backend.

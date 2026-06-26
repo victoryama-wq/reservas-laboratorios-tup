@@ -183,3 +183,24 @@ Modelo esperado:
 
 No se requiere exponer `calendarId`, secretos ni enlaces publicos a Storage
 para administrar reglas o bloqueos.
+
+## Actualizacion Fase 17B.1: Storage Rules para imagenes de laboratorios
+
+Las imagenes administradas de laboratorios se almacenan en:
+
+```text
+labImages/{labId}/gallery/{imageId}/{fileName}
+```
+
+Reglas esperadas:
+
+- lectura solo para usuarios autenticados con perfil activo y rol valido;
+- creacion/actualizacion solo para `admin_sistemas`;
+- tipos permitidos: `image/jpeg`, `image/png`, `image/webp`;
+- tamano maximo por archivo: 5 MB;
+- no se generan enlaces publicos ni se guarda `downloadUrl` en Firestore;
+- `protocolUploads` mantiene sus reglas existentes sin cambios.
+
+La escritura critica de metadata de galeria en `labs` sigue pasando por
+Cloud Functions `adminCreateLab` y `adminUpdateLab`, no por escrituras directas
+desde Angular.

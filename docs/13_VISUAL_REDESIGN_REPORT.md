@@ -1470,3 +1470,24 @@ No se eliminan documentos de Firestore. Permanecen intactas las colecciones
 `reservations`, `reservationLogs`, `notifications` y `auditEvents`. Tampoco se
 modifican Cloud Functions, Calendar API, Gmail API, rutas, roles, payloads ni
 reglas de negocio.
+
+## Fase 17B.1: galeria admin de laboratorios
+
+Se agrego una pestana `Galeria` al dialogo administrativo de laboratorios con
+la misma linea visual del sistema:
+
+- card/dialogo blanco con bordes suaves y sombra ligera;
+- contador de imagenes activas;
+- callouts institucionales para limites y seguridad;
+- previews en tarjetas compactas;
+- acciones con Angular Material y Material Icons;
+- campos `alt` y `caption` con apariencia outline;
+- botones para portada, activar/desactivar y reordenar;
+- progreso de carga visible.
+
+La implementacion conserva la paleta operativa morada, tipografia Inter y
+componentes Angular Material. No introduce nuevas dependencias ni estilos fuera
+del sistema visual.
+
+No se implementa carrusel publico todavia. La galeria queda preparada para
+catalogo/detalle en una fase posterior.
