@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import {
   collection,
+  DocumentData,
   doc,
   Firestore,
   getDoc,
@@ -31,7 +32,7 @@ export class LabService {
     return from(getDocs(labsQuery)).pipe(
       map((snapshot) =>
         snapshot.docs
-          .map((document) => document.data() as LabDoc)
+          .map((document) => this.normalizeLab(document.id, document.data()))
           .sort((first, second) => first.name.localeCompare(second.name)),
       ),
     );
@@ -49,24 +50,61 @@ export class LabService {
     return from(getDocs(labsQuery)).pipe(
       map((snapshot) => {
         const document = snapshot.docs.at(0);
-        return document ? (document.data() as LabDoc) : null;
+        return document
+          ? this.normalizeLab(document.id, document.data())
+          : null;
       }),
     );
   }
 
   getLabById(id: string): Observable<LabDoc | null> {
+    return from(this.findLabByIdOrSlug(id));
+  }
+
+  private async findLabByIdOrSlug(id: string): Promise<LabDoc | null> {
     const labRef = doc(this.firestore, 'labs', id);
+    const directSnapshot = await getDoc(labRef);
 
-    return from(getDoc(labRef)).pipe(
-      map((snapshot) => {
-        if (!snapshot.exists()) {
-          return null;
-        }
+    if (directSnapshot.exists()) {
+      return this.ensureCatalogVisible(
+        this.normalizeLab(directSnapshot.id, directSnapshot.data()),
+      );
+    }
 
-        const lab = snapshot.data() as LabDoc;
-        return lab.active && lab.visibleInCatalog ? lab : null;
-      }),
+    const byFieldId = await getDocs(
+      query(this.labsCollection, where('id', '==', id), limit(1)),
     );
+    const fieldIdDocument = byFieldId.docs.at(0);
+
+    if (fieldIdDocument) {
+      return this.ensureCatalogVisible(
+        this.normalizeLab(fieldIdDocument.id, fieldIdDocument.data()),
+      );
+    }
+
+    const bySlug = await getDocs(
+      query(this.labsCollection, where('slug', '==', id), limit(1)),
+    );
+    const slugDocument = bySlug.docs.at(0);
+
+    if (slugDocument) {
+      return this.ensureCatalogVisible(
+        this.normalizeLab(slugDocument.id, slugDocument.data()),
+      );
+    }
+
+    return null;
+  }
+
+  private normalizeLab(documentId: string, data: DocumentData): LabDoc {
+    return {
+      ...(data as LabDoc),
+      id: documentId,
+    };
+  }
+
+  private ensureCatalogVisible(lab: LabDoc): LabDoc | null {
+    return lab.active && lab.visibleInCatalog ? lab : null;
   }
 
   getWeeklyScheduleSummary(schedule: WeeklySchedule): string {
