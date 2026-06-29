@@ -173,6 +173,36 @@ git diff --check
 git status --short
 ```
 
+## Pruebas Fase 17B.4: validacion real de calendarId
+
+Validaciones obligatorias:
+
+- entrar como `admin_sistemas`;
+- abrir `/admin/laboratorios`;
+- crear o editar un laboratorio;
+- abrir la pestana `Calendario`;
+- capturar un `calendarId` valido compartido con
+  `escenarios.tup@tecplayacar.edu.mx` como escritor;
+- ejecutar `Validar calendario` y confirmar resultado exitoso;
+- intentar guardar y confirmar que `adminCreateLab` o `adminUpdateLab` permite
+  la operacion;
+- capturar un calendario inexistente y confirmar mensaje controlado;
+- capturar un calendario sin permiso de escritura y confirmar bloqueo;
+- confirmar que no se crea ningun evento de prueba en Google Calendar;
+- confirmar que no se modifican reservas, Gmail, roles, estatus ni reglas de
+  seguridad;
+- confirmar que `calendarId` no aparece en vistas docentes.
+
+Validaciones tecnicas:
+
+```bash
+npm --prefix functions run lint
+npm --prefix functions run build
+npm --prefix apps/web run build
+git diff --check
+git status --short
+```
+
 ## Pruebas Fase 17B.1: galeria admin de laboratorios
 
 Validaciones obligatorias:

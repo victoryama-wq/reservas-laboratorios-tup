@@ -63,6 +63,24 @@ export interface AdminUpdateLabOutput {
   message: string;
 }
 
+export type CalendarValidationReason =
+  | 'NOT_FOUND'
+  | 'FORBIDDEN'
+  | 'INSUFFICIENT_PERMISSION'
+  | 'INVALID_ID'
+  | 'TECHNICAL_ERROR';
+
+export interface CalendarValidationResult {
+  valid: boolean;
+  calendarId: string;
+  summary?: string;
+  timeZone?: string;
+  accessRole?: string;
+  canWrite?: boolean;
+  message: string;
+  reason?: CalendarValidationReason;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -96,6 +114,17 @@ export class AdminLabsService {
       'adminUpdateLab',
     );
     const result = await callable(input);
+    return result.data;
+  }
+
+  async validateLabCalendar(
+    calendarId: string,
+  ): Promise<CalendarValidationResult> {
+    const callable = httpsCallable<
+      { calendarId: string },
+      CalendarValidationResult
+    >(this.functions, 'adminValidateLabCalendar');
+    const result = await callable({ calendarId });
     return result.data;
   }
 

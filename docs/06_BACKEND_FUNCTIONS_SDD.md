@@ -522,3 +522,38 @@ Validaciones backend:
 
 Las funciones no generan archivos QR ni guardan base64. El QR se genera en el
 frontend a partir de `slug` y `qrConfig`.
+
+## Actualizacion Fase 17B.4: adminValidateLabCalendar
+
+Se agrega la callable HTTPS Function v2:
+
+```text
+adminValidateLabCalendar
+```
+
+Objetivo:
+
+- validar que `calendarId` exista en Google Calendar;
+- validar que la cuenta operativa delegada tenga acceso de escritura;
+- devolver un resultado seguro para la interfaz administrativa.
+
+Validaciones:
+
+- `request.auth` obligatorio;
+- perfil `users/{uid}` existente, activo y con rol `admin_sistemas`;
+- payload limitado a `calendarId`;
+- `calendarId` no vacio y sin espacios;
+- Google Calendar API accesible con los secrets de Workspace existentes.
+
+Resultado:
+
+- `valid: true` solamente cuando la cuenta operativa tiene permiso `writer` u
+  `owner`;
+- `canWrite: true` cuando puede crear eventos en el calendario;
+- mensajes controlados para calendario inexistente, permiso insuficiente, ID
+  invalido o error tecnico.
+
+`adminCreateLab` valida siempre el calendario antes de crear el laboratorio.
+`adminUpdateLab` valida el calendario cuando `calendarId` cambia. Ninguna de
+estas funciones crea eventos de prueba, modifica reservas, cambia reglas de
+negocio ni usa Gmail API.

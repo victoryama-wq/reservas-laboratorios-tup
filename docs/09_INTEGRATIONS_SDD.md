@@ -203,3 +203,23 @@ La integracion con Google Calendar permanece en los puntos de reserva:
 
 Si un bloqueo administrativo aplica, la reserva se rechaza o la aprobacion se
 detiene antes de intentar crear evento en Google Calendar.
+
+## Actualizacion Fase 17B.4: validacion de calendarId
+
+La integracion con Google Calendar tambien se usa para validar configuracion de
+laboratorios desde Admin/Sistemas.
+
+La validacion debe:
+
+- usar la cuenta de servicio con delegacion de dominio;
+- actuar como `escenarios.tup@tecplayacar.edu.mx`;
+- usar el scope existente `https://www.googleapis.com/auth/calendar`;
+- consultar Google Calendar API sin crear eventos de prueba;
+- verificar que el calendario exista;
+- verificar que la cuenta operativa tenga permiso `writer` u `owner`;
+- devolver mensajes seguros sin exponer detalles de eventos del calendario.
+
+Si la validacion falla, el sistema debe impedir crear o actualizar el
+laboratorio con ese `calendarId`. Esta validacion no reemplaza las validaciones
+de disponibilidad de `createReservation` y `approveReservation`; solo evita
+guardar configuraciones operativas incorrectas.

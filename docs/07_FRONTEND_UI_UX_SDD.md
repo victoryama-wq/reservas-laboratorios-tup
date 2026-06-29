@@ -976,3 +976,24 @@ Reglas:
 El SVG de QR puede mantenerse sin logo para preservar compatibilidad vectorial,
 siempre que se documente la limitacion y el PNG/impresion mantengan la identidad
 institucional.
+
+## Actualizacion Fase 17B.4: validacion visual de calendario
+
+La pestana `Calendario` del dialogo de alta/edicion de laboratorios debe incluir
+una accion clara para validar el `calendarId` antes de guardar.
+
+Reglas de interfaz:
+
+- el campo `calendarId` sigue visible solo para Admin/Sistemas;
+- la accion debe llamarse `Validar calendario`;
+- mientras valida debe mostrar estado de carga;
+- si el calendario es valido debe mostrar mensaje de exito y permiso detectado;
+- si no existe, no tiene permiso de escritura o el ID es invalido, debe mostrar
+  mensaje de error controlado;
+- debe explicar que el backend tambien bloqueara el guardado si la cuenta
+  operativa no puede escribir;
+- no debe mostrar datos sensibles de eventos existentes;
+- no debe exponer `calendarId` en vistas docentes.
+
+La vista mantiene el sistema visual institucional: cards blancas, bordes
+suaves, botones Material, iconos completos y textos en espanol.

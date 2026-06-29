@@ -41,8 +41,10 @@ import {
 } from '../../services/admin-lab-gallery.service';
 import {
   AdminCreateLabInput,
+  AdminLabsService,
   AdminLabView,
   AdminUpdateLabInput,
+  CalendarValidationResult,
 } from '../../services/admin-labs.service';
 import { AdminUserView } from '../../services/admin-users.service';
 
@@ -62,6 +64,7 @@ const DEFAULT_QR_CONFIG: Required<LabQrConfig> = {
 };
 
 type DialogMode = 'create' | 'edit';
+type CalendarCalloutVariant = 'info' | 'success' | 'warning' | 'danger';
 
 interface WeekdayOption {
   key: keyof WeeklySchedule;
@@ -474,6 +477,91 @@ export type AdminLabEditDialogResult =
                   <mat-error>El calendarId es obligatorio.</mat-error>
                 }
               </mat-form-field>
+
+              <div class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p class="m-0 text-sm font-bold uppercase tracking-wide text-violet-700">
+                      Validacion real de calendario
+                    </p>
+                    <p class="m-0 mt-1 text-sm leading-6 text-slate-600">
+                      Verifica que el calendario exista y que la cuenta operativa pueda escribir eventos.
+                    </p>
+                  </div>
+
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    [disabled]="calendarValidationLoading || form.get('calendarId')?.invalid"
+                    (click)="validateCalendar()"
+                  >
+                    <mat-icon>
+                      {{ calendarValidationLoading ? 'hourglass_top' : 'event_available' }}
+                    </mat-icon>
+                    {{ calendarValidationLoading ? 'Validando...' : 'Validar calendario' }}
+                  </button>
+                </div>
+
+                @if (calendarValidationLoading) {
+                  <app-info-callout
+                    variant="info"
+                    icon="hourglass_top"
+                    message="Validando acceso real con Google Calendar..."
+                  />
+                } @else if (calendarValidationResult) {
+                  <app-info-callout
+                    [variant]="calendarValidationVariant()"
+                    [icon]="calendarValidationIcon()"
+                    [message]="calendarValidationResult.message"
+                  />
+
+                  <div class="grid gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700 md:grid-cols-2">
+                    <div>
+                      <span class="block text-xs font-bold uppercase tracking-wide text-violet-700">
+                        Calendario
+                      </span>
+                      <span class="mt-1 block break-all font-semibold text-slate-950">
+                        {{ calendarValidationResult.summary || calendarValidationResult.calendarId }}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span class="block text-xs font-bold uppercase tracking-wide text-violet-700">
+                        Permiso detectado
+                      </span>
+                      <span class="mt-1 block font-semibold text-slate-950">
+                        {{ calendarAccessSummary() }}
+                      </span>
+                    </div>
+
+                    @if (calendarValidationResult.timeZone) {
+                      <div>
+                        <span class="block text-xs font-bold uppercase tracking-wide text-violet-700">
+                          Zona horaria
+                        </span>
+                        <span class="mt-1 block font-semibold text-slate-950">
+                          {{ calendarValidationResult.timeZone }}
+                        </span>
+                      </div>
+                    }
+
+                    <div>
+                      <span class="block text-xs font-bold uppercase tracking-wide text-violet-700">
+                        Escritura de eventos
+                      </span>
+                      <span class="mt-1 block font-semibold text-slate-950">
+                        {{ calendarValidationResult.canWrite ? 'Permitida' : 'No permitida' }}
+                      </span>
+                    </div>
+                  </div>
+                } @else if (calendarIdChanged()) {
+                  <app-info-callout
+                    variant="warning"
+                    icon="info"
+                    message="Valide el calendario antes de guardar. El backend tambien bloqueara el guardado si la cuenta operativa no tiene permisos de escritura."
+                  />
+                }
+              </div>
             </div>
           </mat-tab>
 
@@ -618,6 +706,7 @@ export type AdminLabEditDialogResult =
 })
 export class AdminLabEditDialogComponent {
   protected readonly data = inject<AdminLabEditDialogData>(MAT_DIALOG_DATA);
+  private readonly adminLabsService = inject(AdminLabsService);
   private readonly galleryService = inject(AdminLabGalleryService);
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly dialogRef = inject(
@@ -628,6 +717,9 @@ export class AdminLabEditDialogComponent {
   protected uploadProgress = 0;
   protected uploading = false;
   protected galleryError = '';
+  protected calendarValidationLoading = false;
+  protected calendarValidationResult: CalendarValidationResult | null = null;
+  private readonly initialCalendarId = this.data.lab?.calendarId?.trim() ?? '';
   private readonly galleryPreviewUrls = new Map<string, string>();
 
   protected readonly weekdays: WeekdayOption[] = [
@@ -699,6 +791,11 @@ export class AdminLabEditDialogComponent {
       });
     }
 
+    this.form.get('calendarId')?.valueChanges.subscribe(() => {
+      this.calendarValidationResult = null;
+      this.changeDetector.markForCheck();
+    });
+
     void this.loadGalleryPreviewUrls();
   }
 
@@ -736,6 +833,87 @@ export class AdminLabEditDialogComponent {
     const originalSlug = this.data.lab?.slug ?? '';
     const currentSlug = String(this.form.get('slug')?.value ?? '').trim();
     return Boolean(originalSlug && currentSlug && originalSlug !== currentSlug);
+  }
+
+  protected calendarIdChanged(): boolean {
+    const currentCalendarId = String(
+      this.form.get('calendarId')?.value ?? '',
+    ).trim();
+
+    if (this.data.mode === 'create') {
+      return Boolean(currentCalendarId);
+    }
+
+    return currentCalendarId !== this.initialCalendarId;
+  }
+
+  protected calendarValidationVariant(): CalendarCalloutVariant {
+    if (!this.calendarValidationResult) {
+      return 'info';
+    }
+
+    return this.calendarValidationResult.valid &&
+      this.calendarValidationResult.canWrite
+      ? 'success'
+      : 'danger';
+  }
+
+  protected calendarValidationIcon(): string {
+    if (!this.calendarValidationResult) {
+      return 'info';
+    }
+
+    return this.calendarValidationResult.valid &&
+      this.calendarValidationResult.canWrite
+      ? 'check_circle'
+      : 'error';
+  }
+
+  protected calendarAccessSummary(): string {
+    const result = this.calendarValidationResult;
+    if (!result) {
+      return 'Sin validar';
+    }
+
+    if (!result.accessRole) {
+      return result.canWrite ? 'Escritura permitida' : 'Sin permiso confirmado';
+    }
+
+    return `${result.accessRole}${
+      result.canWrite ? ' - escritura permitida' : ' - sin escritura'
+    }`;
+  }
+
+  protected async validateCalendar(): Promise<void> {
+    const calendarControl = this.form.get('calendarId');
+    if (!calendarControl || calendarControl.invalid) {
+      calendarControl?.markAsTouched();
+      return;
+    }
+
+    const calendarId = String(calendarControl.value ?? '').trim();
+    this.calendarValidationLoading = true;
+    this.calendarValidationResult = null;
+    this.changeDetector.markForCheck();
+
+    try {
+      this.calendarValidationResult =
+        await this.adminLabsService.validateLabCalendar(calendarId);
+    } catch (error) {
+      this.calendarValidationResult = {
+        valid: false,
+        calendarId,
+        canWrite: false,
+        message: getErrorMessage(
+          error,
+          'No fue posible validar el calendario.',
+        ),
+        reason: 'TECHNICAL_ERROR',
+      };
+    } finally {
+      this.calendarValidationLoading = false;
+      this.changeDetector.markForCheck();
+    }
   }
 
   protected previewUrl(image: LabGalleryImage): string {
@@ -1101,6 +1279,15 @@ function normalizePrintSize(value: unknown): LabQrPrintSize {
   return value === 'small' || value === 'large' || value === 'medium'
     ? value
     : DEFAULT_QR_CONFIG.printSize;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = String((error as { message?: unknown }).message ?? '');
+    return message || fallback;
+  }
+
+  return fallback;
 }
 
 function generateSlug(value: string): string {

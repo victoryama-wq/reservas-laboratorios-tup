@@ -1321,3 +1321,27 @@ incompatibilidades con clientes o editores SVG. El PNG y la impresion si usan el
 logo real cuando puede cargarse en el navegador.
 
 No se guardan QR, logos en base64 ni imagenes generadas en Firestore o Storage.
+
+## Fase 17B.4: Validacion real de calendarId
+
+La administracion de laboratorios valida el `calendarId` contra Google Calendar
+API antes de crear un laboratorio o cuando Admin/Sistemas cambia el calendario
+de un laboratorio existente.
+
+Comportamiento:
+
+- se usa la misma cuenta operativa `escenarios.tup@tecplayacar.edu.mx`;
+- se usan los secrets existentes `GOOGLE_WORKSPACE_SERVICE_ACCOUNT_JSON` y
+  `GOOGLE_WORKSPACE_SUBJECT_EMAIL`;
+- se consulta Google Calendar API sin crear eventos de prueba;
+- el calendario debe existir y estar compartido con permisos de escritura para
+  la cuenta operativa;
+- la validacion acepta permisos `writer` u `owner`;
+- si el calendario no existe, no tiene permisos suficientes o el ID no es
+  valido, `adminCreateLab` y `adminUpdateLab` bloquean el guardado con un
+  mensaje controlado.
+
+La pestana `Calendario` del dialogo de alta/edicion incluye la accion
+`Validar calendario`, que permite a Admin/Sistemas revisar el acceso antes de
+guardar. Esta validacion no modifica reservas, no crea eventos en Google
+Calendar, no usa Gmail API y no expone el `calendarId` a docentes.

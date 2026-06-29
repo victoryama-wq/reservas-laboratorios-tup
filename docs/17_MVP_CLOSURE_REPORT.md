@@ -433,3 +433,31 @@ Alcance:
 No se modificaron reservas, aprobaciones, cancelaciones, Calendar API, Gmail API,
 roles, estatus ni reglas de seguridad. Tampoco se guardan logos o QR en base64
 en Firestore o Storage.
+
+## 27. Seguimiento Fase 17B.4: validacion real de calendarId
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Alcance:
+
+- callable `adminValidateLabCalendar` para validar calendario desde
+  Admin/Sistemas;
+- validacion backend de `calendarId` en `adminCreateLab`;
+- validacion backend de `calendarId` en `adminUpdateLab` solo cuando cambia;
+- uso de Google Calendar API con los secrets existentes de Workspace;
+- confirmacion de permiso `writer` u `owner` para la cuenta operativa;
+- boton `Validar calendario` en la pestana `Calendario` del dialogo de
+  laboratorios;
+- mensajes seguros para calendario inexistente, permiso insuficiente, ID
+  invalido o error tecnico.
+
+Fuera de alcance:
+
+- crear eventos de prueba;
+- modificar reservas;
+- modificar aprobaciones;
+- modificar Google Calendar de reservas;
+- modificar Gmail API;
+- cambiar roles, estatus o reglas de seguridad;
+- exponer `calendarId` a docentes.

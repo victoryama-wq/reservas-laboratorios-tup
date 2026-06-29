@@ -18,6 +18,12 @@ import {
   LabQrPrintSize,
   WeeklySchedule,
 } from "../../shared/models";
+import {
+  CalendarValidationResult,
+  GoogleCalendarService,
+} from "../calendar/google-calendar.service";
+import {GOOGLE_WORKSPACE_SECRETS} from
+  "../google-workspace/google-workspace-auth.service";
 
 const REGION = "us-central1";
 const INSTITUTIONAL_DOMAIN = "@tecplayacar.edu.mx";
@@ -82,6 +88,8 @@ export interface AdminUpdateLabOutput {
   message: string;
 }
 
+export type AdminValidateLabCalendarOutput = CalendarValidationResult;
+
 interface ParsedLabInput {
   labId?: string;
   name?: string;
@@ -109,7 +117,11 @@ interface ParsedLabInput {
  * Creates a laboratory from Admin/Sistemas.
  */
 export const adminCreateLab = onCall(
-    {region: REGION, invoker: "public"},
+    {
+      region: REGION,
+      invoker: "public",
+      secrets: GOOGLE_WORKSPACE_SECRETS,
+    },
     async (
         request: CallableRequest<unknown>,
     ): Promise<AdminCreateLabOutput> => {
@@ -126,6 +138,7 @@ export const adminCreateLab = onCall(
       const actor = await getActiveAdmin(actorUid);
       await assertSlugUnique(input.slug);
       await assertResponsibleUsers(input.responsibleUids);
+      await assertCalendarCanWrite(input.calendarId);
 
       const now = Timestamp.now();
       const labRef = db.collection("labs").doc(input.slug);
@@ -205,7 +218,11 @@ export const adminCreateLab = onCall(
  * Updates a laboratory from Admin/Sistemas.
  */
 export const adminUpdateLab = onCall(
-    {region: REGION, invoker: "public"},
+    {
+      region: REGION,
+      invoker: "public",
+      secrets: GOOGLE_WORKSPACE_SECRETS,
+    },
     async (
         request: CallableRequest<unknown>,
     ): Promise<AdminUpdateLabOutput> => {
@@ -228,6 +245,21 @@ export const adminUpdateLab = onCall(
       }
 
       const labRef = db.collection("labs").doc(input.labId);
+      if (input.calendarId !== undefined) {
+        const currentLabSnapshot = await labRef.get();
+        if (!currentLabSnapshot.exists) {
+          throw new HttpsError(
+              "not-found",
+              "El laboratorio indicado no existe.",
+          );
+        }
+
+        const currentLab = currentLabSnapshot.data() as LabDoc;
+        if (currentLab.calendarId !== input.calendarId) {
+          await assertCalendarCanWrite(input.calendarId);
+        }
+      }
+
       const auditRef = db.collection("auditEvents").doc();
       const now = Timestamp.now();
 
@@ -282,6 +314,34 @@ export const adminUpdateLab = onCall(
 );
 
 /**
+ * Validates a laboratory calendar from Admin/Sistemas without modifying data.
+ */
+export const adminValidateLabCalendar = onCall(
+    {
+      region: REGION,
+      invoker: "public",
+      secrets: GOOGLE_WORKSPACE_SECRETS,
+    },
+    async (
+        request: CallableRequest<unknown>,
+    ): Promise<AdminValidateLabCalendarOutput> => {
+      const actorUid = request.auth?.uid;
+      if (!actorUid) {
+        throw new HttpsError(
+            "unauthenticated",
+            "Debe iniciar sesion para validar calendarios.",
+        );
+      }
+
+      await getActiveAdmin(actorUid);
+      const input = parseCalendarValidationInput(request.data);
+      return new GoogleCalendarService().validateCalendarAccess(
+          input.calendarId,
+      );
+    },
+);
+
+/**
  * Ensures the callable actor is an active Admin/Sistemas profile.
  *
  * @param {string} actorUid Acting Firebase Auth uid.
@@ -309,6 +369,62 @@ async function getActiveAdmin(actorUid: string): Promise<AppUser> {
   }
 
   return actor;
+}
+
+/**
+ * Ensures the delegated Workspace account has write access to a calendar.
+ *
+ * @param {string} calendarId Calendar id.
+ */
+async function assertCalendarCanWrite(calendarId: string): Promise<void> {
+  const result = await new GoogleCalendarService()
+      .validateCalendarAccess(calendarId);
+
+  if (result.valid && result.canWrite) {
+    return;
+  }
+
+  throw new HttpsError(
+      result.reason === "INVALID_ID" ?
+        "invalid-argument" :
+        "failed-precondition",
+      result.message,
+  );
+}
+
+/**
+ * Parses calendar validation callable input.
+ *
+ * @param {unknown} data Callable payload.
+ * @return {{calendarId: string}} Sanitized input.
+ */
+function parseCalendarValidationInput(
+    data: unknown,
+): {calendarId: string} {
+  if (!isRecord(data)) {
+    throw new HttpsError(
+        "invalid-argument",
+        "La solicitud de validacion no es valida.",
+    );
+  }
+
+  const allowedKeys = new Set(["calendarId"]);
+  const unknownKeys = Object.keys(data).filter(
+      (key) => !allowedKeys.has(key),
+  );
+  if (unknownKeys.length > 0) {
+    throw new HttpsError(
+        "invalid-argument",
+        "La solicitud contiene campos no permitidos.",
+    );
+  }
+
+  return {
+    calendarId: requireText(
+        data.calendarId,
+        "El calendarId es obligatorio.",
+    ),
+  };
 }
 
 /**

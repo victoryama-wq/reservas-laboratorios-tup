@@ -19,6 +19,24 @@ export interface CreateCalendarEventParams {
   reservation: ReservationDoc;
 }
 
+export type CalendarValidationReason =
+  | "NOT_FOUND"
+  | "FORBIDDEN"
+  | "INSUFFICIENT_PERMISSION"
+  | "INVALID_ID"
+  | "TECHNICAL_ERROR";
+
+export interface CalendarValidationResult {
+  valid: boolean;
+  calendarId: string;
+  summary?: string;
+  timeZone?: string;
+  accessRole?: string;
+  canWrite?: boolean;
+  message: string;
+  reason?: CalendarValidationReason;
+}
+
 /**
  * Handles Google Calendar operations using Workspace domain delegation.
  */
@@ -101,6 +119,63 @@ export class GoogleCalendarService {
   }
 
   /**
+   * Validates whether the delegated Workspace account can access a calendar.
+   *
+   * @param {string} calendarId Calendar id to validate.
+   * @return {Promise<CalendarValidationResult>} Validation result.
+   */
+  async validateCalendarAccess(
+      calendarId: string,
+  ): Promise<CalendarValidationResult> {
+    const normalizedCalendarId = calendarId.trim();
+    if (!normalizedCalendarId || /\s/.test(normalizedCalendarId)) {
+      return {
+        valid: false,
+        calendarId: normalizedCalendarId,
+        canWrite: false,
+        message: "El ID del calendario no parece valido.",
+        reason: "INVALID_ID",
+      };
+    }
+
+    const client = await this.getCalendarClient();
+    try {
+      const response = await client.calendarList.get({
+        calendarId: normalizedCalendarId,
+      });
+      const accessRole = response.data.accessRole ?? undefined;
+      const canWrite = accessRole === "owner" || accessRole === "writer";
+
+      return {
+        valid: canWrite,
+        calendarId: normalizedCalendarId,
+        summary: response.data.summary ?? undefined,
+        timeZone: response.data.timeZone ?? undefined,
+        accessRole,
+        canWrite,
+        message: canWrite ?
+          "Calendario validado con permisos de escritura." :
+          "La cuenta operativa no tiene permisos suficientes sobre " +
+            "este calendario.",
+        reason: canWrite ? undefined : "INSUFFICIENT_PERMISSION",
+      };
+    } catch (calendarListError) {
+      const fallback = await this.validateCalendarMetadata(
+          client,
+          normalizedCalendarId,
+      );
+      if (fallback) {
+        return fallback;
+      }
+
+      return this.toCalendarValidationError(
+          normalizedCalendarId,
+          calendarListError,
+      );
+    }
+  }
+
+  /**
    * Returns an authenticated Google Calendar client.
    *
    * @return {Promise<calendarApi.Calendar>} Calendar client.
@@ -113,6 +188,134 @@ export class GoogleCalendarService {
     const auth = await createWorkspaceJwt([CALENDAR_SCOPE]);
     this.calendarClient = google.calendar({version: "v3", auth});
     return this.calendarClient;
+  }
+
+  /**
+   * Attempts metadata validation when CalendarList does not expose accessRole.
+   *
+   * @param {calendarApi.Calendar} client Calendar client.
+   * @param {string} calendarId Calendar id.
+   * @return {Promise<CalendarValidationResult | null>} Partial result.
+   */
+  private async validateCalendarMetadata(
+      client: calendarApi.Calendar,
+      calendarId: string,
+  ): Promise<CalendarValidationResult | null> {
+    try {
+      const response = await client.calendars.get({calendarId});
+
+      return {
+        valid: false,
+        calendarId,
+        summary: response.data.summary ?? undefined,
+        timeZone: response.data.timeZone ?? undefined,
+        canWrite: false,
+        message: "El calendario existe, pero no fue posible confirmar " +
+          "permisos de escritura para la cuenta operativa.",
+        reason: "INSUFFICIENT_PERMISSION",
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Maps Google Calendar API errors to user-safe validation messages.
+   *
+   * @param {string} calendarId Calendar id.
+   * @param {unknown} error Google API error.
+   * @return {CalendarValidationResult} Safe validation result.
+   */
+  private toCalendarValidationError(
+      calendarId: string,
+      error: unknown,
+  ): CalendarValidationResult {
+    const status = this.getErrorStatus(error);
+    const reason = this.getErrorReason(error);
+
+    if (status === 404) {
+      return {
+        valid: false,
+        calendarId,
+        canWrite: false,
+        message: "No se encontro el calendario configurado.",
+        reason: "NOT_FOUND",
+      };
+    }
+
+    if (status === 403) {
+      return {
+        valid: false,
+        calendarId,
+        canWrite: false,
+        message: "La cuenta operativa no tiene permisos suficientes sobre " +
+          "este calendario.",
+        reason: reason === "insufficientPermissions" ?
+          "INSUFFICIENT_PERMISSION" :
+          "FORBIDDEN",
+      };
+    }
+
+    if (status === 400) {
+      return {
+        valid: false,
+        calendarId,
+        canWrite: false,
+        message: "El ID del calendario no parece valido.",
+        reason: "INVALID_ID",
+      };
+    }
+
+    return {
+      valid: false,
+      calendarId,
+      canWrite: false,
+      message: "No fue posible validar el calendario. Revise permisos " +
+        "o intente nuevamente.",
+      reason: "TECHNICAL_ERROR",
+    };
+  }
+
+  /**
+   * Extracts a Google API status code without exposing sensitive details.
+   *
+   * @param {unknown} error Google API error.
+   * @return {number | undefined} HTTP status code.
+   */
+  private getErrorStatus(error: unknown): number | undefined {
+    if (typeof error !== "object" || error === null) {
+      return undefined;
+    }
+
+    const candidate = error as {
+      code?: number | string;
+      response?: {status?: number};
+      status?: number;
+    };
+    const status = candidate.response?.status ?? candidate.status ??
+      Number(candidate.code);
+
+    return Number.isFinite(status) ? Number(status) : undefined;
+  }
+
+  /**
+   * Extracts a Google API reason without exposing raw error payloads.
+   *
+   * @param {unknown} error Google API error.
+   * @return {string | undefined} Error reason.
+   */
+  private getErrorReason(error: unknown): string | undefined {
+    if (typeof error !== "object" || error === null) {
+      return undefined;
+    }
+
+    const candidate = error as {
+      errors?: Array<{reason?: string}>;
+      response?: {data?: {error?: {errors?: Array<{reason?: string}>}}};
+    };
+
+    return candidate.errors?.[0]?.reason ??
+      candidate.response?.data?.error?.errors?.[0]?.reason;
   }
 
   /**
