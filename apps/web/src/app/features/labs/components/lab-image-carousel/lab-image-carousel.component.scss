@@ -11,6 +11,17 @@
   box-shadow: var(--shadow-card);
 }
 
+.lab-carousel__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .lab-carousel__figure {
   position: relative;
   min-height: 240px;

@@ -1511,3 +1511,18 @@ el flujo de reserva.
 
 Las URLs se resuelven temporalmente en memoria desde Firebase Storage SDK. No
 se guardan `downloadUrl` en Firestore ni se muestran rutas internas de Storage.
+
+### Ajuste Fase 17B.2.1: autoplay accesible del carrusel
+
+Se agrego comportamiento automatico al carrusel de detalle de laboratorio sin
+alterar la carga de imagenes ni datos:
+
+- cambio automatico cada 5 segundos cuando hay mas de una imagen;
+- pausa al pasar el cursor sobre el carrusel;
+- pausa al enfocar el componente con teclado;
+- pausa definitiva cuando el usuario usa flechas o indicadores;
+- respeto a `prefers-reduced-motion: reduce`;
+- texto auxiliar para lectores de pantalla mediante `aria-live`.
+
+El ajuste es estrictamente presentacional. No modifica laboratorios, reservas,
+Storage, Calendar, Gmail, roles, rutas ni Cloud Functions.

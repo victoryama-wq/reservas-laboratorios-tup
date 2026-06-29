@@ -911,3 +911,13 @@ Reglas visuales:
 El carrusel no debe consultar Firestore, modificar laboratorio, subir imagenes
 ni llamar Cloud Functions. La resolucion de URLs temporales desde Storage debe
 hacerse en un servicio de lectura.
+
+Accesibilidad del carrusel:
+
+- cuando existan varias imagenes, puede avanzar automaticamente cada 5 segundos;
+- debe pausarse al pasar el cursor o cuando el foco de teclado entra al
+  componente;
+- debe pausarse cuando el usuario usa flechas o indicadores;
+- debe respetar `prefers-reduced-motion: reduce`;
+- no debe usar animaciones agresivas, cambios demasiado rapidos ni movimiento
+  que pueda marear en movil o lectores de pantalla.

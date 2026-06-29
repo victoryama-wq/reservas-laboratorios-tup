@@ -1259,3 +1259,12 @@ Comportamiento:
 
 El carrusel es solo de lectura y no modifica laboratorios, reservas, Calendar,
 Gmail, roles ni estatus.
+
+Actualizacion de accesibilidad del carrusel:
+
+- si hay mas de una imagen, avanza automaticamente cada 5 segundos;
+- se pausa al pasar el cursor sobre el carrusel;
+- se pausa al enfocar controles con teclado;
+- se pausa definitivamente cuando el usuario usa flechas o indicadores;
+- respeta `prefers-reduced-motion: reduce` y desactiva el autoplay para evitar
+  mareos en movil, lectores de pantalla o usuarios sensibles al movimiento.

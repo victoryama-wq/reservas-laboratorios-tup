@@ -1,4 +1,15 @@
-<section class="lab-carousel" aria-label="Galeria del laboratorio">
+<section
+  class="lab-carousel"
+  aria-label="Galeria del laboratorio"
+  (mouseenter)="pauseAutoplayOnHover()"
+  (mouseleave)="resumeAutoplayOnHover()"
+  (focusin)="pauseAutoplayOnFocus()"
+  (focusout)="resumeAutoplayOnFocus()"
+>
+  <p class="lab-carousel__sr-only" aria-live="polite">
+    {{ autoplayAssistiveText() }}
+  </p>
+
   @if (loading()) {
     <div class="lab-carousel__fallback">
       <mat-spinner diameter="34" />

@@ -44,9 +44,15 @@ service firebase.storage {
         );
     }
 
-    function isAllowedLabImage() {
+    function isAllowedLabImage(fileName) {
       return request.resource.size <= 5 * 1024 * 1024
-        && request.resource.contentType.matches('image/jpeg|image/png|image/webp');
+        && (
+          request.resource.contentType.matches(
+            'image/jpeg|image/jpg|image/pjpeg|image/png|image/webp'
+          )
+          || fileName.matches('.*\\.(jpg|jpeg|png|webp)')
+          || fileName.matches('.*\\.(JPG|JPEG|PNG|WEBP)')
+        );
     }
 
     match /protocolUploads/{uid}/{uploadId}/{fileName} {
@@ -59,8 +65,11 @@ service firebase.storage {
 
     match /labImages/{labId}/gallery/{imageId}/{fileName} {
       allow read: if hasActiveProfile();
-      allow create, update: if isAdmin() && isAllowedLabImage();
-      allow delete: if isAdmin();
+      allow write: if isAdmin()
+        && (
+          request.resource == null ||
+          isAllowedLabImage(fileName)
+        );
     }
 
     match /{allPaths=**} {

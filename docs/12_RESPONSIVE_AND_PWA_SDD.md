@@ -431,3 +431,16 @@ La ruta `/mis-reservas` debe mantener una experiencia mobile-first con:
 La clasificacion temporal es solo visual. No debe eliminar documentos ni
 modificar rutas, servicios, guards, payloads, Cloud Functions o reglas de
 seguridad.
+
+## Actualizacion Fase 17B.2: responsive y movimiento del carrusel
+
+El carrusel de imagenes del detalle de laboratorio debe conservar una
+experiencia responsive y accesible:
+
+- autoplay cada 5 segundos solo cuando hay mas de una imagen;
+- pausa al hover, al foco de teclado y despues de controles manuales;
+- respeto a `prefers-reduced-motion: reduce`;
+- sin scroll horizontal en movil;
+- controles e indicadores con foco visible y etiquetas accesibles;
+- cambios visuales suaves, sin movimiento agresivo ni transiciones que puedan
+  marear.

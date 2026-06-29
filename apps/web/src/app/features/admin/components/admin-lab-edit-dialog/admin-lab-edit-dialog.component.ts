@@ -804,19 +804,32 @@ export class AdminLabEditDialogComponent {
   }
 
   private serializeGallery(): LabGalleryImage[] {
-    return this.galleryImages().map((image) => ({
-      id: image.id,
-      storagePath: image.storagePath,
-      fileName: image.fileName,
-      contentType: image.contentType,
-      sizeBytes: image.sizeBytes,
-      alt: image.alt || undefined,
-      caption: image.caption || undefined,
-      order: image.order,
-      active: image.active,
-      createdAt: image.createdAt,
-      updatedAt: image.updatedAt,
-    }));
+    return this.galleryImages().map((image) => {
+      const serialized: LabGalleryImage = {
+        id: image.id,
+        storagePath: image.storagePath,
+        fileName: image.fileName,
+        contentType: image.contentType,
+        sizeBytes: image.sizeBytes,
+        order: image.order,
+        active: image.active,
+        createdAt: image.createdAt,
+      };
+
+      if (image.alt?.trim()) {
+        serialized.alt = image.alt.trim();
+      }
+
+      if (image.caption?.trim()) {
+        serialized.caption = image.caption.trim();
+      }
+
+      if (image.updatedAt) {
+        serialized.updatedAt = image.updatedAt;
+      }
+
+      return serialized;
+    });
   }
 
   private storageLabId(): string {

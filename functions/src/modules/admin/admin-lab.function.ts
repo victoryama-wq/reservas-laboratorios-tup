@@ -162,7 +162,7 @@ export const adminCreateLab = onCall(
           updatedAt: now,
         };
 
-        transaction.create(labRef, lab);
+        transaction.create(labRef, removeUndefinedFields(lab));
         transaction.create(auditRef, {
           id: auditRef.id,
           type: "ADMIN_ACTION",
@@ -246,7 +246,7 @@ export const adminUpdateLab = onCall(
           );
         }
 
-        transaction.update(labRef, patch);
+        transaction.update(labRef, removeUndefinedFields(patch));
         transaction.create(auditRef, {
           id: auditRef.id,
           type: "ADMIN_ACTION",
@@ -506,6 +506,37 @@ function setIfDefined<K extends keyof LabDoc>(
   }
 }
 
+/**
+ * Removes undefined values before writing to Firestore.
+ *
+ * Firestore rejects `undefined` values, including nested gallery metadata.
+ * This helper preserves Timestamp instances and cleans plain objects/arrays.
+ *
+ * @param {T} value Candidate Firestore data.
+ * @return {T} Data without undefined fields.
+ */
+function removeUndefinedFields<T>(value: T): T {
+  if (value instanceof Timestamp) {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => removeUndefinedFields(entry)) as T;
+  }
+
+  if (isRecord(value)) {
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(value)) {
+      if (entry !== undefined) {
+        cleaned[key] = removeUndefinedFields(entry);
+      }
+    }
+    return cleaned as T;
+  }
+
+  return value;
+}
+
 const ALLOWED_GALLERY_KEYS = new Set([
   "id",
   "storagePath",
@@ -634,22 +665,30 @@ function parseGalleryImage(
   );
   const alt = optionalLimitedText(value.alt, "alt");
   const caption = optionalLimitedText(value.caption, "caption");
-
-  return {
+  const image: LabGalleryImage = {
     id,
     storagePath,
     fileName,
     contentType,
     sizeBytes,
-    alt,
-    caption,
     order,
     active,
     createdAt: parseGalleryTimestamp(value.createdAt, "createdAt"),
-    updatedAt: value.updatedAt === undefined ?
-      undefined :
-      parseGalleryTimestamp(value.updatedAt, "updatedAt"),
   };
+
+  if (alt !== undefined) {
+    image.alt = alt;
+  }
+
+  if (caption !== undefined) {
+    image.caption = caption;
+  }
+
+  if (value.updatedAt !== undefined && value.updatedAt !== null) {
+    image.updatedAt = parseGalleryTimestamp(value.updatedAt, "updatedAt");
+  }
+
+  return image;
 }
 
 /**

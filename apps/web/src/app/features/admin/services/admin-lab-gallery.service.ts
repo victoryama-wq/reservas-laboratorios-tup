@@ -3,7 +3,7 @@ import {
   FirebaseStorage,
   getDownloadURL,
   ref,
-  uploadBytesResumable,
+  uploadBytes,
 } from 'firebase/storage';
 import { Timestamp } from 'firebase/firestore';
 
@@ -16,11 +16,11 @@ import {
 export const MAX_LAB_GALLERY_IMAGES = 8;
 export const MAX_LAB_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
-const ALLOWED_LAB_IMAGE_TYPES: LabGalleryImageContentType[] = [
+const JPEG_MIME_VARIANTS = new Set([
   'image/jpeg',
-  'image/png',
-  'image/webp',
-];
+  'image/jpg',
+  'image/pjpeg',
+]);
 
 export interface UploadLabImageParams {
   labId: string;
@@ -36,9 +36,7 @@ export class AdminLabGalleryService {
   private readonly storage = inject<FirebaseStorage>(FIREBASE_STORAGE);
 
   validateImageFile(file: File): string | null {
-    if (!ALLOWED_LAB_IMAGE_TYPES.includes(
-      file.type as LabGalleryImageContentType,
-    )) {
+    if (!this.normalizeImageContentType(file)) {
       return 'Solo se permiten imagenes JPG, PNG o WebP.';
     }
 
@@ -57,34 +55,28 @@ export class AdminLabGalleryService {
       throw new Error(validationError);
     }
 
+    const contentType = this.normalizeImageContentType(params.file);
+    if (!contentType) {
+      throw new Error('Solo se permiten imagenes JPG, PNG o WebP.');
+    }
+
     const imageId = this.createImageId();
     const fileName = this.sanitizeFileName(params.file.name);
     const storagePath =
       `labImages/${params.labId}/gallery/${imageId}/${fileName}`;
     const storageReference = ref(this.storage, storagePath);
-    const uploadTask = uploadBytesResumable(storageReference, params.file, {
-      contentType: params.file.type,
-    });
 
-    await new Promise<void>((resolve, reject) => {
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = snapshot.totalBytes > 0 ?
-            Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100) :
-            0;
-          params.onProgress?.(progress);
-        },
-        reject,
-        () => resolve(),
-      );
+    params.onProgress?.(0);
+    await uploadBytes(storageReference, params.file, {
+      contentType,
     });
+    params.onProgress?.(100);
 
     return {
       id: imageId,
       storagePath,
       fileName,
-      contentType: params.file.type as LabGalleryImageContentType,
+      contentType,
       sizeBytes: params.file.size,
       order: params.order,
       active: true,
@@ -94,6 +86,29 @@ export class AdminLabGalleryService {
 
   async getPreviewUrl(storagePath: string): Promise<string> {
     return getDownloadURL(ref(this.storage, storagePath));
+  }
+
+  private normalizeImageContentType(
+    file: File,
+  ): LabGalleryImageContentType | null {
+    const contentType = file.type.toLowerCase();
+    const extension = file.name.split('.').pop()?.toLowerCase();
+
+    if (JPEG_MIME_VARIANTS.has(contentType) ||
+      extension === 'jpg' ||
+      extension === 'jpeg') {
+      return 'image/jpeg';
+    }
+
+    if (contentType === 'image/png' || extension === 'png') {
+      return 'image/png';
+    }
+
+    if (contentType === 'image/webp' || extension === 'webp') {
+      return 'image/webp';
+    }
+
+    return null;
   }
 
   private createImageId(): string {
