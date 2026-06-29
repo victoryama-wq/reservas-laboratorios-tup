@@ -409,3 +409,27 @@ Alcance:
 
 No se modificaron reservas, Calendar, Gmail, reglas de seguridad, roles ni
 estatus.
+
+## 26. Seguimiento Fase 17B.3A: logo institucional real
+
+Se actualizo la Web App para dejar de usar simulaciones textuales como marca
+institucional en las vistas principales.
+
+Ruta oficial usada:
+
+```text
+/media/image/logo/logo_tup.png
+```
+
+Alcance:
+
+- header principal con logo real;
+- login con logo real en marca principal y fondo decorativo;
+- QR admin con logo real en previsualizacion;
+- PNG e impresion de QR con logo real si el asset carga correctamente;
+- SVG de QR conservado sin logo por compatibilidad;
+- fallback tecnico con icono institucional si falla la carga del logo.
+
+No se modificaron reservas, aprobaciones, cancelaciones, Calendar API, Gmail API,
+roles, estatus ni reglas de seguridad. Tampoco se guardan logos o QR en base64
+en Firestore o Storage.

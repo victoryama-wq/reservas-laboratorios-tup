@@ -283,7 +283,7 @@ Reglas responsive actualizadas:
 - El stepper debe conservar numeros persistentes, etiquetas breves y una guia recta unica, sin lineas segmentadas internas.
 - Los campos de formulario deben conservar el patron ejecutivo: fondo claro, bordes suaves, sombra ligera, foco institucional e iconos completos.
 - El header y login deben conservar la misma familia tipografica del sistema en todos los breakpoints.
-- La marca TUP, navegacion, avatar, datos del usuario, botones de sesion y botones de login no deben caer a fuentes serif o estilos nativos del navegador.
+- La marca institucional, navegacion, avatar, datos del usuario, botones de sesion y botones de login no deben caer a fuentes serif o estilos nativos del navegador.
 - Angular Material debe heredar la fuente base para evitar contrastes visuales entre toolbar, botones, cards, formularios, menus, dialogs y snackbars.
 - En QA local del login se debe preferir `http://localhost:4200/login`.
   La pantalla debe soportar restauracion de sesion de Firebase Auth sin quedar
@@ -444,3 +444,23 @@ experiencia responsive y accesible:
 - controles e indicadores con foco visible y etiquetas accesibles;
 - cambios visuales suaves, sin movimiento agresivo ni transiciones que puedan
   marear.
+
+## Actualizacion Fase 17B.3A: logo institucional responsive
+
+El logotipo institucional real debe mantenerse legible y proporcionado en todos
+los breakpoints usando la ruta:
+
+```text
+/media/image/logo/logo_tup.png
+```
+
+Reglas responsive:
+
+- en header desktop, el logo debe conservar caja fija y `object-fit: contain`;
+- en header movil, el logo no debe comprimir la navegacion horizontal;
+- en login, el logo decorativo de fondo debe ser tenue y no afectar legibilidad;
+- en QR, la previsualizacion puede superponer el logo real sobre el QR cuando
+  `showLogo === true`;
+- PNG e impresion deben usar el logo real si puede cargarse;
+- SVG puede omitirse del logo por compatibilidad tecnica;
+- no usar texto `TUP` como sustituto visual principal del logo.

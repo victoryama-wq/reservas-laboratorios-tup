@@ -1536,7 +1536,7 @@ institucional.
 Patron visual:
 
 - card blanca con borde suave y sombra ligera;
-- identificador TUP opcional;
+- logo institucional real opcional;
 - colores configurables dentro de la paleta institucional;
 - acciones consistentes: copiar enlace, descargar PNG, descargar SVG e imprimir;
 - advertencia de contraste cuando la combinacion de colores podria afectar
@@ -1550,3 +1550,27 @@ deriva del `slug` y apunta a:
 ```text
 https://reservas-laboratorios-tup.web.app/reservar/{slug}
 ```
+
+### Ajuste Fase 17B.3A: logo institucional real
+
+Se reemplazaron simulaciones textuales de marca por el logotipo institucional
+real:
+
+```text
+/media/image/logo/logo_tup.png
+```
+
+Cambios visuales:
+
+- `AppShellComponent` usa el logo real en el header principal;
+- `LoginComponent` usa el logo real como marca principal y como fondo
+  decorativo tenue;
+- `AdminLabQrPreviewComponent` usa el logo real en la previsualizacion de QR;
+- la descarga PNG de QR y la impresion intentan incrustar el logo real cuando
+  `showLogo === true`;
+- la configuracion del QR se renombra visualmente a `Mostrar logo institucional`;
+- se conserva fallback tecnico con icono si el logo falla.
+
+El SVG de QR permanece sin logo incrustado para evitar problemas de
+compatibilidad vectorial. No se guardan logos, QR ni imagenes base64 en
+Firestore o Storage.

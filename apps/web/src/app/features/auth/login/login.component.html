@@ -1,8 +1,23 @@
 <section class="login-page">
-  <div class="background-mark" aria-hidden="true">TUP</div>
+  <img
+    class="background-mark"
+    [src]="institutionalLogoPath"
+    alt=""
+    aria-hidden="true"
+  />
 
   <mat-card class="login-card">
-    <div class="brand-orb" aria-hidden="true">TUP</div>
+    <div class="brand-orb">
+      @if (!logoFailed) {
+        <img
+          [src]="institutionalLogoPath"
+          [alt]="institutionalLogoAlt"
+          (error)="logoFailed = true"
+        />
+      } @else {
+        <mat-icon aria-hidden="true">account_balance</mat-icon>
+      }
+    </div>
 
     <mat-card-header>
       <mat-card-title>Sistema Web de Reservas de Laboratorios</mat-card-title>

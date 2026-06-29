@@ -14,6 +14,10 @@ import * as QRCode from 'qrcode';
 
 import { AppInfoCalloutComponent } from '../../../../shared/components';
 import {
+  INSTITUTIONAL_LOGO_ALT,
+  INSTITUTIONAL_LOGO_PATH,
+} from '../../../../core/constants/institutional-assets';
+import {
   LabQrConfig,
   LabQrFrameStyle,
   LabQrPrintSize,
@@ -53,6 +57,9 @@ export class AdminLabQrPreviewComponent {
   protected readonly qrDataUrl = signal('');
   protected readonly qrSvg = signal('');
   protected readonly renderError = signal('');
+  protected readonly logoPreviewFailed = signal(false);
+  protected readonly institutionalLogoPath = INSTITUTIONAL_LOGO_PATH;
+  protected readonly institutionalLogoAlt = INSTITUTIONAL_LOGO_ALT;
 
   protected readonly normalizedConfig = computed<Required<LabQrConfig>>(() => ({
     ...DEFAULT_QR_CONFIG,
@@ -236,7 +243,10 @@ export class AdminLabQrPreviewComponent {
     context.fillRect(0, 0, size.width, 18);
 
     if (config.showLogo) {
-      drawBadge(context, size.width / 2 - 42, 48, 84, 84, config);
+      const logoImage = await loadImage(INSTITUTIONAL_LOGO_PATH).catch(() => null);
+      if (logoImage) {
+        drawLogo(context, logoImage, size.width / 2 - 48, 42, 96, 96);
+      }
     }
 
     context.textAlign = 'center';
@@ -253,6 +263,21 @@ export class AdminLabQrPreviewComponent {
     const qrX = (size.width - qrSize) / 2;
     const qrY = 310;
     context.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+    if (config.showLogo) {
+      const logoImage = await loadImage(INSTITUTIONAL_LOGO_PATH).catch(() => null);
+      if (logoImage) {
+        const logoSize = qrSize * 0.2;
+        drawLogo(
+          context,
+          logoImage,
+          qrX + qrSize / 2 - logoSize / 2,
+          qrY + qrSize / 2 - logoSize / 2,
+          logoSize,
+          logoSize,
+        );
+      }
+    }
 
     context.fillStyle = config.secondaryColor;
     context.font = '700 20px Inter, system-ui, sans-serif';
@@ -302,23 +327,26 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function drawBadge(
+function drawLogo(
   context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
   x: number,
   y: number,
   width: number,
   height: number,
-  config: Required<LabQrConfig>,
 ): void {
-  context.fillStyle = config.primaryColor;
-  roundRect(context, x, y, width, height, 18);
-  context.fill();
+  const padding = Math.max(8, width * 0.16);
+
   context.fillStyle = '#ffffff';
-  context.font = '800 24px Inter, system-ui, sans-serif';
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-  context.fillText('TUP', x + width / 2, y + height / 2);
-  context.textBaseline = 'alphabetic';
+  roundRect(context, x, y, width, height, Math.max(14, width * 0.18));
+  context.fill();
+  context.drawImage(
+    image,
+    x + padding,
+    y + padding,
+    width - padding * 2,
+    height - padding * 2,
+  );
 }
 
 function roundRect(

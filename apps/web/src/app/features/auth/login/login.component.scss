@@ -65,9 +65,9 @@
   bottom: 8%;
   left: 5%;
   z-index: 0;
-  color: rgb(91 47 234 / 5%);
-  font-size: min(24vw, 20rem);
-  font-weight: 900;
+  width: min(28vw, 20rem);
+  height: auto;
+  opacity: 0.055;
   pointer-events: none;
 }
 
@@ -88,11 +88,19 @@
   place-items: center;
   border: 10px solid var(--color-primary-light);
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--color-primary), var(--color-primary-dark));
-  color: #ffffff;
-  font-weight: 900;
-  letter-spacing: 0;
+  background: #ffffff;
   box-shadow: 0 18px 32px rgb(43 10 114 / 24%);
+  overflow: hidden;
+
+  img {
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+  }
+
+  mat-icon {
+    color: var(--color-primary);
+  }
 }
 
 mat-card-header {

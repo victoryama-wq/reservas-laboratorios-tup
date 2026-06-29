@@ -214,7 +214,7 @@ git status --short
 - confirmar que la previsualizacion usa el `slug` actual;
 - confirmar que la URL generada es
   `https://reservas-laboratorios-tup.web.app/reservar/{slug}`;
-- cambiar colores, textos, marco, tamano e identificador TUP y confirmar que la
+- cambiar colores, textos, marco, tamano y logo institucional y confirmar que la
   previsualizacion responde;
 - copiar enlace;
 - descargar PNG;

@@ -562,7 +562,7 @@ export type AdminLabEditDialogResult =
 
                 <div class="grid items-center rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <mat-checkbox formControlName="showLogo">
-                    Mostrar identificador TUP
+                    Mostrar logo institucional
                   </mat-checkbox>
                 </div>
               </div>

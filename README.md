@@ -1288,7 +1288,7 @@ Admin/Sistemas puede configurar solamente presentacion visual del QR:
 - color primario;
 - color secundario;
 - color de fondo;
-- identificador TUP visible u oculto;
+- logo institucional visible u oculto;
 - estilo de marco: `classic`, `card` o `minimal`;
 - tamano de impresion: `small`, `medium` o `large`.
 
@@ -1299,3 +1299,25 @@ configuracion visual.
 
 Si se modifica el `slug`, cambia la URL de reserva y se deben reemplazar los QR
 impresos previamente.
+
+### Fase 17B.3A: logo institucional real en UI y QR
+
+La Web App usa el logotipo institucional real ubicado en:
+
+```text
+/media/image/logo/logo_tup.png
+```
+
+El logo se usa como marca visual primaria en el header principal, pantalla de
+login, previsualizacion de QR, descarga PNG de QR e impresion cuando
+`showLogo === true`.
+
+No se deben usar simulaciones textuales como `TUP` para representar el logo en
+interfaces nuevas. Si el logo no carga, la UI puede mostrar un fallback tecnico
+con icono institucional, pero no debe usar letras como marca principal.
+
+El SVG de QR se mantiene como QR vectorial limpio sin incrustar logo para evitar
+incompatibilidades con clientes o editores SVG. El PNG y la impresion si usan el
+logo real cuando puede cargarse en el navegador.
+
+No se guardan QR, logos en base64 ni imagenes generadas en Firestore o Storage.

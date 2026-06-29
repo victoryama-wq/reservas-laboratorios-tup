@@ -2,7 +2,17 @@
   @if (profileState$ | async; as state) {
     <mat-toolbar class="app-header">
       <a class="brand" routerLink="/" aria-label="Ir al inicio">
-        <span class="brand-mark" aria-hidden="true">TUP</span>
+        <span class="brand-mark">
+          @if (!headerLogoFailed) {
+            <img
+              [src]="institutionalLogoPath"
+              [alt]="institutionalLogoAlt"
+              (error)="headerLogoFailed = true"
+            />
+          } @else {
+            <mat-icon aria-hidden="true">account_balance</mat-icon>
+          }
+        </span>
         <span class="brand-text">{{ systemName }}</span>
       </a>
 

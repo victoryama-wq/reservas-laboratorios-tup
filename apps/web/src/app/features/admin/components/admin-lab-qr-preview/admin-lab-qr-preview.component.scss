@@ -29,15 +29,23 @@
 
 .qr-preview__badge {
   align-items: center;
-  background: var(--brand-primary);
+  background: #ffffff;
   border-radius: 1rem;
-  color: #ffffff;
+  color: var(--brand-primary);
   display: inline-flex;
-  font-weight: 800;
   height: 4rem;
   justify-content: center;
-  letter-spacing: 0.02em;
+  overflow: hidden;
+  padding: 0.45rem;
   width: 4rem;
+  box-shadow: 0 12px 24px rgb(15 23 42 / 0.12);
+}
+
+.qr-preview__badge img {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
 }
 
 .qr-preview__kicker {
@@ -74,6 +82,7 @@
   min-height: 250px;
   padding: 0.75rem;
   place-items: center;
+  position: relative;
   width: min(100%, 280px);
 }
 
@@ -81,6 +90,28 @@
   display: block;
   height: auto;
   max-width: 100%;
+}
+
+.qr-preview__code-logo {
+  align-items: center;
+  background: #ffffff;
+  border-radius: 0.9rem;
+  box-shadow: 0 8px 22px rgb(15 23 42 / 0.12);
+  display: inline-flex;
+  height: 22%;
+  justify-content: center;
+  left: 50%;
+  padding: 0.35rem;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 22%;
+}
+
+.qr-preview__code-logo img {
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
 }
 
 .qr-preview__loading {

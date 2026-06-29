@@ -934,7 +934,7 @@ La interfaz debe permitir:
 - configurar colores institucionales del QR;
 - elegir marco visual `classic`, `card` o `minimal`;
 - elegir tamano de impresion `small`, `medium` o `large`;
-- mostrar u ocultar identificador TUP;
+- mostrar u ocultar el logo institucional real;
 - copiar enlace;
 - descargar PNG;
 - descargar SVG cuando la generacion sea estable;
@@ -952,3 +952,27 @@ https://reservas-laboratorios-tup.web.app/reservar/{slug}
 
 Si el admin modifica el `slug`, la vista debe advertir que se deben reemplazar
 los QR impresos.
+
+### Actualizacion Fase 17B.3A: uso global del logo institucional real
+
+La Web App debe usar el logotipo institucional real como marca primaria:
+
+```text
+/media/image/logo/logo_tup.png
+```
+
+Reglas:
+
+- el header principal debe mostrar el logo real, no un texto simulado;
+- la pantalla de login debe mostrar el logo real en su marca principal y fondo
+  decorativo;
+- la previsualizacion de QR debe mostrar el logo real cuando `showLogo === true`;
+- la descarga PNG y la impresion de QR deben intentar incrustar el logo real;
+- si el logo no carga, se permite fallback tecnico con icono institucional;
+- no se deben usar letras como `TUP` como marca visual primaria;
+- no se deben guardar logos, QR o imagenes generadas como base64 en Firestore
+  o Storage.
+
+El SVG de QR puede mantenerse sin logo para preservar compatibilidad vectorial,
+siempre que se documente la limitacion y el PNG/impresion mantengan la identidad
+institucional.

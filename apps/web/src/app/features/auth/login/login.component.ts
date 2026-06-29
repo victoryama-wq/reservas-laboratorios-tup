@@ -1,16 +1,21 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { UserRole } from '../../../shared/models';
 import { AuthService } from '../../../core/services/auth.service';
+import {
+  INSTITUTIONAL_LOGO_ALT,
+  INSTITUTIONAL_LOGO_PATH,
+} from '../../../core/constants/institutional-assets';
 import { UserProfileService } from '../../../core/services/user-profile.service';
 
 @Component({
   selector: 'app-login',
-  imports: [MatButtonModule, MatCardModule, MatProgressSpinnerModule],
+  imports: [MatButtonModule, MatCardModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -24,6 +29,9 @@ export class LoginComponent implements OnInit {
   protected errorMessage = this.getInitialErrorMessage();
   protected showRedirectFallback = false;
   protected loginMode: 'popup' | 'redirect' | 'profile' | null = null;
+  protected readonly institutionalLogoPath = INSTITUTIONAL_LOGO_PATH;
+  protected readonly institutionalLogoAlt = INSTITUTIONAL_LOGO_ALT;
+  protected logoFailed = false;
 
   ngOnInit(): void {
     void this.completeRedirectLogin();

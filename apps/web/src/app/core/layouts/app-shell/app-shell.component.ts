@@ -1,6 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import {
   Router,
@@ -22,6 +23,10 @@ import {
 import { AppUser, UserRole } from '../../../shared/models';
 import { AuthService } from '../../services/auth.service';
 import {
+  INSTITUTIONAL_LOGO_ALT,
+  INSTITUTIONAL_LOGO_PATH,
+} from '../../constants/institutional-assets';
+import {
   UserProfileService,
   UserProfileStatus,
 } from '../../services/user-profile.service';
@@ -37,6 +42,7 @@ type ShellProfileState =
   imports: [
     AsyncPipe,
     MatButtonModule,
+    MatIconModule,
     MatToolbarModule,
     RouterLink,
     RouterLinkActive,
@@ -51,6 +57,9 @@ export class AppShellComponent {
   private readonly router = inject(Router);
 
   protected readonly systemName = 'Sistema Web de Reservas de Laboratorios';
+  protected readonly institutionalLogoPath = INSTITUTIONAL_LOGO_PATH;
+  protected readonly institutionalLogoAlt = INSTITUTIONAL_LOGO_ALT;
+  protected headerLogoFailed = false;
   protected readonly profileState$ = this.authService.authState$.pipe(
     switchMap((user) => {
       if (!user) {

@@ -5,7 +5,17 @@
     [class.qr-preview__card--minimal]="normalizedConfig().frameStyle === 'minimal'"
   >
     @if (normalizedConfig().showLogo) {
-      <span class="qr-preview__badge" aria-hidden="true">TUP</span>
+      <span class="qr-preview__badge">
+        @if (!logoPreviewFailed()) {
+          <img
+            [src]="institutionalLogoPath"
+            [alt]="institutionalLogoAlt"
+            (error)="logoPreviewFailed.set(true)"
+          />
+        } @else {
+          <mat-icon aria-hidden="true">account_balance</mat-icon>
+        }
+      </span>
     }
 
     <p class="qr-preview__kicker">
@@ -24,6 +34,11 @@
           [src]="qrDataUrl()"
           [alt]="'Codigo QR para reservar ' + labName()"
         />
+        @if (normalizedConfig().showLogo && !logoPreviewFailed()) {
+          <span class="qr-preview__code-logo" aria-hidden="true">
+            <img [src]="institutionalLogoPath" alt="" />
+          </span>
+        }
       } @else {
         <div class="qr-preview__loading">
           <mat-icon>qr_code_2</mat-icon>
