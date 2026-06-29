@@ -15,6 +15,7 @@ import {
 import {
   LabDoc,
   LabGalleryImage,
+  LabQrConfig,
   WeeklySchedule,
 } from '../../../shared/models';
 
@@ -32,6 +33,7 @@ export interface AdminCreateLabInput {
   imageUrl?: string;
   gallery?: LabGalleryImage[];
   coverImageId?: string;
+  qrConfig?: LabQrConfig;
   calendarId: string;
   location?: string;
   responsibleUids: string[];
@@ -122,6 +124,7 @@ export class AdminLabsService {
       imageUrl: lab.imageUrl ?? '',
       gallery: lab.gallery ?? [],
       coverImageId: lab.coverImageId ?? '',
+      qrConfig: lab.qrConfig,
       calendarId: lab.calendarId ?? '',
       location: lab.location ?? '',
       active: Boolean(lab.active),

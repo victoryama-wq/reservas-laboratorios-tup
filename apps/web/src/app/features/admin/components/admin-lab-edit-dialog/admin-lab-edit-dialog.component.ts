@@ -27,7 +27,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { AppInfoCalloutComponent } from '../../../../shared/components';
-import { LabGalleryImage, WeeklySchedule } from '../../../../shared/models';
+import {
+  LabGalleryImage,
+  LabQrConfig,
+  LabQrFrameStyle,
+  LabQrPrintSize,
+  WeeklySchedule,
+} from '../../../../shared/models';
+import { AdminLabQrPreviewComponent } from '../admin-lab-qr-preview/admin-lab-qr-preview.component';
 import {
   AdminLabGalleryService,
   MAX_LAB_GALLERY_IMAGES,
@@ -41,6 +48,18 @@ import { AdminUserView } from '../../services/admin-users.service';
 
 const INSTITUTIONAL_DOMAIN = '@tecplayacar.edu.mx';
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
+const DEFAULT_QR_CONFIG: Required<LabQrConfig> = {
+  title: 'Reserva de laboratorio',
+  subtitle: 'Escanea para solicitar este espacio academico.',
+  customLabel: 'Sistema Web de Reservas de Laboratorios',
+  primaryColor: '#271e5d',
+  secondaryColor: '#252a86',
+  backgroundColor: '#ffffff',
+  showLogo: true,
+  frameStyle: 'card',
+  printSize: 'medium',
+};
 
 type DialogMode = 'create' | 'edit';
 
@@ -63,6 +82,7 @@ export type AdminLabEditDialogResult =
   selector: 'app-admin-lab-edit-dialog',
   imports: [
     AppInfoCalloutComponent,
+    AdminLabQrPreviewComponent,
     MatButtonModule,
     MatCheckboxModule,
     MatDialogModule,
@@ -456,6 +476,104 @@ export type AdminLabEditDialogResult =
               </mat-form-field>
             </div>
           </mat-tab>
+
+          <mat-tab label="QR">
+            <div class="grid gap-5 pt-5" formGroupName="qrConfig">
+              <app-info-callout
+                variant="info"
+                icon="qr_code_2"
+                message="El QR apunta siempre a la ruta publica de reserva del laboratorio. No se guardan imagenes QR ni archivos generados."
+              />
+
+              @if (slugChanged()) {
+                <app-info-callout
+                  variant="warning"
+                  icon="warning"
+                  message="El slug cambio. La URL del QR tambien cambiara y debera actualizar los QR impresos."
+                />
+              }
+
+              <div class="grid gap-4 lg:grid-cols-2">
+                <mat-form-field appearance="outline">
+                  <mat-label>Titulo del QR</mat-label>
+                  <input matInput maxlength="120" formControlName="title" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Etiqueta institucional</mat-label>
+                  <input matInput maxlength="120" formControlName="customLabel" />
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Subtitulo</mat-label>
+                <textarea
+                  matInput
+                  maxlength="120"
+                  rows="2"
+                  formControlName="subtitle"
+                ></textarea>
+              </mat-form-field>
+
+              <div class="grid gap-4 md:grid-cols-3">
+                <mat-form-field appearance="outline">
+                  <mat-label>Color primario</mat-label>
+                  <input matInput type="color" formControlName="primaryColor" />
+                  @if (qrConfigGroup().get('primaryColor')?.hasError('pattern')) {
+                    <mat-error>Use formato hexadecimal.</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Color secundario</mat-label>
+                  <input matInput type="color" formControlName="secondaryColor" />
+                  @if (qrConfigGroup().get('secondaryColor')?.hasError('pattern')) {
+                    <mat-error>Use formato hexadecimal.</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Color de fondo</mat-label>
+                  <input matInput type="color" formControlName="backgroundColor" />
+                  @if (qrConfigGroup().get('backgroundColor')?.hasError('pattern')) {
+                    <mat-error>Use formato hexadecimal.</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <div class="grid gap-4 md:grid-cols-3">
+                <mat-form-field appearance="outline">
+                  <mat-label>Estilo de marco</mat-label>
+                  <mat-select formControlName="frameStyle">
+                    <mat-option value="classic">Clasico</mat-option>
+                    <mat-option value="card">Tarjeta</mat-option>
+                    <mat-option value="minimal">Minimal</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Tamano de impresion</mat-label>
+                  <mat-select formControlName="printSize">
+                    <mat-option value="small">Pequeno</mat-option>
+                    <mat-option value="medium">Mediano</mat-option>
+                    <mat-option value="large">Grande</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="grid items-center rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <mat-checkbox formControlName="showLogo">
+                    Mostrar identificador TUP
+                  </mat-checkbox>
+                </div>
+              </div>
+
+              <app-admin-lab-qr-preview
+                [labName]="form.get('name')?.value || 'Laboratorio'"
+                [slug]="form.get('slug')?.value || ''"
+                [qrConfig]="qrPreviewConfig()"
+              />
+            </div>
+          </mat-tab>
         </mat-tab-group>
       </form>
 
@@ -569,6 +687,7 @@ export class AdminLabEditDialogComponent {
       [institutionalEmailListValidator],
     ),
     weeklySchedule: this.buildScheduleGroup(this.data.lab?.weeklySchedule),
+    qrConfig: this.buildQrConfigGroup(this.data.lab?.qrConfig),
   });
 
   constructor() {
@@ -599,6 +718,24 @@ export class AdminLabEditDialogComponent {
 
   protected activeGalleryCount(): number {
     return this.galleryImages().filter((image) => image.active).length;
+  }
+
+  protected qrConfigGroup(): UntypedFormGroup {
+    return this.form.get('qrConfig') as UntypedFormGroup;
+  }
+
+  protected qrPreviewConfig(): LabQrConfig {
+    return this.serializeQrConfig();
+  }
+
+  protected slugChanged(): boolean {
+    if (this.data.mode !== 'edit') {
+      return false;
+    }
+
+    const originalSlug = this.data.lab?.slug ?? '';
+    const currentSlug = String(this.form.get('slug')?.value ?? '').trim();
+    return Boolean(originalSlug && currentSlug && originalSlug !== currentSlug);
   }
 
   protected previewUrl(image: LabGalleryImage): string {
@@ -764,6 +901,7 @@ export class AdminLabEditDialogComponent {
       requiresApprovalWhenRisky: Boolean(value.requiresApprovalWhenRisky),
       requiresProtocolWhenRisky: Boolean(value.requiresProtocolWhenRisky),
       weeklySchedule: value.weeklySchedule as WeeklySchedule,
+      qrConfig: this.serializeQrConfig(),
     };
 
     this.dialogRef.close(
@@ -790,6 +928,37 @@ export class AdminLabEditDialogComponent {
       );
     }
     return group;
+  }
+
+  private buildQrConfigGroup(config?: LabQrConfig): UntypedFormGroup {
+    const normalized = {
+      ...DEFAULT_QR_CONFIG,
+      ...(config ?? {}),
+    };
+
+    return new UntypedFormGroup({
+      title: new UntypedFormControl(normalized.title, [
+        Validators.maxLength(120),
+      ]),
+      subtitle: new UntypedFormControl(normalized.subtitle, [
+        Validators.maxLength(120),
+      ]),
+      customLabel: new UntypedFormControl(normalized.customLabel, [
+        Validators.maxLength(120),
+      ]),
+      primaryColor: new UntypedFormControl(normalized.primaryColor, [
+        Validators.pattern(HEX_COLOR_PATTERN),
+      ]),
+      secondaryColor: new UntypedFormControl(normalized.secondaryColor, [
+        Validators.pattern(HEX_COLOR_PATTERN),
+      ]),
+      backgroundColor: new UntypedFormControl(normalized.backgroundColor, [
+        Validators.pattern(HEX_COLOR_PATTERN),
+      ]),
+      showLogo: new UntypedFormControl(normalized.showLogo),
+      frameStyle: new UntypedFormControl(normalized.frameStyle),
+      printSize: new UntypedFormControl(normalized.printSize),
+    });
   }
 
   private setGalleryImages(images: LabGalleryImage[]): void {
@@ -830,6 +999,29 @@ export class AdminLabEditDialogComponent {
 
       return serialized;
     });
+  }
+
+  private serializeQrConfig(): LabQrConfig {
+    const value = this.qrConfigGroup().getRawValue();
+
+    return {
+      title: String(value.title ?? '').trim() || DEFAULT_QR_CONFIG.title,
+      subtitle:
+        String(value.subtitle ?? '').trim() || DEFAULT_QR_CONFIG.subtitle,
+      customLabel:
+        String(value.customLabel ?? '').trim() || DEFAULT_QR_CONFIG.customLabel,
+      primaryColor:
+        String(value.primaryColor ?? '').trim() || DEFAULT_QR_CONFIG.primaryColor,
+      secondaryColor:
+        String(value.secondaryColor ?? '').trim() ||
+        DEFAULT_QR_CONFIG.secondaryColor,
+      backgroundColor:
+        String(value.backgroundColor ?? '').trim() ||
+        DEFAULT_QR_CONFIG.backgroundColor,
+      showLogo: Boolean(value.showLogo),
+      frameStyle: normalizeFrameStyle(value.frameStyle),
+      printSize: normalizePrintSize(value.printSize),
+    };
   }
 
   private storageLabId(): string {
@@ -895,8 +1087,20 @@ function parseEmailText(value: string): string[] {
         .split(/[\n,;]/)
         .map((email) => email.trim().toLowerCase())
         .filter(Boolean),
-    ),
+      ),
   ];
+}
+
+function normalizeFrameStyle(value: unknown): LabQrFrameStyle {
+  return value === 'classic' || value === 'minimal' || value === 'card'
+    ? value
+    : DEFAULT_QR_CONFIG.frameStyle;
+}
+
+function normalizePrintSize(value: unknown): LabQrPrintSize {
+  return value === 'small' || value === 'large' || value === 'medium'
+    ? value
+    : DEFAULT_QR_CONFIG.printSize;
 }
 
 function generateSlug(value: string): string {

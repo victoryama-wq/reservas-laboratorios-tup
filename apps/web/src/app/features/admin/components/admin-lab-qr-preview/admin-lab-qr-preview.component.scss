@@ -1,0 +1,106 @@
+:host {
+  display: block;
+}
+
+.qr-preview__card {
+  align-items: center;
+  background:
+    radial-gradient(circle at top left, rgb(99 102 241 / 0.12), transparent 34%),
+    #ffffff;
+  border: 1px solid var(--border-soft);
+  border-radius: 1.5rem;
+  box-shadow: 0 18px 45px rgb(15 23 42 / 0.08);
+  color: var(--text-primary);
+  display: grid;
+  justify-items: center;
+  min-height: 540px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.qr-preview__card--classic {
+  border-top: 10px solid var(--brand-primary);
+}
+
+.qr-preview__card--minimal {
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.qr-preview__badge {
+  align-items: center;
+  background: var(--brand-primary);
+  border-radius: 1rem;
+  color: #ffffff;
+  display: inline-flex;
+  font-weight: 800;
+  height: 4rem;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  width: 4rem;
+}
+
+.qr-preview__kicker {
+  color: var(--brand-secondary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  margin: 0.75rem 0 0;
+  text-transform: uppercase;
+}
+
+.qr-preview__title {
+  color: var(--text-primary);
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0.5rem 0 0;
+}
+
+.qr-preview__subtitle,
+.qr-preview__url {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+}
+
+.qr-preview__code {
+  background: #ffffff;
+  border: 1px solid var(--border-soft);
+  border-radius: 1.25rem;
+  display: grid;
+  margin-top: 1rem;
+  min-height: 250px;
+  padding: 0.75rem;
+  place-items: center;
+  width: min(100%, 280px);
+}
+
+.qr-preview__code img {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.qr-preview__loading {
+  align-items: center;
+  color: var(--text-muted);
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 0.875rem;
+  font-weight: 700;
+  gap: 0.5rem;
+}
+
+.qr-preview__lab-name {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0.75rem 0 0;
+}
+
+.qr-preview__url {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}

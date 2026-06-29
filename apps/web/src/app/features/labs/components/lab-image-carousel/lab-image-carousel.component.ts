@@ -69,7 +69,7 @@ export class LabImageCarouselComponent implements OnDestroy {
       || this.autoplayPausedByUser()
       || this.prefersReducedMotion(),
   );
-  private autoplayTimer: ReturnType<typeof setInterval> | null = null;
+  private autoplayTimer: number | null = null;
   private motionQuery: MediaQueryList | null = null;
 
   constructor() {
@@ -149,7 +149,7 @@ export class LabImageCarouselComponent implements OnDestroy {
 
   private stopAutoplay(): void {
     if (this.autoplayTimer !== null) {
-      clearInterval(this.autoplayTimer);
+      window.clearInterval(this.autoplayTimer);
       this.autoplayTimer = null;
     }
   }

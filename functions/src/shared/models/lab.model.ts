@@ -9,6 +9,7 @@ export interface LabDoc {
   imageUrl?: string;
   gallery?: LabGalleryImage[];
   coverImageId?: string;
+  qrConfig?: LabQrConfig;
   calendarId: string;
   calendarSharedWith?: string;
   location?: string;
@@ -60,6 +61,22 @@ export interface LabGalleryImage {
   active: boolean;
   createdAt: Timestamp;
   updatedAt?: Timestamp;
+}
+
+export type LabQrFrameStyle = "classic" | "card" | "minimal";
+
+export type LabQrPrintSize = "small" | "medium" | "large";
+
+export interface LabQrConfig {
+  title?: string;
+  subtitle?: string;
+  customLabel?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  backgroundColor?: string;
+  showLogo?: boolean;
+  frameStyle?: LabQrFrameStyle;
+  printSize?: LabQrPrintSize;
 }
 
 export interface LabSpecialRule {

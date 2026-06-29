@@ -616,3 +616,33 @@ Reglas del modelo:
 - `imageUrl` permanece como campo legado opcional y no sustituye a
   `gallery`;
 - los archivos fisicos no se eliminan automaticamente en esta fase.
+
+## Actualizacion Fase 17B.3: configuracion QR de laboratorios
+
+`labs/{labId}` puede incluir el campo opcional:
+
+```ts
+qrConfig?: {
+  title?: string;
+  subtitle?: string;
+  customLabel?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  backgroundColor?: string;
+  showLogo?: boolean;
+  frameStyle?: 'classic' | 'card' | 'minimal';
+  printSize?: 'small' | 'medium' | 'large';
+};
+```
+
+`qrConfig` solo define presentacion visual. No almacena imagenes QR, archivos
+base64 ni URLs distintas a la ruta derivada del `slug`.
+
+La URL operativa del QR sigue siendo:
+
+```text
+https://reservas-laboratorios-tup.web.app/reservar/{slug}
+```
+
+Si cambia `slug`, `qrPath` se actualiza a `/reservar/{slug}` y los QR impresos
+deben regenerarse.

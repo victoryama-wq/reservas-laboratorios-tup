@@ -392,3 +392,20 @@ Fuera de alcance:
 - reservas;
 - Calendar API;
 - Gmail API.
+
+## 25. Seguimiento Fase 17B.3: QR configurable por laboratorio
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual, commit y deploy
+cuando el propietario lo autorice.
+
+Alcance:
+
+- modelo `qrConfig` en laboratorios;
+- validacion backend en `adminCreateLab` y `adminUpdateLab`;
+- pestana `QR` en el dialogo de alta/edicion;
+- componente `AdminLabQrPreviewComponent`;
+- acciones cliente para copiar enlace, descargar PNG, descargar SVG e imprimir;
+- advertencia cuando el `slug` cambia.
+
+No se modificaron reservas, Calendar, Gmail, reglas de seguridad, roles ni
+estatus.

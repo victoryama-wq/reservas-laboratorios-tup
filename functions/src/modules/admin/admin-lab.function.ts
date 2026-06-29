@@ -13,6 +13,9 @@ import {
   LabDoc,
   LabGalleryImage,
   LabGalleryImageContentType,
+  LabQrConfig,
+  LabQrFrameStyle,
+  LabQrPrintSize,
   WeeklySchedule,
 } from "../../shared/models";
 
@@ -23,6 +26,7 @@ const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 const MAX_GALLERY_IMAGES = 8;
 const MAX_LAB_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const MAX_GALLERY_TEXT_LENGTH = 120;
+const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 const LAB_IMAGE_CONTENT_TYPES = new Set<LabGalleryImageContentType>([
   "image/jpeg",
   "image/png",
@@ -50,6 +54,7 @@ const ALLOWED_INPUT_KEYS = new Set([
   "imageUrl",
   "gallery",
   "coverImageId",
+  "qrConfig",
   "calendarId",
   "location",
   "responsibleUids",
@@ -86,6 +91,7 @@ interface ParsedLabInput {
   imageUrl?: string;
   gallery?: LabGalleryImage[];
   coverImageId?: string;
+  qrConfig?: LabQrConfig;
   calendarId?: string;
   location?: string;
   responsibleUids?: string[];
@@ -143,6 +149,7 @@ export const adminCreateLab = onCall(
           imageUrl: input.imageUrl,
           gallery: input.gallery,
           coverImageId: input.coverImageId,
+          qrConfig: input.qrConfig,
           calendarId: input.calendarId,
           location: input.location,
           responsibleUids: input.responsibleUids,
@@ -326,6 +333,7 @@ function parseCreateInput(
     imageUrl: input.imageUrl ?? "",
     gallery: input.gallery ?? [],
     coverImageId: input.coverImageId ?? "",
+    qrConfig: input.qrConfig ?? {},
     calendarId: requireText(
         input.calendarId,
         "El calendarId es obligatorio.",
@@ -399,6 +407,7 @@ function parseBaseInput(data: unknown): ParsedLabInput {
   const gallery = parseGallery(data.gallery, storageLabId);
   const coverImageId = optionalText(data.coverImageId);
   validateCoverImageId(coverImageId, gallery);
+  const qrConfig = parseQrConfig(data.qrConfig);
 
   return {
     labId,
@@ -409,6 +418,7 @@ function parseBaseInput(data: unknown): ParsedLabInput {
     imageUrl: optionalText(data.imageUrl),
     gallery,
     coverImageId,
+    qrConfig,
     calendarId: optionalText(data.calendarId),
     location: optionalText(data.location),
     responsibleUids: parseStringList(data.responsibleUids, "responsibleUids"),
@@ -462,6 +472,7 @@ function buildLabPatch(
   setIfDefined(patch, "imageUrl", input.imageUrl);
   setIfDefined(patch, "gallery", input.gallery);
   setIfDefined(patch, "coverImageId", input.coverImageId);
+  setIfDefined(patch, "qrConfig", input.qrConfig);
   setIfDefined(patch, "calendarId", input.calendarId);
   setIfDefined(patch, "location", input.location);
   setIfDefined(patch, "responsibleUids", input.responsibleUids);
@@ -550,6 +561,165 @@ const ALLOWED_GALLERY_KEYS = new Set([
   "createdAt",
   "updatedAt",
 ]);
+
+const ALLOWED_QR_CONFIG_KEYS = new Set([
+  "title",
+  "subtitle",
+  "customLabel",
+  "primaryColor",
+  "secondaryColor",
+  "backgroundColor",
+  "showLogo",
+  "frameStyle",
+  "printSize",
+]);
+
+/**
+ * Parses optional QR configuration.
+ *
+ * @param {unknown} value Candidate QR config.
+ * @return {LabQrConfig | undefined} Sanitized QR config.
+ */
+function parseQrConfig(value: unknown): LabQrConfig | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isRecord(value)) {
+    throw new HttpsError(
+        "invalid-argument",
+        "qrConfig debe ser un objeto.",
+    );
+  }
+
+  const unknownKeys = Object.keys(value).filter(
+      (key) => !ALLOWED_QR_CONFIG_KEYS.has(key),
+  );
+  if (unknownKeys.length > 0) {
+    throw new HttpsError(
+        "invalid-argument",
+        "qrConfig contiene campos no permitidos.",
+    );
+  }
+
+  const config: LabQrConfig = {};
+  const title = optionalLimitedText(value.title, "qrConfig.title");
+  const subtitle = optionalLimitedText(value.subtitle, "qrConfig.subtitle");
+  const customLabel = optionalLimitedText(
+      value.customLabel,
+      "qrConfig.customLabel",
+  );
+  const primaryColor = optionalHexColor(
+      value.primaryColor,
+      "qrConfig.primaryColor",
+  );
+  const secondaryColor = optionalHexColor(
+      value.secondaryColor,
+      "qrConfig.secondaryColor",
+  );
+  const backgroundColor = optionalHexColor(
+      value.backgroundColor,
+      "qrConfig.backgroundColor",
+  );
+  const showLogo = optionalBoolean(value.showLogo, "qrConfig.showLogo");
+  const frameStyle = optionalQrFrameStyle(value.frameStyle);
+  const printSize = optionalQrPrintSize(value.printSize);
+
+  if (title !== undefined) {
+    config.title = title;
+  }
+  if (subtitle !== undefined) {
+    config.subtitle = subtitle;
+  }
+  if (customLabel !== undefined) {
+    config.customLabel = customLabel;
+  }
+  if (primaryColor !== undefined) {
+    config.primaryColor = primaryColor;
+  }
+  if (secondaryColor !== undefined) {
+    config.secondaryColor = secondaryColor;
+  }
+  if (backgroundColor !== undefined) {
+    config.backgroundColor = backgroundColor;
+  }
+  if (showLogo !== undefined) {
+    config.showLogo = showLogo;
+  }
+  if (frameStyle !== undefined) {
+    config.frameStyle = frameStyle;
+  }
+  if (printSize !== undefined) {
+    config.printSize = printSize;
+  }
+
+  return config;
+}
+
+/**
+ * Parses optional QR color.
+ *
+ * @param {unknown} value Candidate color.
+ * @param {string} field Field name.
+ * @return {string | undefined} Hex color.
+ */
+function optionalHexColor(value: unknown, field: string): string | undefined {
+  const text = optionalText(value);
+  if (text === undefined || text === "") {
+    return undefined;
+  }
+
+  if (!HEX_COLOR_PATTERN.test(text)) {
+    throw new HttpsError(
+        "invalid-argument",
+        `${field} debe usar formato hexadecimal #RRGGBB.`,
+    );
+  }
+
+  return text;
+}
+
+/**
+ * Parses QR frame style.
+ *
+ * @param {unknown} value Candidate frame style.
+ * @return {LabQrFrameStyle | undefined} Frame style.
+ */
+function optionalQrFrameStyle(value: unknown): LabQrFrameStyle | undefined {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  if (value === "classic" || value === "card" || value === "minimal") {
+    return value;
+  }
+
+  throw new HttpsError(
+      "invalid-argument",
+      "qrConfig.frameStyle no es valido.",
+  );
+}
+
+/**
+ * Parses QR print size.
+ *
+ * @param {unknown} value Candidate print size.
+ * @return {LabQrPrintSize | undefined} Print size.
+ */
+function optionalQrPrintSize(value: unknown): LabQrPrintSize | undefined {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  if (value === "small" || value === "medium" || value === "large") {
+    return value;
+  }
+
+  throw new HttpsError(
+      "invalid-argument",
+      "qrConfig.printSize no es valido.",
+  );
+}
 
 /**
  * Parses and validates laboratory gallery metadata.

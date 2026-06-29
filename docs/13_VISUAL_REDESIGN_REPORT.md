@@ -1526,3 +1526,27 @@ alterar la carga de imagenes ni datos:
 
 El ajuste es estrictamente presentacional. No modifica laboratorios, reservas,
 Storage, Calendar, Gmail, roles, rutas ni Cloud Functions.
+
+## Fase 17B.3: QR personalizable por laboratorio
+
+Se agrego una pestana `QR` al dialogo de administracion de laboratorios para
+previsualizar y exportar codigos QR de reserva con identidad visual
+institucional.
+
+Patron visual:
+
+- card blanca con borde suave y sombra ligera;
+- identificador TUP opcional;
+- colores configurables dentro de la paleta institucional;
+- acciones consistentes: copiar enlace, descargar PNG, descargar SVG e imprimir;
+- advertencia de contraste cuando la combinacion de colores podria afectar
+  legibilidad;
+- advertencia cuando cambia el `slug` porque cambia la URL impresa.
+
+La configuracion visual se guarda como `qrConfig` en el documento del
+laboratorio. El QR no se guarda como archivo ni como base64. La URL siempre se
+deriva del `slug` y apunta a:
+
+```text
+https://reservas-laboratorios-tup.web.app/reservar/{slug}
+```

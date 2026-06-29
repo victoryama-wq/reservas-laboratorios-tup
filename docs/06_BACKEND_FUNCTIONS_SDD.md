@@ -504,3 +504,21 @@ Validaciones comunes:
 `createReservation` y `approveReservation` quedan integradas con
 `blockedPeriods` activos. Las reglas de seguridad siguen bloqueando escritura
 directa critica desde el frontend.
+
+## Actualizacion Fase 17B.3: validacion de qrConfig
+
+`adminCreateLab` y `adminUpdateLab` aceptan `qrConfig` como configuracion visual
+opcional del QR del laboratorio.
+
+Validaciones backend:
+
+- solo Admin/Sistemas puede enviar cambios;
+- `qrConfig` debe ser objeto;
+- no se permiten campos arbitrarios;
+- colores deben usar formato hexadecimal `#RRGGBB`;
+- `frameStyle` solo puede ser `classic`, `card` o `minimal`;
+- `printSize` solo puede ser `small`, `medium` o `large`;
+- textos visuales no deben exceder 120 caracteres.
+
+Las funciones no generan archivos QR ni guardan base64. El QR se genera en el
+frontend a partir de `slug` y `qrConfig`.

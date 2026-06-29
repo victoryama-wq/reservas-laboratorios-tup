@@ -1,0 +1,88 @@
+<section class="qr-preview grid gap-5 lg:grid-cols-[minmax(260px,360px)_1fr]">
+  <article
+    class="qr-preview__card"
+    [class.qr-preview__card--classic]="normalizedConfig().frameStyle === 'classic'"
+    [class.qr-preview__card--minimal]="normalizedConfig().frameStyle === 'minimal'"
+  >
+    @if (normalizedConfig().showLogo) {
+      <span class="qr-preview__badge" aria-hidden="true">TUP</span>
+    }
+
+    <p class="qr-preview__kicker">
+      {{ normalizedConfig().customLabel }}
+    </p>
+    <h3 class="qr-preview__title">
+      {{ normalizedConfig().title || labName() }}
+    </h3>
+    <p class="qr-preview__subtitle">
+      {{ normalizedConfig().subtitle }}
+    </p>
+
+    <div class="qr-preview__code">
+      @if (qrDataUrl()) {
+        <img
+          [src]="qrDataUrl()"
+          [alt]="'Codigo QR para reservar ' + labName()"
+        />
+      } @else {
+        <div class="qr-preview__loading">
+          <mat-icon>qr_code_2</mat-icon>
+          Generando QR...
+        </div>
+      }
+    </div>
+
+    <p class="qr-preview__lab-name">{{ labName() }}</p>
+    <p class="qr-preview__url">{{ qrUrl() }}</p>
+  </article>
+
+  <div class="grid content-start gap-4">
+    @if (renderError()) {
+      <app-info-callout
+        variant="danger"
+        icon="error"
+        [message]="renderError()"
+      />
+    }
+
+    @if (contrastIsLow()) {
+      <app-info-callout
+        variant="warning"
+        icon="contrast"
+        message="Revise el contraste entre color primario y fondo antes de imprimir el QR."
+      />
+    }
+
+    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <p class="m-0 text-xs font-bold uppercase tracking-[0.18em] text-violet-700">
+        Enlace publico de reserva
+      </p>
+      <p class="m-0 mt-2 break-all text-sm font-semibold text-slate-900">
+        {{ qrUrl() }}
+      </p>
+      <p class="m-0 mt-2 text-sm leading-6 text-slate-600">
+        El QR siempre apunta a la ruta publica del laboratorio. No se guardan
+        imagenes QR ni archivos generados en Firestore o Storage.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+      <button mat-stroked-button type="button" (click)="copyLink()">
+        <mat-icon>content_copy</mat-icon>
+        Copiar enlace
+      </button>
+      <button mat-flat-button color="primary" type="button" (click)="downloadPng()">
+        <mat-icon>download</mat-icon>
+        Descargar PNG
+      </button>
+      <button mat-stroked-button type="button" (click)="downloadSvg()">
+        <mat-icon>code</mat-icon>
+        Descargar SVG
+      </button>
+      <button mat-stroked-button type="button" (click)="printQr()">
+        <mat-icon>print</mat-icon>
+        Imprimir
+      </button>
+    </div>
+  </div>
+</section>

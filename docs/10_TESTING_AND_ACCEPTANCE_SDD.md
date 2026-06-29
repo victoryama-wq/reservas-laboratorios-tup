@@ -207,6 +207,24 @@ git diff --check
 git status --short
 ```
 
+## Pruebas Fase 17B.3: QR configurable por laboratorio
+
+- abrir `/admin/laboratorios` como `admin_sistemas`;
+- crear o editar laboratorio y abrir pestana `QR`;
+- confirmar que la previsualizacion usa el `slug` actual;
+- confirmar que la URL generada es
+  `https://reservas-laboratorios-tup.web.app/reservar/{slug}`;
+- cambiar colores, textos, marco, tamano e identificador TUP y confirmar que la
+  previsualizacion responde;
+- copiar enlace;
+- descargar PNG;
+- descargar SVG;
+- imprimir QR;
+- cambiar `slug` y confirmar advertencia visual;
+- guardar laboratorio y confirmar `labs/{labId}.qrConfig`;
+- confirmar que no se guardan imagenes QR, base64 ni archivos en Storage;
+- escanear o abrir el enlace QR y confirmar que llega a `/reservar/:labSlug`.
+
 ## Pruebas Fase 17B.2: carrusel en detalle de laboratorio
 
 Validaciones obligatorias:

@@ -921,3 +921,34 @@ Accesibilidad del carrusel:
 - debe respetar `prefers-reduced-motion: reduce`;
 - no debe usar animaciones agresivas, cambios demasiado rapidos ni movimiento
   que pueda marear en movil o lectores de pantalla.
+
+## Actualizacion Fase 17B.3: QR visual configurable
+
+El dialogo de alta/edicion de laboratorios en `/admin/laboratorios` debe incluir
+una pestana `QR` para configurar y previsualizar el QR operativo del
+laboratorio.
+
+La interfaz debe permitir:
+
+- configurar titulo, subtitulo y etiqueta institucional;
+- configurar colores institucionales del QR;
+- elegir marco visual `classic`, `card` o `minimal`;
+- elegir tamano de impresion `small`, `medium` o `large`;
+- mostrar u ocultar identificador TUP;
+- copiar enlace;
+- descargar PNG;
+- descargar SVG cuando la generacion sea estable;
+- imprimir.
+
+La previsualizacion debe mantener la linea visual documentada en
+`docs/13_VISUAL_REDESIGN_REPORT.md`. Si el contraste de colores es bajo, la UI
+debe advertirlo sin bloquear la configuracion.
+
+La URL siempre se deriva del `slug`:
+
+```text
+https://reservas-laboratorios-tup.web.app/reservar/{slug}
+```
+
+Si el admin modifica el `slug`, la vista debe advertir que se deben reemplazar
+los QR impresos.

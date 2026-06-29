@@ -1268,3 +1268,34 @@ Actualizacion de accesibilidad del carrusel:
 - se pausa definitivamente cuando el usuario usa flechas o indicadores;
 - respeta `prefers-reduced-motion: reduce` y desactiva el autoplay para evitar
   mareos en movil, lectores de pantalla o usuarios sensibles al movimiento.
+
+## Fase 17B.3: QR personalizable por laboratorio
+
+La administracion de laboratorios incluye una pestana `QR` en el dialogo de
+alta y edicion de `/admin/laboratorios`.
+
+El QR siempre apunta a la ruta publica:
+
+```text
+https://reservas-laboratorios-tup.web.app/reservar/{slug}
+```
+
+Admin/Sistemas puede configurar solamente presentacion visual del QR:
+
+- titulo;
+- subtitulo;
+- etiqueta institucional;
+- color primario;
+- color secundario;
+- color de fondo;
+- identificador TUP visible u oculto;
+- estilo de marco: `classic`, `card` o `minimal`;
+- tamano de impresion: `small`, `medium` o `large`.
+
+El sistema permite copiar el enlace, descargar PNG, descargar SVG e imprimir el
+QR desde el navegador. No se guardan archivos QR, imagenes base64 ni rutas de
+QR en Firestore o Storage; solo se guarda `labs/{labId}.qrConfig` como
+configuracion visual.
+
+Si se modifica el `slug`, cambia la URL de reserva y se deben reemplazar los QR
+impresos previamente.
