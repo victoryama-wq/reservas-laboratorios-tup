@@ -585,3 +585,18 @@ negocio ni usa Gmail API.
 
 La sincronizacion se ejecuta dentro de la transaccion del laboratorio y no
 modifica reservas, Calendar, Gmail, roles ni estatus.
+
+## Actualizacion Fase 17B.6: sin cambios backend para resumen de reglas
+
+El resumen compacto de reglas especiales en `/admin/laboratorios` se calcula en
+frontend desde `labs/{labId}.specialRules`. No se crea un campo derivado en
+Firestore ni una Cloud Function adicional.
+
+`adminCreateLab`, `adminUpdateLab`, `createReservation`, `approveReservation`,
+`rejectReservation`, `cancelReservation`, Gmail API y Google Calendar API no
+cambian por esta fase. `/admin/reglas` sigue usando las Functions
+administrativas existentes para crear y actualizar reglas especiales y bloqueos.
+
+Los mensajes de error administrativos se presentan de forma legible en
+frontend. Las Functions deben seguir devolviendo errores controlados sin stack
+traces ni datos sensibles.

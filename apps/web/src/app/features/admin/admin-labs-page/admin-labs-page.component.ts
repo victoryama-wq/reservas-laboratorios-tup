@@ -15,6 +15,8 @@ import {
   AppPageHeaderComponent,
   AppSectionCardComponent,
   AppStatusChipComponent,
+  ConfirmationDialogComponent,
+  ConfirmationDialogData,
 } from '../../../shared/components';
 import {
   AdminLabEditDialogComponent,
@@ -202,9 +204,38 @@ type VisibilityFilter = 'all' | 'visible' | 'hidden';
                       {{ emailSummary(lab.defaultNotifyEmails) }}
                     </p>
                   </div>
+
+                  <div class="md:col-span-2">
+                    <span class="font-bold uppercase tracking-wide text-violet-700">
+                      Reglas especiales
+                    </span>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      <app-status-chip
+                        [variant]="activeSpecialRulesCount(lab) > 0 ? 'warning' : 'neutral'"
+                        icon="rule"
+                        [label]="specialRulesSummary(lab)"
+                      />
+                      @if (inactiveSpecialRulesCount(lab) > 0) {
+                        <app-status-chip
+                          variant="neutral"
+                          icon="pause_circle"
+                          [label]="inactiveSpecialRulesCount(lab) + ' inactiva(s)'"
+                        />
+                      }
+                    </div>
+                  </div>
                 </div>
 
                 <footer class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                  <a
+                    mat-stroked-button
+                    [routerLink]="['/admin/reglas']"
+                    [queryParams]="{ labId: lab.id }"
+                    [attr.aria-label]="'Gestionar reglas de ' + lab.name"
+                  >
+                    <mat-icon>rule</mat-icon>
+                    Gestionar reglas
+                  </a>
                   <a
                     mat-stroked-button
                     [routerLink]="['/laboratorios', lab.id]"
@@ -301,6 +332,26 @@ export class AdminLabsPageComponent implements OnInit {
     return emails.length ? emails.join(', ') : 'Sin correos configurados';
   }
 
+  protected activeSpecialRulesCount(lab: AdminLabView): number {
+    return (lab.specialRules ?? []).filter((rule) => rule.active).length;
+  }
+
+  protected inactiveSpecialRulesCount(lab: AdminLabView): number {
+    return (lab.specialRules ?? []).filter((rule) => !rule.active).length;
+  }
+
+  protected specialRulesSummary(lab: AdminLabView): string {
+    const activeCount = this.activeSpecialRulesCount(lab);
+
+    if (activeCount === 0) {
+      return 'Sin reglas especiales activas';
+    }
+
+    return activeCount === 1
+      ? '1 regla especial activa'
+      : `${activeCount} reglas especiales activas`;
+  }
+
   protected async openCreateDialog(): Promise<void> {
     const result = await this.openLabDialog('create');
     if (!result) {
@@ -334,6 +385,17 @@ export class AdminLabsPageComponent implements OnInit {
     this.busyLabId = lab.id;
     this.changeDetector.detectChanges();
     try {
+      const importantChanges = this.importantChangeMessages(
+        lab,
+        result as AdminUpdateLabInput,
+      );
+      if (importantChanges.length > 0) {
+        const confirmed = await this.confirmImportantChanges(importantChanges);
+        if (!confirmed) {
+          return;
+        }
+      }
+
       const response = await this.labsService.updateLab({
         ...(result as AdminUpdateLabInput),
         labId: lab.id,
@@ -405,8 +467,155 @@ export class AdminLabsPageComponent implements OnInit {
   }
 
   private toErrorMessage(error: unknown): string {
-    return error instanceof Error
-      ? error.message
-      : 'No fue posible completar la operacion administrativa.';
+    const code = this.errorCode(error);
+    const backendMessage = error instanceof Error ? error.message : '';
+
+    if (code.includes('permission-denied')) {
+      return 'No tienes permisos para realizar esta accion.';
+    }
+
+    if (code.includes('invalid-argument') && backendMessage) {
+      return backendMessage;
+    }
+
+    if (code.includes('failed-precondition')) {
+      return backendMessage ||
+        'No se cumple una condicion necesaria para guardar el laboratorio.';
+    }
+
+    if (code.includes('unavailable')) {
+      return 'El servicio no esta disponible temporalmente. Intenta nuevamente.';
+    }
+
+    if (code.includes('internal')) {
+      return 'Ocurrio un error tecnico. Contacta a Sistemas.';
+    }
+
+    return backendMessage || 'No fue posible completar la operacion administrativa.';
   }
+
+  private errorCode(error: unknown): string {
+    if (typeof error === 'object' && error !== null && 'code' in error) {
+      return String((error as { code?: unknown }).code ?? '').toLowerCase();
+    }
+
+    return '';
+  }
+
+  private importantChangeMessages(
+    lab: AdminLabView,
+    update: AdminUpdateLabInput,
+  ): string[] {
+    const messages: string[] = [];
+
+    if (update.slug && update.slug !== lab.slug) {
+      messages.push(
+        'Cambiar el slug modifica la URL del QR. Los QR impresos anteriormente pueden quedar obsoletos.',
+      );
+    }
+
+    if (update.calendarId !== undefined && update.calendarId !== lab.calendarId) {
+      messages.push(
+        'Cambiar el calendario puede afectar la sincronizacion de futuras reservas.',
+      );
+    }
+
+    if (update.active === false && lab.active) {
+      messages.push('Desactivar este laboratorio impedira nuevas reservas.');
+    }
+
+    if (update.visibleInCatalog === false && lab.visibleInCatalog) {
+      messages.push(
+        'Ocultar del catalogo impedira que docentes lo vean como opcion.',
+      );
+    }
+
+    if (
+      update.responsibleUids !== undefined &&
+      !sameStringSet(update.responsibleUids, lab.responsibleUids)
+    ) {
+      messages.push(
+        'Cambiar responsables actualizara automaticamente los laboratorios asignados en sus perfiles.',
+      );
+    }
+
+    if (
+      update.weeklySchedule !== undefined &&
+      stableStringify(update.weeklySchedule) !== stableStringify(lab.weeklySchedule)
+    ) {
+      messages.push(
+        'Cambiar el horario afecta futuras reservas, no modifica reservas existentes.',
+      );
+    }
+
+    if (
+      update.gallery !== undefined &&
+      activeGalleryCount(update.gallery) < activeGalleryCount(lab.gallery ?? [])
+    ) {
+      messages.push(
+        'Desactivar imagenes activas puede cambiar la presentacion visual del laboratorio.',
+      );
+    }
+
+    return messages;
+  }
+
+  private async confirmImportantChanges(messages: string[]): Promise<boolean> {
+    return Boolean(
+      await firstValueFrom(
+        this.dialog
+          .open<ConfirmationDialogComponent, ConfirmationDialogData, boolean>(
+            ConfirmationDialogComponent,
+            {
+              width: 'min(520px, calc(100vw - 32px))',
+              panelClass: 'app-confirmation-dialog-panel',
+              data: {
+                title: 'Confirmar cambios importantes',
+                message: messages.join('\n\n'),
+                confirmLabel: 'Guardar cambios',
+                cancelLabel: 'Revisar',
+                icon: 'warning',
+                variant: 'primary',
+              },
+            },
+          )
+          .afterClosed(),
+      ),
+    );
+  }
+}
+
+function sameStringSet(first: string[], second: string[]): boolean {
+  return stableStringify([...new Set(first)].sort()) ===
+    stableStringify([...new Set(second)].sort());
+}
+
+function activeGalleryCount(gallery: { active: boolean }[]): number {
+  return gallery.filter((image) => image.active).length;
+}
+
+function stableStringify(value: unknown): string {
+  return JSON.stringify(normalizeForComparison(value));
+}
+
+function normalizeForComparison(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeForComparison(entry));
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.keys(value as Record<string, unknown>)
+      .sort()
+      .reduce<Record<string, unknown>>((accumulator, key) => {
+        const normalized = normalizeForComparison(
+          (value as Record<string, unknown>)[key],
+        );
+        if (normalized !== undefined) {
+          accumulator[key] = normalized;
+        }
+        return accumulator;
+      }, {});
+  }
+
+  return value;
 }

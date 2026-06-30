@@ -25,6 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
+import { RouterLink } from '@angular/router';
 
 import { AppInfoCalloutComponent } from '../../../../shared/components';
 import {
@@ -96,6 +97,7 @@ export type AdminLabEditDialogResult =
     MatSelectModule,
     MatTabsModule,
     ReactiveFormsModule,
+    RouterLink,
   ],
   template: `
     <section class="admin-lab-dialog grid max-h-[calc(100vh-2rem)] gap-5 overflow-y-auto overflow-x-hidden p-5 sm:p-6">
@@ -384,8 +386,31 @@ export type AdminLabEditDialogResult =
               <app-info-callout
                 variant="info"
                 icon="schedule"
-                message="El horario base se valida nuevamente en backend. Las reglas especiales quedan fuera de esta fase."
+                message="El horario base se valida nuevamente en backend. Las reglas especiales se gestionan desde el modulo Reglas."
               />
+
+              @if (data.mode === 'edit') {
+                <div class="flex flex-col gap-3 rounded-2xl border border-violet-100 bg-violet-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div class="min-w-0">
+                    <p class="m-0 text-sm font-bold uppercase tracking-wide text-violet-700">
+                      Reglas especiales
+                    </p>
+                    <p class="m-0 mt-1 text-sm leading-6 text-slate-700">
+                      {{ specialRulesDialogMessage() }}
+                    </p>
+                  </div>
+
+                  <a
+                    mat-stroked-button
+                    [routerLink]="['/admin/reglas']"
+                    [queryParams]="{ labId: data.lab?.id }"
+                    (click)="close()"
+                  >
+                    <mat-icon>rule</mat-icon>
+                    Gestionar reglas
+                  </a>
+                </div>
+              }
 
               @for (day of weekdays; track day.key) {
                 <div
@@ -665,9 +690,23 @@ export type AdminLabEditDialogResult =
         </mat-tab-group>
       </form>
 
+      @if (data.mode === 'edit' && !hasChanges()) {
+        <app-info-callout
+          variant="info"
+          icon="info"
+          message="No hay cambios por guardar."
+        />
+      }
+
       <footer class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <button mat-button type="button" (click)="close()">Cancelar</button>
-        <button mat-flat-button color="primary" type="button" (click)="save()">
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          [disabled]="form.invalid || (data.mode === 'edit' && !hasChanges())"
+          (click)="save()"
+        >
           <mat-icon>save</mat-icon>
           Guardar laboratorio
         </button>
@@ -721,6 +760,9 @@ export class AdminLabEditDialogComponent {
   protected calendarValidationResult: CalendarValidationResult | null = null;
   private readonly initialCalendarId = this.data.lab?.calendarId?.trim() ?? '';
   private readonly galleryPreviewUrls = new Map<string, string>();
+  private readonly initialComparablePayload = this.data.mode === 'edit'
+    ? stableStringify(toComparablePayload(this.data.lab))
+    : '';
 
   protected readonly weekdays: WeekdayOption[] = [
     { key: 'monday', label: 'Lunes' },
@@ -845,6 +887,31 @@ export class AdminLabEditDialogComponent {
     }
 
     return currentCalendarId !== this.initialCalendarId;
+  }
+
+  protected specialRulesDialogMessage(): string {
+    const activeCount = (this.data.lab?.specialRules ?? [])
+      .filter((rule) => rule.active)
+      .length;
+
+    if (activeCount === 0) {
+      return 'Este laboratorio no tiene reglas especiales activas.';
+    }
+
+    const summary = activeCount === 1
+      ? 'Este laboratorio tiene 1 regla especial activa.'
+      : `Este laboratorio tiene ${activeCount} reglas especiales activas.`;
+
+    return `${summary} Use Reglas para consultar o editar el detalle.`;
+  }
+
+  protected hasChanges(): boolean {
+    if (this.data.mode === 'create') {
+      return true;
+    }
+
+    return stableStringify(toComparablePayload(this.buildPayload())) !==
+      this.initialComparablePayload;
   }
 
   protected calendarValidationVariant(): CalendarCalloutVariant {
@@ -1059,8 +1126,22 @@ export class AdminLabEditDialogComponent {
       return;
     }
 
+    if (this.data.mode === 'edit' && !this.hasChanges()) {
+      return;
+    }
+
+    const payload = this.buildPayload();
+
+    this.dialogRef.close(
+      this.data.mode === 'create'
+        ? payload
+        : { ...payload, labId: this.data.lab?.id ?? '' },
+    );
+  }
+
+  private buildPayload(): AdminCreateLabInput {
     const value = this.form.getRawValue();
-    const payload = {
+    return {
       name: value.name.trim(),
       slug: value.slug.trim().toLowerCase(),
       description: value.description.trim(),
@@ -1081,12 +1162,6 @@ export class AdminLabEditDialogComponent {
       weeklySchedule: value.weeklySchedule as WeeklySchedule,
       qrConfig: this.serializeQrConfig(),
     };
-
-    this.dialogRef.close(
-      this.data.mode === 'create'
-        ? payload
-        : { ...payload, labId: this.data.lab?.id ?? '' },
-    );
   }
 
   private buildScheduleGroup(schedule?: WeeklySchedule): UntypedFormGroup {
@@ -1269,6 +1344,153 @@ function parseEmailText(value: string): string[] {
   ];
 }
 
+function toComparablePayload(
+  source?: Partial<AdminCreateLabInput & AdminLabView>,
+): unknown {
+  if (!source) {
+    return {};
+  }
+
+  return normalizeValueForComparison({
+    name: String(source.name ?? '').trim(),
+    slug: String(source.slug ?? '').trim().toLowerCase(),
+    description: String(source.description ?? '').trim(),
+    shortDescription: optionalTrim(source.shortDescription),
+    imageUrl: optionalTrim(source.imageUrl),
+    gallery: normalizeGalleryForComparison(source.gallery ?? []),
+    coverImageId: optionalTrim(source.coverImageId),
+    calendarId: String(source.calendarId ?? '').trim(),
+    location: optionalTrim(source.location),
+    responsibleUids: normalizeStringSet(source.responsibleUids ?? []),
+    responsibleEmails: normalizeStringSet(source.responsibleEmails ?? []),
+    defaultNotifyEmails: normalizeStringSet(source.defaultNotifyEmails ?? []),
+    active: Boolean(source.active),
+    visibleInCatalog: Boolean(source.visibleInCatalog),
+    minNoticeHours: Number(source.minNoticeHours ?? 0),
+    requiresApprovalWhenRisky: source.requiresApprovalWhenRisky ?? true,
+    requiresProtocolWhenRisky: source.requiresProtocolWhenRisky ?? true,
+    weeklySchedule: normalizeWeeklyScheduleForComparison(
+      source.weeklySchedule,
+    ),
+    qrConfig: normalizeQrConfigForComparison(source.qrConfig),
+  });
+}
+
+function optionalTrim(value: unknown): string | undefined {
+  const text = String(value ?? '').trim();
+  return text || undefined;
+}
+
+function normalizeStringSet(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))]
+    .sort((first, second) => first.localeCompare(second, 'es-MX'));
+}
+
+function normalizeGalleryForComparison(
+  gallery: LabGalleryImage[],
+): unknown[] {
+  return [...gallery]
+    .sort((first, second) => first.order - second.order)
+    .map((image, order) =>
+      normalizeValueForComparison({
+        id: image.id,
+        storagePath: image.storagePath,
+        fileName: image.fileName,
+        contentType: image.contentType,
+        sizeBytes: image.sizeBytes,
+        alt: optionalTrim(image.alt),
+        caption: optionalTrim(image.caption),
+        order,
+        active: Boolean(image.active),
+        createdAt: image.createdAt,
+        updatedAt: image.updatedAt,
+      }),
+    );
+}
+
+function normalizeWeeklyScheduleForComparison(
+  schedule?: WeeklySchedule,
+): Record<string, unknown> {
+  return {
+    monday: normalizeDaySchedule(schedule?.monday),
+    tuesday: normalizeDaySchedule(schedule?.tuesday),
+    wednesday: normalizeDaySchedule(schedule?.wednesday),
+    thursday: normalizeDaySchedule(schedule?.thursday),
+    friday: normalizeDaySchedule(schedule?.friday),
+    saturday: normalizeDaySchedule(schedule?.saturday),
+    sunday: normalizeDaySchedule(schedule?.sunday),
+  };
+}
+
+function normalizeDaySchedule(
+  day: WeeklySchedule[keyof WeeklySchedule] | undefined,
+): Record<string, unknown> {
+  return {
+    enabled: Boolean(day?.enabled),
+    start: day?.start || '08:00',
+    end: day?.end || '20:00',
+  };
+}
+
+function normalizeQrConfigForComparison(
+  config?: LabQrConfig,
+): Required<LabQrConfig> {
+  return {
+    ...DEFAULT_QR_CONFIG,
+    ...(config ?? {}),
+    title: optionalTrim(config?.title) ?? DEFAULT_QR_CONFIG.title,
+    subtitle: optionalTrim(config?.subtitle) ?? DEFAULT_QR_CONFIG.subtitle,
+    customLabel:
+      optionalTrim(config?.customLabel) ?? DEFAULT_QR_CONFIG.customLabel,
+    primaryColor:
+      optionalTrim(config?.primaryColor) ?? DEFAULT_QR_CONFIG.primaryColor,
+    secondaryColor:
+      optionalTrim(config?.secondaryColor) ?? DEFAULT_QR_CONFIG.secondaryColor,
+    backgroundColor:
+      optionalTrim(config?.backgroundColor) ??
+      DEFAULT_QR_CONFIG.backgroundColor,
+    showLogo: config?.showLogo ?? DEFAULT_QR_CONFIG.showLogo,
+    frameStyle: normalizeFrameStyle(config?.frameStyle),
+    printSize: normalizePrintSize(config?.printSize),
+  };
+}
+
+function stableStringify(value: unknown): string {
+  return JSON.stringify(normalizeValueForComparison(value));
+}
+
+function normalizeValueForComparison(value: unknown): unknown {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value && typeof value === 'object' && 'toMillis' in value) {
+    return (value as { toMillis: () => number }).toMillis();
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => normalizeValueForComparison(entry))
+      .filter((entry) => entry !== undefined);
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.keys(value as Record<string, unknown>)
+      .sort()
+      .reduce<Record<string, unknown>>((accumulator, key) => {
+        const normalized = normalizeValueForComparison(
+          (value as Record<string, unknown>)[key],
+        );
+        if (normalized !== undefined) {
+          accumulator[key] = normalized;
+        }
+        return accumulator;
+      }, {});
+  }
+
+  return value;
+}
+
 function normalizeFrameStyle(value: unknown): LabQrFrameStyle {
   return value === 'classic' || value === 'minimal' || value === 'card'
     ? value
@@ -1282,6 +1504,28 @@ function normalizePrintSize(value: unknown): LabQrPrintSize {
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
+  const code = typeof error === 'object' && error !== null && 'code' in error
+    ? String((error as { code?: unknown }).code ?? '').toLowerCase()
+    : '';
+
+  if (code.includes('permission-denied')) {
+    return 'No tienes permisos para realizar esta accion.';
+  }
+
+  if (code.includes('failed-precondition')) {
+    return error instanceof Error && error.message
+      ? error.message
+      : 'No se cumple una condicion necesaria para validar el calendario.';
+  }
+
+  if (code.includes('unavailable')) {
+    return 'El servicio no esta disponible temporalmente. Intenta nuevamente.';
+  }
+
+  if (code.includes('internal')) {
+    return 'Ocurrio un error tecnico. Contacta a Sistemas.';
+  }
+
   if (typeof error === 'object' && error !== null && 'message' in error) {
     const message = String((error as { message?: unknown }).message ?? '');
     return message || fallback;

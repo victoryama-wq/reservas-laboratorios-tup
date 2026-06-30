@@ -489,3 +489,40 @@ Fuera de alcance:
 - roles y estatus;
 - reglas Firestore/Storage;
 - galeria, carrusel y QR.
+
+## 29. Seguimiento Fase 17B.6: resumen no redundante de reglas en laboratorios
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual, commit y deploy
+cuando el propietario lo autorice.
+
+Alcance:
+
+- `/admin/laboratorios` muestra un resumen compacto de reglas especiales por
+  laboratorio;
+- el resumen indica si no hay reglas activas, cuantas reglas activas existen y
+  cuantas reglas inactivas permanecen registradas;
+- las cards de laboratorio no duplican el detalle operativo de reglas,
+  horarios especiales o razones administrativas;
+- la accion `Gestionar reglas` abre `/admin/reglas?labId={labId}` para
+  administrar reglas en el modulo correspondiente;
+- `/admin/reglas` preselecciona el laboratorio indicado por `labId` cuando el
+  parametro es valido;
+- el dialogo de edicion de laboratorio mantiene el callout informativo en
+  Disponibilidad y no agrega una pestana redundante de Reglas;
+- `Guardar laboratorio` queda deshabilitado cuando no hay cambios reales;
+- el frontend evita llamar `adminUpdateLab` si el payload no cambia;
+- cambios sensibles solicitan confirmacion previa: `slug`, `calendarId`,
+  desactivar laboratorio, ocultar del catalogo, responsables, horario base y
+  reduccion de imagenes activas;
+- los errores administrativos visibles se normalizan para evitar mensajes
+  tecnicos como `internal`.
+
+Fuera de alcance:
+
+- modificar reservas;
+- modificar Google Calendar API;
+- modificar Gmail API;
+- modificar roles o estatus;
+- modificar Firestore Rules o Storage Rules;
+- mover la edicion de reglas fuera de `/admin/reglas`;
+- cambiar galeria, carrusel o QR.

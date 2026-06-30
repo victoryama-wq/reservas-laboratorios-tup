@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import {
@@ -326,6 +327,7 @@ export class AdminRulesPageComponent implements OnInit {
   protected readonly rulesService = inject(AdminRulesService);
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly dialog = inject(MatDialog);
+  private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
 
   protected labs: AdminLabView[] = [];
@@ -502,7 +504,7 @@ export class AdminRulesPageComponent implements OnInit {
       this.labs = state.labs;
       this.specialRules = state.specialRules;
       this.blockedPeriods = state.blockedPeriods;
-      this.selectedLabId = this.selectedLabId || this.labs[0]?.id || '';
+      this.selectedLabId = this.resolveSelectedLabId();
       this.errorMessage = '';
     } catch (error) {
       this.errorMessage = this.toErrorMessage(error);
@@ -516,5 +518,21 @@ export class AdminRulesPageComponent implements OnInit {
     return error instanceof Error
       ? error.message
       : 'No fue posible completar la operacion administrativa.';
+  }
+
+  private resolveSelectedLabId(): string {
+    const requestedLabId = this.route.snapshot.queryParamMap.get('labId');
+    if (
+      requestedLabId &&
+      this.labs.some((lab) => lab.id === requestedLabId)
+    ) {
+      return requestedLabId;
+    }
+
+    if (this.selectedLabId && this.labs.some((lab) => lab.id === this.selectedLabId)) {
+      return this.selectedLabId;
+    }
+
+    return this.labs[0]?.id || '';
   }
 }

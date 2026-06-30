@@ -1018,3 +1018,31 @@ Reglas de interfaz:
 
 El mensaje debe mantener la linea visual institucional con callouts suaves,
 iconografia completa, texto en espanol y componentes Angular Material.
+
+## Actualizacion Fase 17B.6: Laboratorios sin resumen redundante
+
+`/admin/laboratorios` debe mostrar informacion operativa suficiente sin
+duplicar formularios o detalles gestionados por otros modulos.
+
+Reglas visuales:
+
+- las cards muestran un resumen compacto de reglas especiales:
+  - `Sin reglas especiales activas`;
+  - `1 regla especial activa`;
+  - `{n} reglas especiales activas`;
+  - chip secundario para reglas inactivas si aporta valor;
+- no se muestran dias, horarios, razones largas ni formularios de reglas en la
+  card de laboratorio;
+- la accion `Gestionar reglas` lleva a `/admin/reglas?labId={labId}`;
+- el dialogo de laboratorio puede mostrar un callout en Disponibilidad, pero no
+  debe crear una pestana nueva de Reglas;
+- el boton `Guardar laboratorio` debe quedar deshabilitado cuando no hay
+  cambios reales;
+- las confirmaciones se reservan para cambios sensibles: slug, calendarId,
+  desactivacion, ocultar del catalogo, responsables, horario o reduccion de
+  imagenes activas;
+- los errores administrativos visibles deben ser claros y no mostrar
+  `internal`, stack traces, JSON crudo ni datos sensibles.
+
+`/admin/reglas` sigue siendo la fuente visual para consultar y editar reglas
+especiales y bloqueos.

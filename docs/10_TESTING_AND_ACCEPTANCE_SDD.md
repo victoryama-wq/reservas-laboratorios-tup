@@ -444,3 +444,44 @@ npm --prefix functions run build
 git diff --check
 git status --short
 ```
+
+## Pruebas Fase 17B.6: Admin/Laboratorios sin resumen redundante
+
+Validaciones obligatorias:
+
+- abrir `/admin/laboratorios` como `admin_sistemas`;
+- confirmar que cada card muestra solo un resumen compacto de reglas
+  especiales;
+- confirmar que un laboratorio sin reglas activas muestra
+  `Sin reglas especiales activas`;
+- confirmar que laboratorios con reglas activas muestran el conteo correcto;
+- confirmar que reglas inactivas aparecen solo como chip compacto cuando
+  existan;
+- confirmar que no se muestran dias, horarios, razones largas ni formularios
+  de reglas dentro de la card;
+- confirmar que la accion `Gestionar reglas` abre `/admin/reglas` con el
+  laboratorio preseleccionado mediante `labId`;
+- confirmar que el dialogo de laboratorio conserva sus pestanas existentes y
+  solo muestra un callout para reglas especiales en Disponibilidad;
+- abrir un laboratorio en modo edicion sin modificar datos y confirmar que
+  `Guardar laboratorio` queda deshabilitado;
+- confirmar que no se llama `adminUpdateLab` cuando no hay cambios reales;
+- confirmar que cambios sensibles muestran confirmacion previa: `slug`,
+  `calendarId`, desactivar laboratorio, ocultar del catalogo, responsables,
+  horario base y reduccion de imagenes activas;
+- confirmar que cambios simples no muestran confirmaciones innecesarias;
+- confirmar que errores administrativos como permisos, precondiciones,
+  servicio no disponible o errores internos se muestran con mensajes claros y
+  no con `internal`, stack traces o JSON crudo;
+- confirmar que no se modifican reservas, Calendar API, Gmail API, roles,
+  estatus, Firestore Rules ni Storage Rules.
+
+Validaciones tecnicas:
+
+```bash
+npm --prefix functions run lint
+npm --prefix functions run build
+npm --prefix apps/web run build
+git diff --check
+git status --short
+```

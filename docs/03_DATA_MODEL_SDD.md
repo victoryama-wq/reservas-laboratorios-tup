@@ -677,3 +677,17 @@ La auditoria administrativa puede registrar:
 - `syncedResponsibleUids`;
 - `skippedAdminUids`;
 - `syncedUserCount`.
+
+## Actualizacion Fase 17B.6: resumen visual de specialRules
+
+`labs/{labId}.specialRules` sigue siendo el arreglo operativo de reglas
+especiales del laboratorio. No se agrega un campo persistido de resumen para
+evitar duplicar datos derivados.
+
+La vista `/admin/laboratorios` puede calcular en cliente:
+
+- reglas activas: `specialRules.filter(rule => rule.active).length`;
+- reglas inactivas: `specialRules.filter(rule => !rule.active).length`.
+
+El detalle completo de cada regla, su edicion y activacion/desactivacion siguen
+correspondiendo al modulo `/admin/reglas`.

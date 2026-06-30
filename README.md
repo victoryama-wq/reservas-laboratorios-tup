@@ -1370,3 +1370,36 @@ Comportamiento:
 
 Esta fase no modifica reservas, eventos de Calendar, correos Gmail, roles,
 estatus, galeria, QR ni reglas de seguridad.
+
+## Fase 17B.6: resumen no redundante de reglas en Admin/Laboratorios
+
+`/admin/laboratorios` muestra un resumen compacto de reglas especiales por
+laboratorio sin duplicar el modulo `/admin/reglas`.
+
+Comportamiento:
+
+- cada card de laboratorio muestra solo el conteo de reglas especiales activas;
+- si existen reglas inactivas, se muestra un chip secundario compacto;
+- no se muestran razones, dias, horarios ni formularios de reglas en
+  Laboratorios;
+- la accion `Gestionar reglas` navega a `/admin/reglas?labId={labId}`;
+- `/admin/reglas` preselecciona el laboratorio indicado cuando el parametro es
+  valido;
+- el dialogo de laboratorio muestra un callout breve en Disponibilidad con el
+  resumen de reglas y acceso a Reglas;
+- el boton `Guardar laboratorio` se deshabilita si no hay cambios reales;
+- `adminUpdateLab` no se llama cuando el dialogo detecta que no hubo cambios;
+- los cambios sensibles piden confirmacion antes de guardar:
+  - slug;
+  - calendarId;
+  - desactivar laboratorio;
+  - ocultar del catalogo;
+  - responsables;
+  - horario semanal;
+  - reduccion de imagenes activas;
+- los errores administrativos se traducen a mensajes legibles y no muestran
+  stack traces ni JSON crudo.
+
+Esta fase no modifica reservas, Calendar API, Gmail API, roles, estatus,
+galeria, QR ni reglas Firestore/Storage. `/admin/reglas` permanece como fuente
+oficial para crear y editar reglas especiales.
