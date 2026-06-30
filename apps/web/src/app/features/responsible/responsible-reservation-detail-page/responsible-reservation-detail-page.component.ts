@@ -51,6 +51,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly protocolMessage = signal('');
+  protected readonly openingProtocolPath = signal<string | null>(null);
   protected readonly reservation = signal<ResponsibleReservationView | null>(null);
   protected readonly logs = signal<ReservationLogDoc[]>([]);
   protected approvalNote = '';
@@ -138,16 +139,29 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
     }));
   }
 
-  protected async openProtocol(storagePath: string): Promise<void> {
+  protected async openProtocol(file: ProtocolFile): Promise<void> {
+    const reservation = this.reservation();
+
+    if (!reservation) {
+      return;
+    }
+
     this.protocolMessage.set('');
+    this.openingProtocolPath.set(file.storagePath);
 
     try {
-      const url = await this.reviewService.getProtocolUrl(storagePath);
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch {
-      this.protocolMessage.set(
-        'No fue posible abrir el protocolo con las reglas actuales de Storage. Admin/Sistemas debe revisar permisos de lectura para responsables.',
+      const access = await this.reviewService.getProtocolAccess(
+        reservation.id,
+        file.storagePath,
       );
+      window.open(access.url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      this.protocolMessage.set(
+        (error as { message?: string }).message ??
+          'No fue posible abrir el protocolo. Verifique permisos con Admin/Sistemas.',
+      );
+    } finally {
+      this.openingProtocolPath.set(null);
     }
   }
 

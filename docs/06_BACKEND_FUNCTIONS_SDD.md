@@ -600,3 +600,43 @@ administrativas existentes para crear y actualizar reglas especiales y bloqueos.
 Los mensajes de error administrativos se presentan de forma legible en
 frontend. Las Functions deben seguir devolviendo errores controlados sin stack
 traces ni datos sensibles.
+## Actualizacion Fase 17C.1: getReservationProtocolAccess
+
+La Cloud Function callable `getReservationProtocolAccess` entrega acceso
+temporal a protocolos privados vinculados a reservas.
+
+Entrada:
+
+```ts
+interface GetReservationProtocolAccessInput {
+  reservationId: string;
+  storagePath: string;
+}
+```
+
+Salida:
+
+```ts
+interface ReservationProtocolAccessOutput {
+  fileName: string;
+  contentType: string;
+  url: string;
+  expiresInSeconds: number;
+}
+```
+
+Validaciones:
+
+- usuario autenticado;
+- perfil `users/{uid}` existente y activo;
+- reserva existente;
+- `storagePath` presente exactamente en `reservation.protocolFiles`;
+- acceso permitido para `admin_sistemas`;
+- acceso permitido para `responsable_laboratorio` solo si
+  `reservation.labId` esta en `users/{uid}.labsAssigned`;
+- acceso permitido para docente propietario solo sobre sus propias reservas;
+- existencia real del archivo en Cloud Storage.
+
+La funcion genera una URL firmada temporal de lectura. No debe guardar la URL en
+Firestore, no debe devolver `calendarId`, no debe crear enlaces publicos
+permanentes y no debe modificar reservas ni bitacoras de negocio.

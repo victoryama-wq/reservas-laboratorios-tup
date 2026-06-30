@@ -4,7 +4,11 @@ initializeApp();
 
 export {createReservation} from
   "./modules/reservations/create-reservation.function";
-export {approveReservation, rejectReservation} from
+export {
+  approveReservation,
+  getReservationProtocolAccess,
+  rejectReservation,
+} from
   "./modules/reservations/review-reservation.function";
 export {cancelReservation} from
   "./modules/reservations/cancel-reservation.function";

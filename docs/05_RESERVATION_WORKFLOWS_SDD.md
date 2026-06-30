@@ -171,3 +171,20 @@ creado entre la solicitud y la aprobacion, la aprobacion debe detenerse.
 
 La administracion de reglas y bloqueos se realiza desde `/admin/reglas` y no
 desde el flujo docente.
+## Actualizacion Fase 17C.1: apertura segura de protocolos
+
+En el flujo de revision responsable, los archivos de protocolo se abren con un
+flujo controlado por backend:
+
+1. El responsable entra a `/responsable/reserva/:reservationId`.
+2. La interfaz muestra los archivos vinculados a `reservation.protocolFiles`.
+3. Al seleccionar `Abrir protocolo`, Angular llama
+   `getReservationProtocolAccess`.
+4. El backend valida que el usuario pueda revisar ese laboratorio y que el
+   archivo pertenezca exactamente a la reserva.
+5. Si procede, el backend devuelve una URL firmada temporal.
+6. La URL se abre en una pestana nueva y no se guarda en Firestore.
+
+Este flujo no cambia aprobacion, rechazo, creacion, cancelacion, Calendar ni
+Gmail. Si el usuario no tiene permiso, debe mostrarse un error claro sin exponer
+rutas internas o detalles sensibles.

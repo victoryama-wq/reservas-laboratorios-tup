@@ -1046,3 +1046,20 @@ Reglas visuales:
 
 `/admin/reglas` sigue siendo la fuente visual para consultar y editar reglas
 especiales y bloqueos.
+## Actualizacion Fase 17C.1: UI para abrir protocolos privados
+
+La vista `/responsable/reserva/:reservationId` debe mostrar los protocolos como
+archivos privados adjuntos, sin exponer `storagePath` como enlace visible.
+
+El boton principal debe decir `Abrir protocolo` y debe:
+
+- mostrar estado de carga mientras se genera acceso temporal;
+- llamar a `getReservationProtocolAccess`;
+- abrir la URL temporal en una pestana nueva;
+- mostrar un mensaje claro si el usuario no tiene permiso o el archivo ya no
+  existe;
+- conservar el estilo visual institucional y responsive.
+
+No se debe usar `getDownloadURL` directo desde Angular para responsables. No se
+deben mostrar URLs publicas, rutas internas de Storage ni detalles tecnicos al
+usuario final.

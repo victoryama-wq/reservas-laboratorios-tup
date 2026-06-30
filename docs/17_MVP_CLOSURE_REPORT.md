@@ -526,3 +526,29 @@ Fuera de alcance:
 - modificar Firestore Rules o Storage Rules;
 - mover la edicion de reglas fuera de `/admin/reglas`;
 - cambiar galeria, carrusel o QR.
+
+## 30. Seguimiento Fase 17C.1: acceso seguro a protocolos
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Alcance:
+
+- nueva callable `getReservationProtocolAccess`;
+- validacion de perfil activo, rol oficial y reserva existente;
+- validacion exacta de `storagePath` contra `reservation.protocolFiles`;
+- acceso para `admin_sistemas`;
+- acceso para `responsable_laboratorio` solo si el laboratorio esta en
+  `users/{uid}.labsAssigned`;
+- acceso opcional para docente propietario;
+- URL firmada temporal de Storage con vigencia corta;
+- frontend responsable deja de usar `getDownloadURL` directo para protocolos;
+- tarjeta de protocolo muestra boton claro `Abrir protocolo` y estado de carga.
+
+Fuera de alcance:
+
+- modificar Storage Rules;
+- hacer publicos protocolos;
+- guardar URLs en Firestore;
+- modificar reservas, Calendar, Gmail, roles o estatus;
+- cambiar aprobacion, rechazo o cancelacion.

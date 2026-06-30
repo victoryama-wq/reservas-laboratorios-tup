@@ -653,11 +653,13 @@ La vista de solicitudes muestra solo reservas pendientes. Admin/Sistemas ve
 todas; responsables solo ven las reservas de sus laboratorios asignados segun
 las reglas de Firestore.
 
-Los protocolos se listan en el detalle de la reserva y se intenta abrirlos con
-Firebase Storage SDK. Actualmente las reglas de Storage permiten lectura al
-docente propietario y a `admin_sistemas`; si un responsable no puede abrir el
-archivo, el panel muestra un mensaje indicando que queda pendiente ajustar una
-regla controlada de lectura para responsables sin exponer URLs publicas.
+Los protocolos se listan en el detalle de la reserva y se abren mediante la
+Cloud Function callable `getReservationProtocolAccess`. El frontend no solicita
+`getDownloadURL` directo a Storage para responsables. La funcion valida usuario
+activo, rol, laboratorio asignado y que el `storagePath` solicitado pertenezca
+exactamente a `reservations/{reservationId}.protocolFiles`. Si procede, devuelve
+una URL firmada temporal de lectura. No se generan URLs publicas permanentes ni
+se amplian reglas de Storage para lectura directa de responsables.
 
 ## Mis reservas
 
@@ -703,11 +705,11 @@ la interfaz usa una descripcion predeterminada clara. La linea de tiempo usa
 colores por severidad para distinguir eventos exitosos, pendientes, errores,
 informativos o neutrales.
 
-El detalle de protocolo usa Firebase Storage SDK para solicitar acceso al
-archivo privado. No se generan enlaces publicos, no se muestra `calendarId` y no
-se permite aprobar, rechazar ni modificar reservas desde esta vista. La
-cancelacion controlada solo se permite para reservas futuras con estatus
-cancelable y siempre pasa por Cloud Functions.
+El detalle de protocolo usa una Cloud Function para solicitar acceso temporal al
+archivo privado. No se generan enlaces publicos permanentes, no se muestra
+`storagePath`, no se muestra `calendarId` y no se permite aprobar, rechazar ni
+modificar reservas desde esta vista. La cancelacion controlada solo se permite
+para reservas futuras con estatus cancelable y siempre pasa por Cloud Functions.
 
 ### Cancelacion controlada
 

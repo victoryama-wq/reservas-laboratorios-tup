@@ -8,20 +8,26 @@
         <p>
           {{ fileType() || 'Archivo' }}
           @if (fileSize()) {
-            <span> · {{ fileSize() }}</span>
+            <span> - {{ fileSize() }}</span>
           }
         </p>
-        <app-status-chip variant="info" icon="attach_file" label="Protocolo adjunto" />
+        <app-status-chip
+          variant="info"
+          icon="attach_file"
+          label="Protocolo adjunto"
+        />
       </div>
 
       <button
-        mat-icon-button
+        mat-stroked-button
+        class="protocol-file__action"
         type="button"
         aria-label="Abrir protocolo"
         [disabled]="disabled()"
         (click)="emitDownload()"
       >
-        <mat-icon>download</mat-icon>
+        <mat-icon>{{ disabled() ? 'hourglass_empty' : 'open_in_new' }}</mat-icon>
+        <span>{{ disabled() ? 'Generando...' : 'Abrir protocolo' }}</span>
       </button>
     </div>
   } @else {

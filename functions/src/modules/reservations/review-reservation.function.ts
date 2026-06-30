@@ -29,6 +29,7 @@ import {
   AppUser,
   LabDoc,
   NotificationType,
+  ProtocolFile,
   ReservationDoc,
   SystemSettingsDoc,
 } from "../../shared/models";
@@ -48,12 +49,26 @@ interface RejectReservationInput {
   reason?: string;
 }
 
+interface GetReservationProtocolAccessInput {
+  reservationId?: string;
+  storagePath?: string;
+}
+
 interface ReviewReservationOutput {
   reservationId: string;
   folio: string;
   status: string;
   message: string;
 }
+
+interface ReservationProtocolAccessOutput {
+  fileName: string;
+  contentType: string;
+  url: string;
+  expiresInSeconds: number;
+}
+
+const PROTOCOL_ACCESS_TTL_SECONDS = 10 * 60;
 
 /**
  * Approves a pending risky reservation.
@@ -240,6 +255,51 @@ export const rejectReservation = onCall(
         folio: context.reservation.folio,
         status: "RECHAZADA_POR_RESPONSABLE",
         message: "Reserva rechazada y notificada al docente.",
+      };
+    },
+);
+
+/**
+ * Returns a short-lived signed URL for an attached protocol file.
+ */
+export const getReservationProtocolAccess = onCall(
+    {
+      region: REGION,
+      invoker: "public",
+    },
+    async (
+        request: CallableRequest<unknown>,
+    ): Promise<ReservationProtocolAccessOutput> => {
+      const input = parseProtocolAccessInput(request.data);
+      const context = await loadProtocolAccessContext(request, input);
+
+      assertCanAccessProtocol(context.profile, context.reservation);
+
+      const protocolFile = findProtocolFile(
+          context.reservation,
+          input.storagePath,
+      );
+      const bucketFile = getStorage().bucket().file(protocolFile.storagePath);
+      const [exists] = await bucketFile.exists();
+
+      if (!exists) {
+        throw new HttpsError(
+            "not-found",
+            "El archivo de protocolo no existe en Storage.",
+        );
+      }
+
+      const [url] = await bucketFile.getSignedUrl({
+        action: "read",
+        expires: Date.now() + PROTOCOL_ACCESS_TTL_SECONDS * 1000,
+        responseDisposition: buildInlineDisposition(protocolFile.fileName),
+      });
+
+      return {
+        fileName: protocolFile.fileName,
+        contentType: protocolFile.contentType,
+        url,
+        expiresInSeconds: PROTOCOL_ACCESS_TTL_SECONDS,
       };
     },
 );
@@ -450,6 +510,80 @@ function parseRejectInput(data: unknown): {
 }
 
 /**
+ * Parses protocol access input.
+ *
+ * @param {unknown} data Callable data.
+ * @return {{reservationId: string, storagePath: string}} Parsed input.
+ */
+function parseProtocolAccessInput(data: unknown): {
+  reservationId: string;
+  storagePath: string;
+} {
+  const input = data as GetReservationProtocolAccessInput;
+  if (typeof input?.reservationId !== "string" ||
+      !input.reservationId.trim()) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Debe indicar la reserva del protocolo.",
+    );
+  }
+
+  if (typeof input.storagePath !== "string" || !input.storagePath.trim()) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Debe indicar el archivo de protocolo.",
+    );
+  }
+
+  return {
+    reservationId: input.reservationId.trim(),
+    storagePath: input.storagePath.trim(),
+  };
+}
+
+interface ProtocolAccessContext {
+  profile: AppUser;
+  reservation: ReservationDoc;
+}
+
+/**
+ * Loads context required to open a protocol file.
+ *
+ * @param {CallableRequest<unknown>} request Callable request.
+ * @param {{reservationId: string}} input Parsed input.
+ * @return {Promise<ProtocolAccessContext>} Protocol context.
+ */
+async function loadProtocolAccessContext(
+    request: CallableRequest<unknown>,
+    input: {reservationId: string},
+): Promise<ProtocolAccessContext> {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError(
+        "unauthenticated",
+        "Debe iniciar sesion para abrir el protocolo.",
+    );
+  }
+
+  const repository = new ReservationRepository(getFirestore());
+  const profile = await repository.getUserProfile(uid);
+
+  if (!profile?.active) {
+    throw new HttpsError(
+        "permission-denied",
+        "Su perfil institucional no esta activo.",
+    );
+  }
+
+  const reservation = await repository.getReservationById(input.reservationId);
+  if (!reservation) {
+    throw new HttpsError("not-found", "La reserva no existe.");
+  }
+
+  return {profile, reservation};
+}
+
+/**
  * Validates reviewer permissions.
  *
  * @param {AppUser} profile Reviewer profile.
@@ -471,6 +605,76 @@ function assertCanReview(profile: AppUser, reservation: ReservationDoc): void {
       "permission-denied",
       "No tiene permiso para revisar esta reserva.",
   );
+}
+
+/**
+ * Validates whether a user can open a reservation protocol.
+ *
+ * @param {AppUser} profile User profile.
+ * @param {ReservationDoc} reservation Reservation.
+ */
+function assertCanAccessProtocol(
+    profile: AppUser,
+    reservation: ReservationDoc,
+): void {
+  if (profile.role === "admin_sistemas") {
+    return;
+  }
+
+  if (
+    profile.role === "responsable_laboratorio" &&
+    profile.labsAssigned.includes(reservation.labId)
+  ) {
+    return;
+  }
+
+  if (
+    profile.role === "docente" &&
+    reservation.teacherUid === profile.uid
+  ) {
+    return;
+  }
+
+  throw new HttpsError(
+      "permission-denied",
+      "No tiene permiso para abrir este protocolo.",
+  );
+}
+
+/**
+ * Finds a protocol file that belongs exactly to the reservation.
+ *
+ * @param {ReservationDoc} reservation Reservation.
+ * @param {string} storagePath Requested storage path.
+ * @return {ProtocolFile} Matching protocol file.
+ */
+function findProtocolFile(
+    reservation: ReservationDoc,
+    storagePath: string,
+): ProtocolFile {
+  const protocolFile = (reservation.protocolFiles ?? []).find(
+      (file) => file.storagePath === storagePath,
+  );
+
+  if (!protocolFile) {
+    throw new HttpsError(
+        "permission-denied",
+        "El archivo solicitado no pertenece a esta reserva.",
+    );
+  }
+
+  return protocolFile;
+}
+
+/**
+ * Builds a safe inline content disposition for signed URLs.
+ *
+ * @param {string} fileName File name.
+ * @return {string} Content disposition value.
+ */
+function buildInlineDisposition(fileName: string): string {
+  const safeFileName = fileName.replace(/["\\]/g, "");
+  return `inline; filename="${safeFileName}"`;
 }
 
 /**

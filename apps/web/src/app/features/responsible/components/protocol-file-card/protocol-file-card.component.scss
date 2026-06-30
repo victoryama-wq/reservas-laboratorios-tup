@@ -31,6 +31,16 @@
   font-size: 0.85rem;
 }
 
+.protocol-file__action {
+  border-radius: 999px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.protocol-file__action mat-icon {
+  margin-right: 0.35rem;
+}
+
 .protocol-empty {
   display: flex;
   gap: 1rem;
@@ -40,4 +50,16 @@
 
 .protocol-empty p {
   margin: 0;
+}
+
+@media (max-width: 640px) {
+  .protocol-file {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .protocol-file__action {
+    grid-column: 1 / -1;
+    justify-content: center;
+    width: 100%;
+  }
 }

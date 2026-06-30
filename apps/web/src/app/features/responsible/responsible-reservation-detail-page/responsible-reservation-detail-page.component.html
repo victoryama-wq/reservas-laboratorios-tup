@@ -35,7 +35,8 @@
               [fileName]="file.fileName"
               [fileType]="fileType(file)"
               [fileSize]="formatFileSize(file.sizeBytes)"
-              (download)="openProtocol(file.storagePath)"
+              [disabled]="openingProtocolPath() === file.storagePath"
+              (download)="openProtocol(file)"
             />
           }
 

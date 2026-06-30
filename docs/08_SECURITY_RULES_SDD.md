@@ -204,3 +204,22 @@ Reglas esperadas:
 La escritura critica de metadata de galeria en `labs` sigue pasando por
 Cloud Functions `adminCreateLab` y `adminUpdateLab`, no por escrituras directas
 desde Angular.
+
+## Actualizacion Fase 17C.1: protocolos por URL firmada temporal
+
+Las reglas de Storage para `protocolUploads` no deben abrir lectura directa
+general a responsables. El acceso operativo de responsables asignados se
+resuelve mediante `getReservationProtocolAccess` con Admin SDK.
+
+Requisitos:
+
+- denegar lectura publica;
+- conservar validacion de propietario y Admin/Sistemas en Storage Rules;
+- validar en backend que el archivo pertenezca a la reserva;
+- validar que el responsable tenga `reservation.labId` en `labsAssigned`;
+- devolver solo URL firmada temporal;
+- no guardar URL firmada en Firestore;
+- no exponer rutas internas ni generar enlaces permanentes.
+
+Esto permite revisar protocolos sin ampliar la superficie de lectura directa en
+Cloud Storage.

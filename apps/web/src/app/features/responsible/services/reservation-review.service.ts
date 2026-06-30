@@ -10,13 +10,11 @@ import {
   where,
 } from 'firebase/firestore';
 import { Functions, httpsCallable } from 'firebase/functions';
-import { getDownloadURL, ref } from 'firebase/storage';
 import { firstValueFrom, take } from 'rxjs';
 
 import {
   FIREBASE_FIRESTORE,
   FIREBASE_FUNCTIONS,
-  FIREBASE_STORAGE,
 } from '../../../core/firebase/firebase.providers';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserProfileService } from '../../../core/services/user-profile.service';
@@ -35,6 +33,13 @@ export interface ReviewReservationResult {
   message: string;
 }
 
+export interface ReservationProtocolAccessResult {
+  fileName: string;
+  contentType: string;
+  url: string;
+  expiresInSeconds: number;
+}
+
 export interface ResponsibleReservationView extends ReservationDoc {
   startDate: Date | null;
   endDate: Date | null;
@@ -46,7 +51,6 @@ export interface ResponsibleReservationView extends ReservationDoc {
 export class ReservationReviewService {
   private readonly firestore = inject(FIREBASE_FIRESTORE);
   private readonly functions = inject<Functions>(FIREBASE_FUNCTIONS);
-  private readonly storage = inject(FIREBASE_STORAGE);
   private readonly authService = inject(AuthService);
   private readonly profileService = inject(UserProfileService);
 
@@ -135,8 +139,16 @@ export class ReservationReviewService {
     return result.data;
   }
 
-  async getProtocolUrl(storagePath: string): Promise<string> {
-    return getDownloadURL(ref(this.storage, storagePath));
+  async getProtocolAccess(
+    reservationId: string,
+    storagePath: string,
+  ): Promise<ReservationProtocolAccessResult> {
+    const callable = httpsCallable<
+      { reservationId: string; storagePath: string },
+      ReservationProtocolAccessResult
+    >(this.functions, 'getReservationProtocolAccess');
+    const result = await callable({ reservationId, storagePath });
+    return result.data;
   }
 
   formatDate(value: Date | null): string {

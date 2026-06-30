@@ -485,3 +485,28 @@ npm --prefix apps/web run build
 git diff --check
 git status --short
 ```
+## Actualizacion Fase 17C.1: pruebas de acceso a protocolos
+
+Casos minimos de aceptacion para `getReservationProtocolAccess`:
+
+- `admin_sistemas` puede abrir protocolo de cualquier reserva.
+- `responsable_laboratorio` puede abrir protocolo solo si
+  `reservation.labId` esta en `users/{uid}.labsAssigned`.
+- `responsable_laboratorio` no puede abrir protocolo de un laboratorio no
+  asignado.
+- docente propietario puede abrir protocolo de su propia reserva si el flujo lo
+  usa.
+- docente no puede abrir protocolo de otras reservas.
+- si `storagePath` no existe en `reservation.protocolFiles`, la funcion rechaza
+  la solicitud.
+- si el archivo no existe en Storage, la funcion devuelve error claro.
+- la URL devuelta expira y no se almacena en Firestore.
+- la interfaz muestra carga y error legible sin mostrar rutas internas.
+
+Pruebas manuales recomendadas:
+
+1. Entrar como responsable asignado y abrir un protocolo desde
+   `/responsable/reserva/:reservationId`.
+2. Entrar como responsable no asignado y confirmar rechazo.
+3. Entrar como Admin/Sistemas y confirmar acceso.
+4. Confirmar que no se modifican reservas, logs, Calendar ni Gmail.

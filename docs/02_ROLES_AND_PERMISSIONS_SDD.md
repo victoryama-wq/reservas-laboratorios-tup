@@ -159,3 +159,22 @@ Reglas:
 `/admin/usuarios` sigue permitiendo editar `labsAssigned` directamente para
 casos administrativos, pero la asignacion realizada desde `/admin/laboratorios`
 ya no requiere sincronizacion manual.
+## Actualizacion Fase 17C.1: acceso a protocolos para responsables
+
+El rol `responsable_laboratorio` puede abrir protocolos unicamente cuando la
+reserva pertenece a un laboratorio incluido en `users/{uid}.labsAssigned`.
+
+El acceso no se concede mediante lectura publica ni con URLs permanentes de
+Storage. La Web App debe solicitar acceso mediante la Cloud Function callable
+`getReservationProtocolAccess`, que valida:
+
+- sesion autenticada;
+- perfil activo;
+- rol oficial;
+- reserva existente;
+- archivo vinculado exactamente en `reservation.protocolFiles`;
+- `admin_sistemas`, responsable asignado o docente propietario.
+
+Los docentes no pueden abrir protocolos de otras reservas. Los responsables no
+pueden abrir protocolos de laboratorios no asignados. Admin/Sistemas conserva
+acceso operativo a todos los protocolos.
