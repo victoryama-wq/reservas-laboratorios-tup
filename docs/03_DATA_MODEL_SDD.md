@@ -516,9 +516,9 @@ Campos editables desde `/admin/laboratorios`:
 `qrPath` se deriva automaticamente como `/reservar/{slug}`. `specialRules`
 queda fuera del editor Fase 16B y se conserva sin borrarse.
 
-`responsibleUids` no sincroniza automaticamente `users/{uid}.labsAssigned`.
-La asignacion que controla visibilidad de solicitudes para responsables sigue
-gestionandose desde `/admin/usuarios`.
+Desde la Fase 17B.5, `responsibleUids` sincroniza automaticamente
+`users/{uid}.labsAssigned` para usuarios con rol `responsable_laboratorio`.
+`/admin/usuarios` conserva la edicion directa para casos administrativos.
 
 Eventos de auditoria esperados:
 
@@ -646,3 +646,34 @@ https://reservas-laboratorios-tup.web.app/reservar/{slug}
 
 Si cambia `slug`, `qrPath` se actualiza a `/reservar/{slug}` y los QR impresos
 deben regenerarse.
+
+## Actualizacion Fase 17B.5: consistencia responsibleUids / labsAssigned
+
+`labs/{labId}.responsibleUids` representa los responsables operativos
+configurados para un laboratorio.
+
+`users/{uid}.labsAssigned` representa los laboratorios que un usuario con rol
+`responsable_laboratorio` puede revisar en los paneles de responsable.
+
+Regla de consistencia:
+
+- cuando Admin/Sistemas crea un laboratorio con `responsibleUids`, el backend
+  agrega el `labId` a `labsAssigned` de los usuarios
+  `responsable_laboratorio`;
+- cuando Admin/Sistemas edita `responsibleUids`, el backend calcula agregados y
+  removidos para actualizar `labsAssigned`;
+- `admin_sistemas` puede estar en `responsibleUids`, pero no requiere
+  `labsAssigned`;
+- no se actualizan usuarios docentes;
+- no se borran usuarios ni laboratorios;
+- no se modifican reservas historicas.
+
+La auditoria administrativa puede registrar:
+
+- `previousResponsibleUids`;
+- `newResponsibleUids`;
+- `addedResponsibleUids`;
+- `removedResponsibleUids`;
+- `syncedResponsibleUids`;
+- `skippedAdminUids`;
+- `syncedUserCount`.

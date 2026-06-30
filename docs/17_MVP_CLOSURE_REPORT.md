@@ -461,3 +461,31 @@ Fuera de alcance:
 - modificar Gmail API;
 - cambiar roles, estatus o reglas de seguridad;
 - exponer `calendarId` a docentes.
+
+## 28. Seguimiento Fase 17B.5: sincronizacion automatica de responsables
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual, commit y deploy
+cuando el propietario lo autorice.
+
+Alcance:
+
+- `adminCreateLab` sincroniza `responsibleUids` con
+  `users/{uid}.labsAssigned` para usuarios `responsable_laboratorio`;
+- `adminUpdateLab` calcula responsables agregados y removidos para agregar o
+  quitar el `labId` en `labsAssigned`;
+- usuarios `admin_sistemas` pueden quedar como responsables operativos, pero
+  no dependen de `labsAssigned`;
+- usuarios inexistentes, docentes o inactivos se rechazan como responsables
+  operativos;
+- la sincronizacion ocurre dentro de la transaccion del laboratorio;
+- la auditoria administrativa registra metadata segura de sincronizacion;
+- la pestana `Responsables` informa que la sincronizacion es automatica.
+
+Fuera de alcance:
+
+- reservas existentes;
+- Calendar API;
+- Gmail API;
+- roles y estatus;
+- reglas Firestore/Storage;
+- galeria, carrusel y QR.

@@ -237,6 +237,38 @@ git diff --check
 git status --short
 ```
 
+## Pruebas Fase 17B.5: sincronizacion de responsables
+
+Validaciones manuales obligatorias:
+
+- entrar como `admin_sistemas`;
+- abrir `/admin/laboratorios`;
+- crear o editar un laboratorio con un usuario activo
+  `responsable_laboratorio` en `responsibleUids`;
+- confirmar en Firestore que `users/{uid}.labsAssigned` contiene el `labId`;
+- entrar con ese responsable y confirmar que ve solicitudes de ese laboratorio;
+- remover al responsable desde `/admin/laboratorios`;
+- confirmar que `users/{uid}.labsAssigned` ya no contiene el `labId`;
+- agregar un usuario `admin_sistemas` como responsable operativo y confirmar
+  que no depende de `labsAssigned`;
+- intentar agregar un usuario `docente` y confirmar rechazo controlado;
+- intentar agregar un usuario inexistente y confirmar rechazo controlado;
+- intentar agregar un usuario inactivo y confirmar rechazo controlado;
+- confirmar que `ADMIN_CREATE_LAB` y `ADMIN_UPDATE_LAB` registran metadata de
+  responsables sincronizados;
+- confirmar que no se modifican reservas existentes;
+- confirmar que `/admin/usuarios` sigue funcionando.
+
+Validaciones tecnicas:
+
+```bash
+npm --prefix functions run lint
+npm --prefix functions run build
+npm --prefix apps/web run build
+git diff --check
+git status --short
+```
+
 ## Pruebas Fase 17B.3: QR configurable por laboratorio
 
 - abrir `/admin/laboratorios` como `admin_sistemas`;

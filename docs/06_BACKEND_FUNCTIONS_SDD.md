@@ -557,3 +557,31 @@ Resultado:
 `adminUpdateLab` valida el calendario cuando `calendarId` cambia. Ninguna de
 estas funciones crea eventos de prueba, modifica reservas, cambia reglas de
 negocio ni usa Gmail API.
+
+## Actualizacion Fase 17B.5: sincronizacion de responsables
+
+`adminCreateLab` y `adminUpdateLab` sincronizan automaticamente
+`responsibleUids` con `users/{uid}.labsAssigned`.
+
+`adminCreateLab`:
+
+- valida que cada responsable exista, este activo y tenga rol
+  `responsable_laboratorio` o `admin_sistemas`;
+- crea `labs/{labId}`;
+- agrega `labId` con `FieldValue.arrayUnion` a `labsAssigned` de usuarios
+  `responsable_laboratorio`;
+- omite `labsAssigned` para usuarios `admin_sistemas`;
+- registra metadata segura en `ADMIN_CREATE_LAB`.
+
+`adminUpdateLab`:
+
+- lee responsables anteriores desde `labs/{labId}`;
+- compara contra `responsibleUids` recibido;
+- calcula agregados y removidos;
+- agrega `labId` a responsables agregados;
+- remueve `labId` de responsables removidos;
+- omite usuarios `admin_sistemas` porque tienen acceso global;
+- registra metadata segura en `ADMIN_UPDATE_LAB`.
+
+La sincronizacion se ejecuta dentro de la transaccion del laboratorio y no
+modifica reservas, Calendar, Gmail, roles ni estatus.

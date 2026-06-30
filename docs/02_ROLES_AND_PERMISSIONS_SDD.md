@@ -137,3 +137,25 @@ Los usuarios que ya existen en `users/{uid}` no se borran fisicamente para
 conservar trazabilidad institucional. Si se debe impedir el acceso, el perfil
 se suspende mediante `adminUpdateUser` con `active: false`. Las reservas,
 bitacoras, notificaciones y auditorias historicas permanecen intactas.
+
+## Actualizacion Fase 17B.5: responsables asignados por laboratorio
+
+Admin/Sistemas puede asignar responsables desde `/admin/laboratorios`.
+
+Reglas:
+
+- `responsibleUids` solo acepta usuarios activos con rol
+  `responsable_laboratorio` o `admin_sistemas`;
+- usuarios `docente`, inexistentes o inactivos no pueden quedar como
+  responsables operativos;
+- al guardar el laboratorio, los usuarios con rol `responsable_laboratorio`
+  reciben automaticamente el `labId` en `users/{uid}.labsAssigned`;
+- al removerlos desde el laboratorio, el `labId` se remueve de
+  `labsAssigned`;
+- usuarios `admin_sistemas` pueden aparecer como responsables, pero no
+  dependen de `labsAssigned` porque tienen acceso global;
+- no se crean roles adicionales ni permisos nuevos.
+
+`/admin/usuarios` sigue permitiendo editar `labsAssigned` directamente para
+casos administrativos, pero la asignacion realizada desde `/admin/laboratorios`
+ya no requiere sincronizacion manual.

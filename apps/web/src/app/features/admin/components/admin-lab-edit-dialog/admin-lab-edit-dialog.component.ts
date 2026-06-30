@@ -416,9 +416,9 @@ export type AdminLabEditDialogResult =
           <mat-tab label="Responsables">
             <div class="grid gap-4 pt-5">
               <app-info-callout
-                variant="warning"
-                icon="info"
-                message="Asignar responsibleUids al laboratorio no modifica users.labsAssigned. Para que el responsable vea solicitudes, gestionelo tambien desde Usuarios."
+                variant="info"
+                icon="sync"
+                message="Al guardar, el sistema sincroniza automaticamente los laboratorios asignados en el perfil de cada responsable. Los usuarios Admin/Sistemas tienen acceso global y no dependen de labsAssigned."
               />
 
               <mat-form-field appearance="outline">

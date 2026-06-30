@@ -1,4 +1,5 @@
 import {
+  FieldValue,
   getFirestore,
   Timestamp,
 } from "firebase-admin/firestore";
@@ -76,6 +77,20 @@ const ALLOWED_INPUT_KEYS = new Set([
 
 type WeekdayKey = typeof WEEKDAYS[number];
 
+interface ResponsibleUserRecord {
+  uid: string;
+  ref: FirebaseFirestore.DocumentReference;
+  user?: AppUser;
+}
+
+interface ResponsibleSyncMetadata {
+  syncedResponsibleUids: string[];
+  addedResponsibleUids: string[];
+  removedResponsibleUids: string[];
+  skippedAdminUids: string[];
+  syncedUserCount: number;
+}
+
 export interface AdminCreateLabOutput {
   labId: string;
   created: true;
@@ -137,7 +152,6 @@ export const adminCreateLab = onCall(
       const db = getFirestore();
       const actor = await getActiveAdmin(actorUid);
       await assertSlugUnique(input.slug);
-      await assertResponsibleUsers(input.responsibleUids);
       await assertCalendarCanWrite(input.calendarId);
 
       const now = Timestamp.now();
@@ -152,6 +166,18 @@ export const adminCreateLab = onCall(
               "Ya existe un laboratorio con ese slug.",
           );
         }
+        const responsibleUsers = await readResponsibleUsers(
+            transaction,
+            input.responsibleUids,
+        );
+        assertNextResponsibleUsers(input.responsibleUids, responsibleUsers);
+        const responsibleSync = syncCreatedLabResponsibleUsers(
+            transaction,
+            responsibleUsers,
+            input.responsibleUids,
+            labRef.id,
+            now,
+        );
 
         const lab: LabDoc = {
           id: labRef.id,
@@ -201,6 +227,10 @@ export const adminCreateLab = onCall(
             responsibleUids: input.responsibleUids,
             responsibleEmails: input.responsibleEmails,
             defaultNotifyEmails: input.defaultNotifyEmails,
+            syncedResponsibleUids:
+              responsibleSync.syncedResponsibleUids,
+            skippedAdminUids: responsibleSync.skippedAdminUids,
+            syncedUserCount: responsibleSync.syncedUserCount,
           },
           createdAt: now,
         });
@@ -240,9 +270,6 @@ export const adminUpdateLab = onCall(
       if (input.slug) {
         await assertSlugUnique(input.slug, input.labId);
       }
-      if (input.responsibleUids) {
-        await assertResponsibleUsers(input.responsibleUids);
-      }
 
       const labRef = db.collection("labs").doc(input.labId);
       if (input.calendarId !== undefined) {
@@ -273,6 +300,15 @@ export const adminUpdateLab = onCall(
         }
 
         const currentLab = labSnapshot.data() as LabDoc;
+        const responsibleSync = input.responsibleUids === undefined ?
+          emptyResponsibleSyncMetadata() :
+          await syncUpdatedLabResponsibleUsers(
+              transaction,
+              currentLab.responsibleUids ?? [],
+              input.responsibleUids,
+              input.labId,
+              now,
+          );
         const patch = buildLabPatch(input, now);
         const changedFields = Object.keys(patch).filter(
             (field) => field !== "updatedAt",
@@ -300,6 +336,17 @@ export const adminUpdateLab = onCall(
             changedFields,
             previousSlug: currentLab.slug,
             newSlug: input.slug ?? currentLab.slug,
+            previousResponsibleUids: currentLab.responsibleUids ?? [],
+            newResponsibleUids:
+              input.responsibleUids ?? currentLab.responsibleUids ?? [],
+            addedResponsibleUids:
+              responsibleSync.addedResponsibleUids,
+            removedResponsibleUids:
+              responsibleSync.removedResponsibleUids,
+            syncedResponsibleUids:
+              responsibleSync.syncedResponsibleUids,
+            skippedAdminUids: responsibleSync.skippedAdminUids,
+            syncedUserCount: responsibleSync.syncedUserCount,
           },
           createdAt: now,
         });
@@ -369,6 +416,224 @@ async function getActiveAdmin(actorUid: string): Promise<AppUser> {
   }
 
   return actor;
+}
+
+/**
+ * Reads user profiles that participate in responsible synchronization.
+ *
+ * @param {FirebaseFirestore.Transaction} transaction Firestore transaction.
+ * @param {string[]} responsibleUids User IDs to read.
+ * @return {Promise<Map<string, ResponsibleUserRecord>>} User records.
+ */
+async function readResponsibleUsers(
+    transaction: FirebaseFirestore.Transaction,
+    responsibleUids: string[],
+): Promise<Map<string, ResponsibleUserRecord>> {
+  const db = getFirestore();
+  const uniqueUids = [...new Set(responsibleUids)];
+  const records = await Promise.all(
+      uniqueUids.map(async (uid) => {
+        const ref = db.collection("users").doc(uid);
+        const snapshot = await transaction.get(ref);
+        return [
+          uid,
+          {
+            uid,
+            ref,
+            user: snapshot.exists ? snapshot.data() as AppUser : undefined,
+          },
+        ] as const;
+      }),
+  );
+
+  return new Map(records);
+}
+
+/**
+ * Ensures every selected responsible user is active and has an allowed role.
+ *
+ * @param {string[]} responsibleUids Selected responsible users.
+ * @param {Map<string, ResponsibleUserRecord>} usersByUid Loaded profiles.
+ */
+function assertNextResponsibleUsers(
+    responsibleUids: string[],
+    usersByUid: Map<string, ResponsibleUserRecord>,
+): void {
+  const invalidUids: string[] = [];
+  const inactiveUids: string[] = [];
+
+  for (const uid of responsibleUids) {
+    const user = usersByUid.get(uid)?.user;
+    if (!user || !VALID_RESPONSIBLE_ROLES.has(user.role)) {
+      invalidUids.push(uid);
+      continue;
+    }
+
+    if (!user.active) {
+      inactiveUids.push(uid);
+    }
+  }
+
+  if (invalidUids.length > 0) {
+    throw new HttpsError(
+        "failed-precondition",
+        `Responsables invalidos: ${invalidUids.join(", ")}.`,
+    );
+  }
+
+  if (inactiveUids.length > 0) {
+    throw new HttpsError(
+        "failed-precondition",
+        `Responsables inactivos: ${inactiveUids.join(", ")}.`,
+    );
+  }
+}
+
+/**
+ * Adds a newly created lab to assigned labs for responsible_laboratorio users.
+ *
+ * @param {FirebaseFirestore.Transaction} transaction Firestore transaction.
+ * @param {Map<string, ResponsibleUserRecord>} usersByUid Loaded profiles.
+ * @param {string[]} responsibleUids Selected responsible users.
+ * @param {string} labId Laboratory ID.
+ * @param {Timestamp} now Current timestamp.
+ * @return {ResponsibleSyncMetadata} Sync metadata for audit.
+ */
+function syncCreatedLabResponsibleUsers(
+    transaction: FirebaseFirestore.Transaction,
+    usersByUid: Map<string, ResponsibleUserRecord>,
+    responsibleUids: string[],
+    labId: string,
+    now: Timestamp,
+): ResponsibleSyncMetadata {
+  const syncedResponsibleUids: string[] = [];
+  const skippedAdminUids: string[] = [];
+
+  for (const uid of responsibleUids) {
+    const record = usersByUid.get(uid);
+    if (record?.user?.role === "responsable_laboratorio") {
+      transaction.update(record.ref, {
+        labsAssigned: FieldValue.arrayUnion(labId),
+        updatedAt: now,
+      });
+      syncedResponsibleUids.push(uid);
+      continue;
+    }
+
+    if (record?.user?.role === "admin_sistemas") {
+      skippedAdminUids.push(uid);
+    }
+  }
+
+  return {
+    syncedResponsibleUids,
+    addedResponsibleUids: syncedResponsibleUids,
+    removedResponsibleUids: [],
+    skippedAdminUids,
+    syncedUserCount: syncedResponsibleUids.length,
+  };
+}
+
+/**
+ * Synchronizes responsible_laboratorio labsAssigned after lab updates.
+ *
+ * @param {FirebaseFirestore.Transaction} transaction Firestore transaction.
+ * @param {string[]} previousResponsibleUids Previous responsible users.
+ * @param {string[]} nextResponsibleUids New responsible users.
+ * @param {string} labId Laboratory ID.
+ * @param {Timestamp} now Current timestamp.
+ * @return {Promise<ResponsibleSyncMetadata>} Sync metadata for audit.
+ */
+async function syncUpdatedLabResponsibleUsers(
+    transaction: FirebaseFirestore.Transaction,
+    previousResponsibleUids: string[],
+    nextResponsibleUids: string[],
+    labId: string,
+    now: Timestamp,
+): Promise<ResponsibleSyncMetadata> {
+  const addedResponsibleUids = diffUids(
+      nextResponsibleUids,
+      previousResponsibleUids,
+  );
+  const removedResponsibleUids = diffUids(
+      previousResponsibleUids,
+      nextResponsibleUids,
+  );
+  const involvedUids = [
+    ...new Set([...nextResponsibleUids, ...removedResponsibleUids]),
+  ];
+  const usersByUid = await readResponsibleUsers(transaction, involvedUids);
+  assertNextResponsibleUsers(nextResponsibleUids, usersByUid);
+
+  const syncedResponsibleUids: string[] = [];
+  const skippedAdminUids: string[] = [];
+
+  for (const uid of addedResponsibleUids) {
+    const record = usersByUid.get(uid);
+    if (record?.user?.role === "responsable_laboratorio") {
+      transaction.update(record.ref, {
+        labsAssigned: FieldValue.arrayUnion(labId),
+        updatedAt: now,
+      });
+      syncedResponsibleUids.push(uid);
+      continue;
+    }
+
+    if (record?.user?.role === "admin_sistemas") {
+      skippedAdminUids.push(uid);
+    }
+  }
+
+  for (const uid of removedResponsibleUids) {
+    const record = usersByUid.get(uid);
+    if (record?.user?.role === "responsable_laboratorio") {
+      transaction.update(record.ref, {
+        labsAssigned: FieldValue.arrayRemove(labId),
+        updatedAt: now,
+      });
+      syncedResponsibleUids.push(uid);
+      continue;
+    }
+
+    if (record?.user?.role === "admin_sistemas") {
+      skippedAdminUids.push(uid);
+    }
+  }
+
+  return {
+    syncedResponsibleUids,
+    addedResponsibleUids,
+    removedResponsibleUids,
+    skippedAdminUids,
+    syncedUserCount: syncedResponsibleUids.length,
+  };
+}
+
+/**
+ * Returns empty responsible sync metadata when the field is not updated.
+ *
+ * @return {ResponsibleSyncMetadata} Empty metadata.
+ */
+function emptyResponsibleSyncMetadata(): ResponsibleSyncMetadata {
+  return {
+    syncedResponsibleUids: [],
+    addedResponsibleUids: [],
+    removedResponsibleUids: [],
+    skippedAdminUids: [],
+    syncedUserCount: 0,
+  };
+}
+
+/**
+ * Returns values in source that are not present in comparison.
+ *
+ * @param {string[]} source Source list.
+ * @param {string[]} comparison Comparison list.
+ * @return {string[]} Difference.
+ */
+function diffUids(source: string[], comparison: string[]): string[] {
+  const comparisonSet = new Set(comparison);
+  return source.filter((uid) => !comparisonSet.has(uid));
 }
 
 /**
@@ -1150,43 +1415,6 @@ async function assertSlugUnique(
     throw new HttpsError(
         "already-exists",
         "Ya existe un laboratorio con ese slug.",
-    );
-  }
-}
-
-/**
- * Ensures selected responsible users exist with allowed roles.
- *
- * @param {string[]} responsibleUids Responsible user IDs.
- */
-async function assertResponsibleUsers(
-    responsibleUids: string[],
-): Promise<void> {
-  if (!responsibleUids.length) {
-    return;
-  }
-
-  const db = getFirestore();
-  const snapshots = await Promise.all(
-      responsibleUids.map((uid) => db.collection("users").doc(uid).get()),
-  );
-
-  const invalidUids = snapshots
-      .map((snapshot, index) => {
-        if (!snapshot.exists) {
-          return responsibleUids[index];
-        }
-        const user = snapshot.data() as AppUser;
-        return VALID_RESPONSIBLE_ROLES.has(user.role) ?
-          null :
-          responsibleUids[index];
-      })
-      .filter((uid): uid is string => typeof uid === "string");
-
-  if (invalidUids.length > 0) {
-    throw new HttpsError(
-        "failed-precondition",
-        `Responsables invalidos: ${invalidUids.join(", ")}.`,
     );
   }
 }

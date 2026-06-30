@@ -997,3 +997,24 @@ Reglas de interfaz:
 
 La vista mantiene el sistema visual institucional: cards blancas, bordes
 suaves, botones Material, iconos completos y textos en espanol.
+
+## Actualizacion Fase 17B.5: mensaje de responsables sincronizados
+
+La pestana `Responsables` del dialogo de alta/edicion de laboratorios debe
+informar que la asignacion ya se sincroniza automaticamente desde backend.
+
+Reglas de interfaz:
+
+- no debe sugerir que Admin/Sistemas sincronice manualmente
+  `users/{uid}.labsAssigned` cuando la asignacion se realiza desde
+  `/admin/laboratorios`;
+- debe mostrar un mensaje claro: al guardar, el sistema sincroniza los
+  laboratorios asignados en el perfil de cada responsable;
+- debe aclarar que los usuarios `admin_sistemas` tienen acceso global y no
+  dependen de `labsAssigned`;
+- Angular no debe escribir directamente en `users/{uid}.labsAssigned`;
+- la vista debe seguir usando `adminCreateLab` y `adminUpdateLab`;
+- no se modifican rutas, permisos, reservas ni flujos docentes.
+
+El mensaje debe mantener la linea visual institucional con callouts suaves,
+iconografia completa, texto en espanol y componentes Angular Material.

@@ -1086,10 +1086,10 @@ ADMIN_UPDATE_LAB
 ```
 
 La fase no implementa editor avanzado de `specialRules`, `blockedPeriods`,
-importacion masiva, subida real de imagenes ni sincronizacion automatica con
-`users/{uid}.labsAssigned`. Si se asigna un responsable en el laboratorio,
-Admin/Sistemas debe mantener `labsAssigned` desde `/admin/usuarios` para que
-el responsable vea solicitudes.
+importacion masiva ni subida real de imagenes. Desde la Fase 17B.5, la
+asignacion de responsables desde `/admin/laboratorios` sincroniza
+automaticamente `users/{uid}.labsAssigned` para usuarios con rol
+`responsable_laboratorio`.
 ## Ajuste visual del dialogo de laboratorios
 
 El dialogo de alta/edicion de laboratorios se ajusto para pantallas de
@@ -1345,3 +1345,28 @@ La pestana `Calendario` del dialogo de alta/edicion incluye la accion
 `Validar calendario`, que permite a Admin/Sistemas revisar el acceso antes de
 guardar. Esta validacion no modifica reservas, no crea eventos en Google
 Calendar, no usa Gmail API y no expone el `calendarId` a docentes.
+
+## Fase 17B.5: sincronizacion automatica de responsables
+
+La administracion de laboratorios sincroniza automaticamente
+`labs/{labId}.responsibleUids` con `users/{uid}.labsAssigned` cuando se crea o
+edita un laboratorio desde `/admin/laboratorios`.
+
+Comportamiento:
+
+- `adminCreateLab` agrega el `labId` a `labsAssigned` de cada usuario activo
+  con rol `responsable_laboratorio` incluido en `responsibleUids`;
+- `adminUpdateLab` compara responsables anteriores y nuevos para agregar o
+  remover el `labId` de `labsAssigned`;
+- los usuarios `admin_sistemas` pueden aparecer como responsables operativos,
+  pero no dependen de `labsAssigned` porque tienen acceso global;
+- usuarios inexistentes, docentes o inactivos se rechazan como responsables
+  operativos;
+- la sincronizacion ocurre en transaccion junto con el laboratorio y la
+  auditoria administrativa;
+- `Admin/Usuarios` sigue pudiendo editar `labsAssigned`, pero ya no es
+  necesario hacerlo manualmente cuando la asignacion se realiza desde
+  `Admin/Laboratorios`.
+
+Esta fase no modifica reservas, eventos de Calendar, correos Gmail, roles,
+estatus, galeria, QR ni reglas de seguridad.
