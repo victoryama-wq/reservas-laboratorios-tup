@@ -552,3 +552,32 @@ Fuera de alcance:
 - guardar URLs en Firestore;
 - modificar reservas, Calendar, Gmail, roles o estatus;
 - cambiar aprobacion, rechazo o cancelacion.
+
+## 31. Seguimiento Fase 17C.1A: correccion post-deploy protocolos/calendario
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de validar IAM, smoke manual,
+commit y deploy cuando el propietario lo autorice.
+
+Causa detectada en logs:
+
+- `getReservationProtocolAccess` validaba correctamente la sesion, pero fallaba
+  al generar la URL firmada por falta del permiso
+  `iam.serviceAccounts.signBlob`;
+- service account runtime observado:
+  `261669564296-compute@developer.gserviceaccount.com`;
+- el error llegaba al frontend como `INTERNAL`.
+
+Correcciones:
+
+- la callable captura errores de firmado y devuelve mensaje seguro;
+- el frontend mapea errores de Functions a textos legibles;
+- la UI no debe mostrar `INTERNAL`;
+- el calendario visual usa `start/end` reales para etiquetas y altura de
+  bloques, incluyendo minutos como `13:30`;
+- no se modifican reservas, Google Calendar API, Gmail API, roles, estatus ni
+  reglas de seguridad.
+
+Pendiente operativo:
+
+- otorgar o confirmar permiso `iam.serviceAccounts.signBlob` al service account
+  runtime antes del smoke real de apertura de protocolos.

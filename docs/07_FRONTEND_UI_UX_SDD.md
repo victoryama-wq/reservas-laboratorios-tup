@@ -1063,3 +1063,21 @@ El boton principal debe decir `Abrir protocolo` y debe:
 No se debe usar `getDownloadURL` directo desde Angular para responsables. No se
 deben mostrar URLs publicas, rutas internas de Storage ni detalles tecnicos al
 usuario final.
+
+### Correccion 17C.1A
+
+Los errores de acceso a protocolos deben mapearse a mensajes claros:
+
+- permiso insuficiente: `No tienes permiso para abrir este protocolo.`;
+- archivo inexistente: `No se encontro el archivo de protocolo.`;
+- archivo no vinculado: `El archivo no pertenece a esta reserva.`;
+- fallo tecnico: `No fue posible generar el acceso temporal al protocolo.`;
+- servicio no disponible: `El servicio no esta disponible temporalmente.`;
+
+La interfaz nunca debe mostrar `INTERNAL`, stack traces, JSON crudo,
+`storagePath` ni signed URLs permanentes.
+
+El calendario visual debe mostrar siempre el horario real de `startAt` y
+`endAt` para reservas o bloqueos. Si una reserva termina a las 13:30, la tarjeta
+de disponibilidad debe decir `12:00 - 13:30`, no `12:00 - 14:00`. La posicion
+visual puede calcularse por minutos, pero el texto visible no debe redondearse.

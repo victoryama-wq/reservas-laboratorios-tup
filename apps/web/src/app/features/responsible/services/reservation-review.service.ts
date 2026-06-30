@@ -147,8 +147,12 @@ export class ReservationReviewService {
       { reservationId: string; storagePath: string },
       ReservationProtocolAccessResult
     >(this.functions, 'getReservationProtocolAccess');
-    const result = await callable({ reservationId, storagePath });
-    return result.data;
+    try {
+      const result = await callable({ reservationId, storagePath });
+      return result.data;
+    } catch (error) {
+      throw new Error(this.toProtocolAccessErrorMessage(error));
+    }
   }
 
   formatDate(value: Date | null): string {
@@ -313,5 +317,34 @@ export class ReservationReviewService {
     }
 
     return chunks;
+  }
+
+  private toProtocolAccessErrorMessage(error: unknown): string {
+    const code = (error as { code?: unknown }).code;
+
+    if (code === 'functions/permission-denied') {
+      return 'No tienes permiso para abrir este protocolo.';
+    }
+
+    if (code === 'functions/not-found') {
+      return 'No se encontro el archivo de protocolo.';
+    }
+
+    if (code === 'functions/failed-precondition') {
+      return 'El archivo no pertenece a esta reserva.';
+    }
+
+    if (code === 'functions/unavailable') {
+      return 'El servicio no esta disponible temporalmente. Intenta nuevamente.';
+    }
+
+    if (code === 'functions/internal') {
+      return 'No fue posible generar el acceso temporal al protocolo. Contacta a Sistemas si el problema continua.';
+    }
+
+    return (
+      (error as { message?: string }).message ??
+      'No fue posible abrir el protocolo. Intenta nuevamente.'
+    );
   }
 }

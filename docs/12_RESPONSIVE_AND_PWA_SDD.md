@@ -464,3 +464,18 @@ Reglas responsive:
 - PNG e impresion deben usar el logo real si puede cargarse;
 - SVG puede omitirse del logo por compatibilidad tecnica;
 - no usar texto `TUP` como sustituto visual principal del logo.
+## Actualizacion 17C.1A: precision visual del calendario
+
+El calendario responsive debe representar bloques ocupados usando el horario
+real del evento, incluyendo minutos. La vista semanal puede usar una grilla por
+hora, pero los bloques visuales deben posicionarse por porcentaje/minutos para
+evitar redondear reservas de media hora a la siguiente hora completa.
+
+Ejemplos esperados:
+
+- `12:00 - 13:30` se muestra como `12:00 - 13:30`;
+- `12:30 - 13:30` inicia a media celda;
+- `08:00 - 09:00` ocupa una hora completa.
+
+Este ajuste debe mantenerse en escritorio, tablet y movil sin repetir texto por
+celda y sin romper el comportamiento de vista mensual.

@@ -171,12 +171,13 @@ export class LabCalendarComponent {
 
     if (event) {
       const status = this.eventStatus(event);
+      const eventEnd = this.toDate(event.end);
 
       return {
         id: String(event.id ?? `${day.key}-${hour}`),
         dayKey: day.key,
         startTime: hour,
-        endTime: this.formatHour(end),
+        endTime: eventEnd ? this.formatTime(eventEnd) : this.formatHour(end),
         status,
         label: this.eventLabel(event, status),
         disabled: status !== 'available',
@@ -396,6 +397,13 @@ export class LabCalendarComponent {
 
   private formatHour(date: Date): string {
     return `${date.getHours().toString().padStart(2, '0')}:00`;
+  }
+
+  private formatTime(date: Date): string {
+    return [
+      date.getHours().toString().padStart(2, '0'),
+      date.getMinutes().toString().padStart(2, '0'),
+    ].join(':');
   }
 
   private hourFromTime(time: string): number {

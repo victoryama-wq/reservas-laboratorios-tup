@@ -289,11 +289,30 @@ export const getReservationProtocolAccess = onCall(
         );
       }
 
-      const [url] = await bucketFile.getSignedUrl({
-        action: "read",
-        expires: Date.now() + PROTOCOL_ACCESS_TTL_SECONDS * 1000,
-        responseDisposition: buildInlineDisposition(protocolFile.fileName),
-      });
+      let url: string;
+
+      try {
+        [url] = await bucketFile.getSignedUrl({
+          action: "read",
+          expires: Date.now() + PROTOCOL_ACCESS_TTL_SECONDS * 1000,
+          responseDisposition: buildInlineDisposition(protocolFile.fileName),
+        });
+      } catch (error) {
+        logger.error("Protocol signed URL generation failed", {
+          reservationId: context.reservation.id,
+          labId: context.reservation.labId,
+          fileName: protocolFile.fileName,
+          ...toSafeErrorMetadata(error),
+        });
+
+        throw new HttpsError(
+            "internal",
+            [
+              "No fue posible generar el acceso temporal al protocolo.",
+              "Contacte a Sistemas si el problema continua.",
+            ].join(" "),
+        );
+      }
 
       return {
         fileName: protocolFile.fileName,

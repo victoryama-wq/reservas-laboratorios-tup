@@ -711,6 +711,20 @@ archivo privado. No se generan enlaces publicos permanentes, no se muestra
 modificar reservas desde esta vista. La cancelacion controlada solo se permite
 para reservas futuras con estatus cancelable y siempre pasa por Cloud Functions.
 
+Actualizacion 17C.1A:
+
+- La UI normaliza errores de protocolo y no debe mostrar codigos tecnicos como
+  `INTERNAL`.
+- `getReservationProtocolAccess` captura errores de firmado y devuelve un
+  mensaje seguro.
+- Para generar URLs firmadas, el service account de Functions debe tener permiso
+  `iam.serviceAccounts.signBlob`. En QA real se identifico el runtime:
+  `261669564296-compute@developer.gserviceaccount.com`.
+  Si falta ese permiso, Sistemas debe otorgarlo antes del smoke final.
+- El calendario visual muestra el horario real de reservas y bloqueos,
+  incluyendo minutos, por ejemplo `12:00 - 13:30`, sin redondear la etiqueta a
+  la siguiente hora.
+
 ### Cancelacion controlada
 
 La ruta `/mis-reservas/:reservationId` muestra el boton `Cancelar reserva`

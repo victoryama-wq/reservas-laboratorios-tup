@@ -171,14 +171,14 @@ export class AvailabilityCalendarComponent {
 
       if (lastBlock && this.canExtendBlock(lastBlock, slot, status, label, index)) {
         lastBlock.span += 1;
-        lastBlock.endTime = slot.endTime ?? this.nextHourLabel(index);
+        lastBlock.endTime = this.blockEndTime(slot, index);
         continue;
       }
 
       blocks.push({
         dayKey,
-        startTime: slot.startTime,
-        endTime: slot.endTime ?? this.nextHourLabel(index),
+        startTime: this.blockStartTime(slot),
+        endTime: this.blockEndTime(slot, index),
         startIndex: index,
         span: 1,
         status,
@@ -214,6 +214,32 @@ export class AvailabilityCalendarComponent {
 
   protected blockGridRow(block: AvailabilityBlock): string {
     return `${block.startIndex + 1} / span ${block.span}`;
+  }
+
+  protected blockTop(block: AvailabilityBlock): number {
+    const totalMinutes = this.hours().length * 60;
+    const firstHour = this.hours().at(0);
+
+    if (!firstHour || totalMinutes <= 0) {
+      return 0;
+    }
+
+    const offset = this.timeToMinutes(block.startTime) -
+      this.timeToMinutes(firstHour);
+
+    return this.clampPercent((offset / totalMinutes) * 100);
+  }
+
+  protected blockHeight(block: AvailabilityBlock): number {
+    const totalMinutes = this.hours().length * 60;
+    const duration = this.timeToMinutes(block.endTime) -
+      this.timeToMinutes(block.startTime);
+
+    if (totalMinutes <= 0 || duration <= 0) {
+      return 0;
+    }
+
+    return this.clampPercent((duration / totalMinutes) * 100);
   }
 
   protected blockAriaLabel(day: AvailabilityDay, block: AvailabilityBlock): string {
@@ -341,6 +367,26 @@ export class AvailabilityCalendarComponent {
     return slot.label ?? 'No disponible';
   }
 
+  private blockStartTime(slot: AvailabilitySlot): string {
+    if (this.isAllDayMeta(slot.meta)) {
+      return slot.startTime;
+    }
+
+    const eventStart = this.metaDate(slot.meta, 'start');
+    return eventStart ? this.formatTime(eventStart) : slot.startTime;
+  }
+
+  private blockEndTime(slot: AvailabilitySlot, index: number): string {
+    if (this.isAllDayMeta(slot.meta)) {
+      return slot.endTime ?? this.nextHourLabel(index);
+    }
+
+    const eventEnd = this.metaDate(slot.meta, 'end');
+    return eventEnd ?
+      this.formatTime(eventEnd) :
+      (slot.endTime ?? this.nextHourLabel(index));
+  }
+
   private canExtendBlock(
     block: AvailabilityBlock,
     slot: AvailabilitySlot,
@@ -380,5 +426,44 @@ export class AvailabilityCalendarComponent {
 
   private nextHourLabel(index: number): string {
     return this.hours().at(index + 1) ?? this.hours().at(index) ?? '';
+  }
+
+  private metaDate(meta: unknown, field: 'start' | 'end'): Date | null {
+    const value = (meta as { start?: unknown; end?: unknown } | undefined)
+      ?.[field];
+    return this.toDate(value);
+  }
+
+  private isAllDayMeta(meta: unknown): boolean {
+    return (meta as { allDay?: unknown } | undefined)?.allDay === true;
+  }
+
+  private toDate(value: unknown): Date | null {
+    if (value instanceof Date) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    return null;
+  }
+
+  private formatTime(date: Date): string {
+    return [
+      date.getHours().toString().padStart(2, '0'),
+      date.getMinutes().toString().padStart(2, '0'),
+    ].join(':');
+  }
+
+  private timeToMinutes(time: string): number {
+    const [hours = '0', minutes = '0'] = time.split(':');
+    return Number(hours) * 60 + Number(minutes);
+  }
+
+  private clampPercent(value: number): number {
+    return Math.min(Math.max(value, 0), 100);
   }
 }

@@ -510,3 +510,17 @@ Pruebas manuales recomendadas:
 2. Entrar como responsable no asignado y confirmar rechazo.
 3. Entrar como Admin/Sistemas y confirmar acceso.
 4. Confirmar que no se modifican reservas, logs, Calendar ni Gmail.
+
+### Correccion 17C.1A
+
+Validaciones adicionales:
+
+- cuando falle el acceso temporal al protocolo, la UI no debe mostrar
+  `INTERNAL`;
+- si falta el permiso IAM `iam.serviceAccounts.signBlob`, el error debe quedar
+  registrado en logs de Functions y el usuario debe ver un mensaje seguro;
+- una reserva `12:00 - 13:30` debe mostrarse como `12:00 - 13:30` en la Web App;
+- una reserva `12:30 - 13:30` debe iniciar visualmente a media celda;
+- una reserva de hora exacta, por ejemplo `08:00 - 09:00`, debe conservar el
+  mismo comportamiento anterior;
+- los bloques de dia no disponible deben seguir sin saturar la vista.

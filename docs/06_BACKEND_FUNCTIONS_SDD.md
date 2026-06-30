@@ -640,3 +640,12 @@ Validaciones:
 La funcion genera una URL firmada temporal de lectura. No debe guardar la URL en
 Firestore, no debe devolver `calendarId`, no debe crear enlaces publicos
 permanentes y no debe modificar reservas ni bitacoras de negocio.
+
+Correccion 17C.1A:
+
+Si falla la generacion de URL firmada, la funcion debe registrar metadata segura
+en logs y devolver un `HttpsError('internal')` con mensaje legible. El error no
+debe quedar sin controlar. Para firmar URLs desde Cloud Functions v2, el service
+account de ejecucion debe contar con `iam.serviceAccounts.signBlob`; si no lo
+tiene, el smoke real de apertura de protocolo fallara aunque las validaciones de
+rol y reserva sean correctas.

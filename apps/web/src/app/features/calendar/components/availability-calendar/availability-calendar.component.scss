@@ -123,15 +123,15 @@
 }
 
 .availability-block {
+  position: absolute;
+  right: 0.35rem;
+  left: 0.35rem;
   z-index: 1;
   box-sizing: border-box;
   display: grid;
-  align-self: stretch;
   place-content: center;
   justify-items: center;
   gap: 0.15rem;
-  min-height: 0;
-  min-block-size: 100%;
   margin: 0;
   border: 1px solid transparent;
   border-radius: 0.45rem;
