@@ -725,6 +725,18 @@ Actualizacion 17C.1A:
   incluyendo minutos, por ejemplo `12:00 - 13:30`, sin redondear la etiqueta a
   la siguiente hora.
 
+Actualizacion 17C.1B:
+
+- La vista semanal del calendario posiciona y mide bloques por minutos reales
+  sobre el eje vertical del dia.
+- `top` se calcula con los minutos transcurridos desde la primera hora visible
+  y `height` con la duracion real entre `startAt` y `endAt`.
+- Una reserva `12:00 - 13:30` ocupa visualmente 1.5 horas; una reserva
+  `12:30 - 13:30` inicia a media hora y ocupa 1 hora; una reserva
+  `08:00 - 08:30` ocupa media hora.
+- La etiqueta visible y el dialogo usan el horario real. No se modifican
+  reservas, validaciones backend, Google Calendar API ni Gmail API.
+
 ### Cancelacion controlada
 
 La ruta `/mis-reservas/:reservationId` muestra el boton `Cancelar reserva`

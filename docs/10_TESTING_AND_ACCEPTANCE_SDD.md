@@ -524,3 +524,20 @@ Validaciones adicionales:
 - una reserva de hora exacta, por ejemplo `08:00 - 09:00`, debe conservar el
   mismo comportamiento anterior;
 - los bloques de dia no disponible deben seguir sin saturar la vista.
+
+### Correccion 17C.1B
+
+Validaciones visuales adicionales:
+
+- `12:00 - 13:30`: inicia en la linea de 12:00 y termina a mitad entre 13:00 y
+  14:00.
+- `12:30 - 13:30`: inicia a mitad entre 12:00 y 13:00 y termina a mitad entre
+  13:00 y 14:00.
+- `08:00 - 09:00`: ocupa exactamente una hora visual.
+- `08:00 - 08:30`: ocupa media hora visual.
+- `13:30 - 14:00`: ocupa media hora visual.
+- `Dia no disponible` sigue mostrando un bloque claro sin repetir texto.
+- La etiqueta y el dialogo de detalle muestran el horario real.
+
+Estas pruebas son visuales y no deben implicar cambios en reservas, Google
+Calendar API, Gmail API, Firestore Rules ni Storage Rules.

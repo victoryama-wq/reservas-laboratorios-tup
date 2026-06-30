@@ -479,3 +479,21 @@ Ejemplos esperados:
 
 Este ajuste debe mantenerse en escritorio, tablet y movil sin repetir texto por
 celda y sin romper el comportamiento de vista mensual.
+
+## Actualizacion 17C.1B: eje temporal proporcional
+
+La vista semanal debe renderizar cada columna de dia como un contenedor relativo
+con bloques posicionados por minutos. La altura de una hora visual se controla
+por `--calendar-hour-height`; cada minuto se deriva de esa altura para calcular
+`top` y `height`.
+
+Requisitos responsive:
+
+- conservar columna de horas fija y lineas de referencia;
+- evitar scroll horizontal innecesario en movil;
+- mantener legibles bloques de 30 minutos o menores;
+- usar `aria-label` con horario real cuando un bloque sea interactivo;
+- conservar vista mensual resumida sin saturacion.
+
+Este comportamiento visual no debe cambiar la seleccion, los formularios,
+payloads, servicios ni backend.

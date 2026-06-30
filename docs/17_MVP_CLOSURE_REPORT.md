@@ -581,3 +581,26 @@ Pendiente operativo:
 
 - otorgar o confirmar permiso `iam.serviceAccounts.signBlob` al service account
   runtime antes del smoke real de apertura de protocolos.
+
+## 32. Seguimiento Fase 17C.1B: calendario proporcional por minutos
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual, commit y deploy
+cuando el propietario lo autorice.
+
+Causa atendida:
+
+- la etiqueta del bloque ya podia mostrar `12:00 - 13:30`, pero la lectura
+  visual seguia dependiendo de una grilla horaria;
+- esto podia hacer que reservas con minutos intermedios se percibieran
+  desfasadas o poco intuitivas.
+
+Correcciones:
+
+- la vista semanal calcula offset y duracion en minutos reales;
+- `top` usa minutos desde la primera hora visible;
+- `height` usa la duracion real entre inicio y fin;
+- los bloques quedan posicionados de forma proporcional, similar a Google
+  Calendar;
+- se conservan etiquetas reales y dialogos con horario exacto;
+- no se modifican reservas, Google Calendar API, Gmail API, roles, estatus,
+  payloads ni reglas de seguridad.

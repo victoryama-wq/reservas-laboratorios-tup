@@ -212,34 +212,42 @@ export class AvailabilityCalendarComponent {
     return this.disabled() || (block.status === 'available' && block.slot.disabled === true);
   }
 
-  protected blockGridRow(block: AvailabilityBlock): string {
-    return `${block.startIndex + 1} / span ${block.span}`;
-  }
-
-  protected blockTop(block: AvailabilityBlock): number {
-    const totalMinutes = this.hours().length * 60;
+  protected blockOffsetMinutes(block: AvailabilityBlock): number {
     const firstHour = this.hours().at(0);
 
-    if (!firstHour || totalMinutes <= 0) {
+    if (!firstHour) {
       return 0;
     }
 
-    const offset = this.timeToMinutes(block.startTime) -
-      this.timeToMinutes(firstHour);
+    const visibleStart = this.timeToMinutes(firstHour);
+    const visibleEnd = visibleStart + this.visibleDurationMinutes();
+    const start = this.normalizeEndMinutes(
+      this.timeToMinutes(block.startTime),
+      visibleStart,
+    );
+    const clippedStart = Math.min(Math.max(start, visibleStart), visibleEnd);
 
-    return this.clampPercent((offset / totalMinutes) * 100);
+    return clippedStart - visibleStart;
   }
 
-  protected blockHeight(block: AvailabilityBlock): number {
-    const totalMinutes = this.hours().length * 60;
-    const duration = this.timeToMinutes(block.endTime) -
-      this.timeToMinutes(block.startTime);
+  protected blockDurationMinutes(block: AvailabilityBlock): number {
+    const firstHour = this.hours().at(0);
 
-    if (totalMinutes <= 0 || duration <= 0) {
+    if (!firstHour) {
       return 0;
     }
 
-    return this.clampPercent((duration / totalMinutes) * 100);
+    const visibleStart = this.timeToMinutes(firstHour);
+    const visibleEnd = visibleStart + this.visibleDurationMinutes();
+    const start = this.normalizeEndMinutes(
+      this.timeToMinutes(block.startTime),
+      visibleStart,
+    );
+    const end = this.normalizeEndMinutes(this.timeToMinutes(block.endTime), start);
+    const clippedStart = Math.min(Math.max(start, visibleStart), visibleEnd);
+    const clippedEnd = Math.min(Math.max(end, visibleStart), visibleEnd);
+
+    return Math.max(clippedEnd - clippedStart, 1);
   }
 
   protected blockAriaLabel(day: AvailabilityDay, block: AvailabilityBlock): string {
@@ -463,7 +471,11 @@ export class AvailabilityCalendarComponent {
     return Number(hours) * 60 + Number(minutes);
   }
 
-  private clampPercent(value: number): number {
-    return Math.min(Math.max(value, 0), 100);
+  private visibleDurationMinutes(): number {
+    return this.hours().length * 60;
+  }
+
+  private normalizeEndMinutes(minutes: number, referenceMinutes: number): number {
+    return minutes < referenceMinutes ? minutes + 24 * 60 : minutes;
   }
 }

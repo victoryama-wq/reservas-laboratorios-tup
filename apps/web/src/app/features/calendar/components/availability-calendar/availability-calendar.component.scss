@@ -2,6 +2,7 @@
   display: block;
   min-width: 0;
   --calendar-hour-height: 4.75rem;
+  --calendar-minute-height: calc(var(--calendar-hour-height) / 60);
 }
 
 .availability-calendar,
@@ -90,6 +91,20 @@
   background: var(--surface);
 }
 
+.availability-calendar__day-column::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc((var(--calendar-hour-height) / 2) - 1px),
+    rgb(148 163 184 / 10%) calc((var(--calendar-hour-height) / 2) - 1px),
+    rgb(148 163 184 / 10%) calc(var(--calendar-hour-height) / 2)
+  );
+}
+
 .availability-calendar__day-column.is-disabled {
   min-height: 100%;
   place-items: center;
@@ -124,11 +139,13 @@
 
 .availability-block {
   position: absolute;
+  top: calc(var(--block-offset-minutes, 0) * var(--calendar-minute-height));
   right: 0.35rem;
   left: 0.35rem;
   z-index: 1;
   box-sizing: border-box;
   display: grid;
+  height: calc(var(--block-duration-minutes, 60) * var(--calendar-minute-height));
   place-content: center;
   justify-items: center;
   gap: 0.15rem;

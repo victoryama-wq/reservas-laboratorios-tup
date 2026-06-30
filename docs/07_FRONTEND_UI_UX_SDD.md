@@ -1081,3 +1081,22 @@ El calendario visual debe mostrar siempre el horario real de `startAt` y
 `endAt` para reservas o bloqueos. Si una reserva termina a las 13:30, la tarjeta
 de disponibilidad debe decir `12:00 - 13:30`, no `12:00 - 14:00`. La posicion
 visual puede calcularse por minutos, pero el texto visible no debe redondearse.
+
+### Correccion 17C.1B
+
+La vista semanal del calendario de disponibilidad debe comportarse como un eje
+vertical de tiempo. Los bloques ocupados, pendientes, seleccionados o no
+disponibles se posicionan con base en los minutos reales desde la primera hora
+visible y se dimensionan con la duracion real del evento.
+
+Reglas visuales:
+
+- `12:00 - 13:30` ocupa 1.5 horas visuales;
+- `12:30 - 13:30` inicia a media hora y ocupa 1 hora visual;
+- `08:00 - 08:30` ocupa media hora visual;
+- la etiqueta visible conserva `startAt/endAt` reales;
+- las lineas de hora quedan como referencia detras de los bloques;
+- no se repite `Ocupado` por celda horaria.
+
+Este ajuste no cambia servicios, payloads, reservas, Calendar API, Gmail API ni
+reglas de negocio.
