@@ -365,7 +365,27 @@ export const getReservationReviewLogs = onCall(
       const input = parseReviewLogsInput(request.data);
       const context = await loadReviewLogsContext(request, input);
 
-      assertCanReview(context.profile, context.reservation);
+      const allowed = canReviewReservation(
+          context.profile,
+          context.reservation,
+      );
+
+      logReviewLogsAccess({
+        reservationId: input.reservationId,
+        reservationFound: true,
+        reservationLabId: context.reservation.labId,
+        actorUid: context.profile.uid,
+        actorRole: context.profile.role,
+        labsAssignedCount: getAssignedLabIds(context.profile).length,
+        allowed,
+      });
+
+      if (!allowed) {
+        throw new HttpsError(
+            "permission-denied",
+            "No tiene permiso para consultar la bitacora de esta reserva.",
+        );
+      }
 
       const snapshot = await getFirestore()
           .collection("reservationLogs")
@@ -382,6 +402,17 @@ export const getReservationReviewLogs = onCall(
           .sort((first, second) =>
             first.createdAt.localeCompare(second.createdAt),
           );
+
+      logReviewLogsAccess({
+        reservationId: input.reservationId,
+        reservationFound: true,
+        reservationLabId: context.reservation.labId,
+        actorUid: context.profile.uid,
+        actorRole: context.profile.role,
+        labsAssignedCount: getAssignedLabIds(context.profile).length,
+        allowed: true,
+        logsCount: logs.length,
+      });
 
       return {
         reservationId: input.reservationId,
@@ -729,6 +760,15 @@ async function loadReviewLogsContext(
 
   const reservation = await repository.getReservationById(input.reservationId);
   if (!reservation) {
+    logReviewLogsAccess({
+      reservationId: input.reservationId,
+      reservationFound: false,
+      actorUid: profile.uid,
+      actorRole: profile.role,
+      labsAssignedCount: getAssignedLabIds(profile).length,
+      allowed: false,
+    });
+
     throw new HttpsError("not-found", "La reserva no existe.");
   }
 
@@ -742,14 +782,7 @@ async function loadReviewLogsContext(
  * @param {ReservationDoc} reservation Reservation.
  */
 function assertCanReview(profile: AppUser, reservation: ReservationDoc): void {
-  if (profile.role === "admin_sistemas") {
-    return;
-  }
-
-  if (
-    profile.role === "responsable_laboratorio" &&
-    profile.labsAssigned.includes(reservation.labId)
-  ) {
+  if (canReviewReservation(profile, reservation)) {
     return;
   }
 
@@ -757,6 +790,62 @@ function assertCanReview(profile: AppUser, reservation: ReservationDoc): void {
       "permission-denied",
       "No tiene permiso para revisar esta reserva.",
   );
+}
+
+/**
+ * Determines if a profile can review a reservation.
+ *
+ * @param {AppUser} profile Reviewer profile.
+ * @param {ReservationDoc} reservation Reservation.
+ * @return {boolean} True when access is allowed.
+ */
+function canReviewReservation(
+    profile: AppUser,
+    reservation: ReservationDoc,
+): boolean {
+  if (profile.role === "admin_sistemas") {
+    return true;
+  }
+
+  if (profile.role !== "responsable_laboratorio") {
+    return false;
+  }
+
+  return getAssignedLabIds(profile).includes(reservation.labId);
+}
+
+/**
+ * Normalizes assigned laboratory ids from user profile.
+ *
+ * @param {AppUser} profile User profile.
+ * @return {string[]} Assigned lab ids.
+ */
+function getAssignedLabIds(profile: AppUser): string[] {
+  if (!Array.isArray(profile.labsAssigned)) {
+    return [];
+  }
+
+  return profile.labsAssigned.filter(
+      (labId): labId is string => typeof labId === "string" && labId.length > 0,
+  );
+}
+
+/**
+ * Writes safe diagnostics for reservation review log access.
+ *
+ * @param {object} details Safe diagnostic fields.
+ */
+function logReviewLogsAccess(details: {
+  reservationId: string;
+  reservationFound: boolean;
+  reservationLabId?: string;
+  actorUid: string;
+  actorRole: string;
+  labsAssignedCount: number;
+  allowed: boolean;
+  logsCount?: number;
+}): void {
+  logger.info("Reservation review logs access", details);
 }
 
 /**
@@ -775,7 +864,7 @@ function assertCanAccessProtocol(
 
   if (
     profile.role === "responsable_laboratorio" &&
-    profile.labsAssigned.includes(reservation.labId)
+    getAssignedLabIds(profile).includes(reservation.labId)
   ) {
     return;
   }

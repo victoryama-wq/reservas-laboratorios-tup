@@ -646,3 +646,20 @@ Correcciones:
   Gmail API, roles, estatus ni reglas de seguridad.
 
 No se registra auditoria por lectura de bitacora para evitar ruido operativo.
+
+### 34.1 Correccion Fase 17C.2A
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual con
+`responsable_laboratorio` asignado.
+
+Correcciones:
+
+- `getReservationReviewLogs` normaliza `labsAssigned` antes de validar acceso;
+- si `labsAssigned` falta o no es arreglo, se trata como lista vacia;
+- la falta de permiso devuelve un error controlado y no `INTERNAL`;
+- la UI muestra un texto especifico cuando no hay eventos de bitacora;
+- se agrega diagnostico seguro en Cloud Logging para revisar coincidencias
+  entre `reservation.labId` y laboratorios asignados.
+
+No se modifican reservas, aprobaciones, rechazos, cancelaciones, Calendar API,
+Gmail API, roles, estatus, Firestore Rules ni Storage Rules.

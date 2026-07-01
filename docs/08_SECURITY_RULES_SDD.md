@@ -243,3 +243,11 @@ la callable `getReservationReviewLogs`, que valida:
 La callable devuelve solo eventos saneados para UI. No devuelve `calendarId`,
 `storagePath`, URLs firmadas, secretos, stack traces, metadata cruda ni UIDs
 como dato principal.
+
+Correccion 17C.2A:
+
+La callable debe tratar `labsAssigned` faltante o invalido como lista vacia y
+devolver un rechazo controlado. No se debe abrir lectura directa de
+`reservationLogs` en reglas Firestore para compensar errores de frontend o de
+perfil. El diagnostico operativo debe registrarse en Cloud Logging sin
+`calendarId`, rutas de Storage, URLs firmadas, secretos ni stack traces.

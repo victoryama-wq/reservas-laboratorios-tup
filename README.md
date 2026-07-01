@@ -1468,3 +1468,23 @@ Comportamiento:
 
 Esta fase no modifica creacion, aprobacion, rechazo, cancelacion, Google
 Calendar API, Gmail API, roles, estatus ni reglas de seguridad.
+
+### Correccion 17C.2A: visibilidad de bitacora para responsables
+
+`getReservationReviewLogs` normaliza `users/{uid}.labsAssigned` antes de
+validar permisos. Esto evita errores tecnicos si el arreglo no existe en un
+perfil antiguo y mantiene la regla oficial: el responsable solo ve la bitacora
+cuando `reservation.labId` coincide con un laboratorio asignado.
+
+La funcion registra diagnostico seguro en Cloud Logging para diferenciar:
+
+- reserva encontrada o no encontrada;
+- `reservation.labId`;
+- rol del actor;
+- cantidad de laboratorios asignados;
+- decision de acceso;
+- cantidad de eventos devueltos.
+
+No registra `calendarId`, rutas de Storage, URLs firmadas, correos, secretos ni
+stack traces. La UI diferencia entre bitacora vacia, falta de permiso y error
+tecnico.

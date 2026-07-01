@@ -1138,5 +1138,16 @@ Reglas de UI:
 - si falla el servicio, mostrar:
   `No fue posible cargar la bitacora. Intenta nuevamente.`;
 - si no hay eventos, mostrar:
-  `Sin eventos de bitacora disponibles.`;
+  `No hay eventos de bitacora registrados para esta reserva.`;
 - no mostrar JSON crudo, `internal`, stack traces ni metadata sensible.
+
+Correccion 17C.2A:
+
+La UI debe conservar mensajes diferenciados para la bitacora responsable:
+
+- sin eventos: la reserva no tiene eventos de bitacora registrados;
+- sin permiso: el usuario no puede consultar la bitacora de esa reserva;
+- error tecnico: no fue posible cargar la bitacora.
+
+Ningun caso debe mostrar `INTERNAL`, errores crudos del SDK, JSON, stack traces
+ni rutas tecnicas.

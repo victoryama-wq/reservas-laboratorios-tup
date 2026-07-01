@@ -559,6 +559,18 @@ Pruebas manuales requeridas:
 - confirmar que consultar la bitacora no modifica reservas ni crea eventos de
   auditoria de lectura.
 
+Pruebas adicionales de correccion 17C.2A:
+
+- confirmar que una reserva sin eventos muestra
+  `No hay eventos de bitacora registrados para esta reserva.`;
+- confirmar que un responsable no asignado ve mensaje de permiso claro;
+- confirmar que fallas tecnicas muestran mensaje generico y no `INTERNAL`;
+- revisar Cloud Logging y confirmar diagnostico con `reservationId`,
+  `reservationFound`, `reservationLabId`, `actorRole`, `labsAssignedCount`,
+  `allowed` y `logsCount` cuando aplique;
+- confirmar que los logs no imprimen `calendarId`, rutas de Storage, URLs
+  firmadas, secretos ni stack traces completos.
+
 Pruebas tecnicas:
 
 - `npm --prefix functions run lint`;

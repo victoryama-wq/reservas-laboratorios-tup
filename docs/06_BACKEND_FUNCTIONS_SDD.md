@@ -693,3 +693,24 @@ metadata cruda, `calendarId`, `storagePath`, URLs firmadas, secretos, stack
 traces ni UIDs como dato principal.
 
 No se registra `auditEvents` por cada lectura para evitar ruido operativo.
+
+### Correccion 17C.2A
+
+La validacion de `responsable_laboratorio` en `getReservationReviewLogs` debe
+normalizar `users/{uid}.labsAssigned` como arreglo antes de compararlo contra
+`reservation.labId`. Si el perfil no trae arreglo valido, se trata como lista
+vacia y se devuelve `permission-denied` controlado, nunca un error `internal`.
+
+La funcion puede registrar diagnostico seguro en Cloud Logging:
+
+- `reservationId`;
+- `reservationFound`;
+- `reservationLabId`;
+- `actorUid`;
+- `actorRole`;
+- `labsAssignedCount`;
+- `allowed`;
+- `logsCount` cuando aplique.
+
+No se deben registrar `calendarId`, `storagePath`, URLs firmadas, metadata de
+archivos, secretos, correos ni stack traces completos.
