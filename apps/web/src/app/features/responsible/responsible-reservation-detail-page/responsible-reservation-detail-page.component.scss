@@ -14,9 +14,55 @@
   gap: 20px;
 }
 
-.decision-card {
-  display: block;
-  margin-top: 22px;
+.decision-trigger-card {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid var(--border-soft);
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(255, 255, 255, 0) 54%),
+    var(--surface);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+}
+
+.decision-trigger-card__content {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.decision-trigger-card__icon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 18px;
+  color: var(--brand-secondary);
+  background: var(--info-bg);
+}
+
+.decision-trigger-card h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.decision-trigger-card p {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.decision-trigger-card button {
+  justify-self: start;
+  border-radius: 14px;
+  min-height: 44px;
+  padding-inline: 18px;
 }
 
 .state-card {

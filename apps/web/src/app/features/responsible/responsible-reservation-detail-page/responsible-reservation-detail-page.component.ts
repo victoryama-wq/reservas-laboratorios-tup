@@ -1,12 +1,16 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
 
 import {
-  DecisionPanelComponent,
+  DecisionDialogComponent,
+  DecisionDialogData,
+  DecisionDialogResult,
   ProtocolFileCardComponent,
   ReservationDataGridComponent,
   ReservationTimelineComponent,
@@ -29,8 +33,9 @@ import {
   imports: [
     AppInfoCalloutComponent,
     AppPageHeaderComponent,
-    DecisionPanelComponent,
+    MatButtonModule,
     MatDialogModule,
+    MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     ProtocolFileCardComponent,
@@ -163,6 +168,68 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
     } finally {
       this.openingProtocolPath.set(null);
     }
+  }
+
+  protected canShowDecisionAction(): boolean {
+    const reservation = this.reservation();
+
+    return Boolean(
+      reservation?.status === 'PENDIENTE_VALIDACION' &&
+        !this.submitting() &&
+        !this.openingProtocolPath(),
+    );
+  }
+
+  protected async openDecisionDialog(): Promise<void> {
+    const reservation = this.reservation();
+
+    if (!reservation || !this.canShowDecisionAction()) {
+      return;
+    }
+
+    const result = await firstValueFrom(
+      this.dialog
+        .open<DecisionDialogComponent, DecisionDialogData, DecisionDialogResult>(
+          DecisionDialogComponent,
+          {
+            data: {
+              folio: reservation.folio,
+              labName: reservation.labName,
+              timeLabel: this.formatTime(),
+            },
+            maxWidth: '560px',
+            width: 'calc(100vw - 32px)',
+            panelClass: 'app-decision-dialog-panel',
+            restoreFocus: false,
+          },
+        )
+        .afterClosed(),
+    );
+
+    if (!result) {
+      return;
+    }
+
+    if (result.action === 'reject' && !result.reason?.trim()) {
+      this.snackBar.open('Debe indicar el motivo de rechazo.', 'Cerrar', {
+        duration: 4500,
+      });
+      return;
+    }
+
+    if (result.action === 'approve') {
+      await this.submitDecision(() =>
+        this.reviewService.approveReservation(
+          reservation.id,
+          result.note?.trim() ?? '',
+        ),
+      );
+      return;
+    }
+
+    await this.submitDecision(() =>
+      this.reviewService.rejectReservation(reservation.id, result.reason ?? ''),
+    );
   }
 
   protected async approve(): Promise<void> {

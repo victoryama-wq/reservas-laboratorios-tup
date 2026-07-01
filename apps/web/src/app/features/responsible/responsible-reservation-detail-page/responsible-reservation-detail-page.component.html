@@ -50,23 +50,36 @@
         } @else {
           <app-protocol-file-card />
         }
+
+        @if (canShowDecisionAction()) {
+          <section class="decision-trigger-card" aria-labelledby="decision-trigger-title">
+            <div class="decision-trigger-card__content">
+              <span class="decision-trigger-card__icon" aria-hidden="true">
+                <mat-icon>verified_user</mat-icon>
+              </span>
+              <div>
+                <h2 id="decision-trigger-title">Tomar decisión</h2>
+                <p>
+                  Después de revisar la información y el protocolo, toma una decisión
+                  sobre esta solicitud.
+                </p>
+              </div>
+            </div>
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="openDecisionDialog()"
+            >
+              <mat-icon>rule</mat-icon>
+              Tomar decisión
+            </button>
+          </section>
+        }
       </div>
 
       <app-reservation-timeline [events]="timelineEvents()" />
     </div>
-
-    @if (reservation()?.status === 'PENDIENTE_VALIDACION') {
-      <app-decision-panel
-        class="decision-card"
-        [approvalNote]="approvalNote"
-        [rejectionReason]="rejectionReason"
-        [loading]="submitting()"
-        [disabled]="submitting()"
-        (approvalNoteChange)="approvalNote = $event"
-        (rejectionReasonChange)="rejectionReason = $event"
-        (approve)="approve()"
-        (reject)="reject()"
-      />
-    }
   }
 </section>
