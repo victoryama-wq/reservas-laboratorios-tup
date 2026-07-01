@@ -22,7 +22,6 @@ import {
   AppUser,
   LabDoc,
   ReservationDoc,
-  ReservationLogDoc,
   ReservationStatus,
 } from '../../../shared/models';
 
@@ -38,6 +37,28 @@ export interface ReservationProtocolAccessResult {
   contentType: string;
   url: string;
   expiresInSeconds: number;
+}
+
+export type ReservationReviewTimelineSeverity =
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+  | 'neutral';
+
+export interface ReservationReviewTimelineItem {
+  id: string;
+  action: string;
+  title: string;
+  description: string;
+  severity: ReservationReviewTimelineSeverity;
+  createdAt: string;
+  actorLabel?: string;
+}
+
+interface GetReservationReviewLogsResult {
+  reservationId: string;
+  logs: ReservationReviewTimelineItem[];
 }
 
 export interface ResponsibleReservationView extends ReservationDoc {
@@ -95,23 +116,17 @@ export class ReservationReviewService {
 
   async getReservationLogs(
     reservationId: string,
-  ): Promise<ReservationLogDoc[]> {
-    try {
-      const logsQuery = query(
-        collection(this.firestore, 'reservationLogs'),
-        where('reservationId', '==', reservationId),
-      );
-      const snapshot = await getDocs(logsQuery);
+  ): Promise<ReservationReviewTimelineItem[]> {
+    const callable = httpsCallable<
+      { reservationId: string },
+      GetReservationReviewLogsResult
+    >(this.functions, 'getReservationReviewLogs');
 
-      return snapshot.docs
-        .map((document) => document.data() as ReservationLogDoc)
-        .sort(
-          (first, second) =>
-            (this.toDate(first.createdAt)?.getTime() ?? 0) -
-            (this.toDate(second.createdAt)?.getTime() ?? 0),
-        );
-    } catch {
-      return [];
+    try {
+      const result = await callable({ reservationId });
+      return result.data.logs ?? [];
+    } catch (error) {
+      throw new Error(this.toReviewLogsErrorMessage(error));
     }
   }
 
@@ -346,5 +361,23 @@ export class ReservationReviewService {
       (error as { message?: string }).message ??
       'No fue posible abrir el protocolo. Intenta nuevamente.'
     );
+  }
+
+  private toReviewLogsErrorMessage(error: unknown): string {
+    const code = (error as { code?: unknown }).code;
+
+    if (code === 'functions/permission-denied') {
+      return 'No tienes permiso para consultar la bitacora de esta reserva.';
+    }
+
+    if (code === 'functions/not-found') {
+      return 'La reserva no existe o ya no esta disponible.';
+    }
+
+    if (code === 'functions/unauthenticated') {
+      return 'Debe iniciar sesion para consultar la bitacora.';
+    }
+
+    return 'No fue posible cargar la bitacora. Intenta nuevamente.';
   }
 }

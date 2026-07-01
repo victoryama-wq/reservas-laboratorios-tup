@@ -178,3 +178,16 @@ Storage. La Web App debe solicitar acceso mediante la Cloud Function callable
 Los docentes no pueden abrir protocolos de otras reservas. Los responsables no
 pueden abrir protocolos de laboratorios no asignados. Admin/Sistemas conserva
 acceso operativo a todos los protocolos.
+## Actualizacion Fase 17C.2: bitacora basica de revision
+
+`admin_sistemas` conserva acceso global a bitacoras de reservas.
+
+`responsable_laboratorio` puede consultar una bitacora basica y saneada solo
+para reservas de laboratorios incluidos en `users/{uid}.labsAssigned`.
+
+`docente` no consulta la bitacora de revision mediante la callable responsable.
+La vista docente mantiene su propio flujo de consulta de reservas propias.
+
+La bitacora visible para responsables no debe exponer `calendarId`,
+`storagePath`, URLs firmadas, UIDs como dato principal, stack traces, secretos
+ni metadata cruda.

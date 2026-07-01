@@ -649,3 +649,47 @@ debe quedar sin controlar. Para firmar URLs desde Cloud Functions v2, el service
 account de ejecucion debe contar con `iam.serviceAccounts.signBlob`; si no lo
 tiene, el smoke real de apertura de protocolo fallara aunque las validaciones de
 rol y reserva sean correctas.
+
+## Actualizacion Fase 17C.2: getReservationReviewLogs
+
+La Cloud Function callable `getReservationReviewLogs` devuelve una bitacora
+basica y saneada para el detalle de revision responsable.
+
+Entrada:
+
+```ts
+interface GetReservationReviewLogsInput {
+  reservationId: string;
+}
+```
+
+Salida:
+
+```ts
+interface ReservationReviewTimelineItem {
+  id: string;
+  action: string;
+  title: string;
+  description: string;
+  severity: 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+  createdAt: string;
+  actorLabel?: string;
+}
+```
+
+Validaciones:
+
+- usuario autenticado;
+- perfil activo en `users/{uid}`;
+- reserva existente;
+- acceso global para `admin_sistemas`;
+- acceso para `responsable_laboratorio` solo si `reservation.labId` esta en
+  `users/{uid}.labsAssigned`;
+- rechazo de docentes y responsables no asignados.
+
+La funcion lee `reservationLogs`, limita la respuesta a 100 eventos, ordena por
+fecha y traduce acciones tecnicas a titulos administrativos. No devuelve
+metadata cruda, `calendarId`, `storagePath`, URLs firmadas, secretos, stack
+traces ni UIDs como dato principal.
+
+No se registra `auditEvents` por cada lectura para evitar ruido operativo.

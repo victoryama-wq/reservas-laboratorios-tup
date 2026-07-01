@@ -616,3 +616,33 @@ como boton secundario completo y `Reservar` sigue como accion primaria. La fase
 es exclusivamente visual/responsive y no modifica reservas, aprobaciones,
 cancelaciones, Calendar API, Gmail API, Firestore Rules, Storage Rules, roles ni
 estatus.
+
+## 34. Seguimiento Fase 17C.2: bitacora responsable saneada
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual, commit y deploy
+cuando el propietario lo autorice.
+
+Causa atendida:
+
+- la vista responsable intentaba leer `reservationLogs` directamente desde
+  Angular;
+- Firestore Rules restringen esa lectura principalmente a Admin/Sistemas;
+- el responsable podia terminar viendo una bitacora vacia aunque la reserva
+  tuviera eventos.
+
+Correcciones:
+
+- se agrega la callable `getReservationReviewLogs`;
+- la callable valida perfil activo, rol y laboratorio asignado;
+- `admin_sistemas` conserva acceso global;
+- `responsable_laboratorio` solo accede si `reservation.labId` esta en
+  `users/{uid}.labsAssigned`;
+- los logs se traducen a titulos y descripciones legibles;
+- se oculta metadata cruda, `calendarId`, `storagePath`, URLs firmadas, UIDs,
+  stack traces y secretos;
+- la UI reutiliza `ReservationTimelineComponent`;
+- los errores de permiso y servicio se muestran con mensajes claros;
+- no se modifica creacion, aprobacion, rechazo, cancelacion, Calendar API,
+  Gmail API, roles, estatus ni reglas de seguridad.
+
+No se registra auditoria por lectura de bitacora para evitar ruido operativo.

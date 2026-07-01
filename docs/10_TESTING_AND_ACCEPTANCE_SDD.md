@@ -541,3 +541,27 @@ Validaciones visuales adicionales:
 
 Estas pruebas son visuales y no deben implicar cambios en reservas, Google
 Calendar API, Gmail API, Firestore Rules ni Storage Rules.
+## Actualizacion Fase 17C.2: QA de bitacora responsable
+
+Pruebas manuales requeridas:
+
+- entrar como `responsable_laboratorio` asignado a un laboratorio;
+- abrir `/responsable/solicitudes`;
+- abrir `/responsable/reserva/:reservationId`;
+- confirmar que la bitacora basica muestra textos legibles;
+- confirmar que no aparecen `calendarId`, `storagePath`, URLs firmadas, UIDs
+  como dato principal ni metadata cruda;
+- aprobar o rechazar una reserva de prueba y confirmar que la bitacora refleja
+  el nuevo evento;
+- entrar como responsable no asignado y confirmar que no puede consultar la
+  bitacora de laboratorios ajenos;
+- entrar como `admin_sistemas` y confirmar acceso global;
+- confirmar que consultar la bitacora no modifica reservas ni crea eventos de
+  auditoria de lectura.
+
+Pruebas tecnicas:
+
+- `npm --prefix functions run lint`;
+- `npm --prefix functions run build`;
+- `npm --prefix apps/web run build`;
+- `git diff --check`.

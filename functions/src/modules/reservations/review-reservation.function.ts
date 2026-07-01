@@ -31,6 +31,8 @@ import {
   NotificationType,
   ProtocolFile,
   ReservationDoc,
+  ReservationLogDoc,
+  ReservationStatus,
   SystemSettingsDoc,
 } from "../../shared/models";
 import {ReservationRepository} from "./reservation.repository";
@@ -54,6 +56,10 @@ interface GetReservationProtocolAccessInput {
   storagePath?: string;
 }
 
+interface GetReservationReviewLogsInput {
+  reservationId?: string;
+}
+
 interface ReviewReservationOutput {
   reservationId: string;
   folio: string;
@@ -66,6 +72,28 @@ interface ReservationProtocolAccessOutput {
   contentType: string;
   url: string;
   expiresInSeconds: number;
+}
+
+type ReviewTimelineSeverity =
+  | "success"
+  | "warning"
+  | "danger"
+  | "info"
+  | "neutral";
+
+interface ReservationReviewTimelineItem {
+  id: string;
+  action: string;
+  title: string;
+  description: string;
+  severity: ReviewTimelineSeverity;
+  createdAt: string;
+  actorLabel?: string;
+}
+
+interface GetReservationReviewLogsOutput {
+  reservationId: string;
+  logs: ReservationReviewTimelineItem[];
 }
 
 const PROTOCOL_ACCESS_TTL_SECONDS = 10 * 60;
@@ -324,6 +352,45 @@ export const getReservationProtocolAccess = onCall(
 );
 
 /**
+ * Returns a safe, readable timeline for reservation reviewers.
+ */
+export const getReservationReviewLogs = onCall(
+    {
+      region: REGION,
+      invoker: "public",
+    },
+    async (
+        request: CallableRequest<unknown>,
+    ): Promise<GetReservationReviewLogsOutput> => {
+      const input = parseReviewLogsInput(request.data);
+      const context = await loadReviewLogsContext(request, input);
+
+      assertCanReview(context.profile, context.reservation);
+
+      const snapshot = await getFirestore()
+          .collection("reservationLogs")
+          .where("reservationId", "==", input.reservationId)
+          .limit(100)
+          .get();
+
+      const logs = snapshot.docs
+          .map((document) => toReviewTimelineItem(
+              document.id,
+              document.data() as ReservationLogDoc,
+              context.repository,
+          ))
+          .sort((first, second) =>
+            first.createdAt.localeCompare(second.createdAt),
+          );
+
+      return {
+        reservationId: input.reservationId,
+        logs,
+      };
+    },
+);
+
+/**
  * Marks a reservation as ERROR_CALENDAR after a Calendar failure.
  *
  * @param {ReviewContext} context Review context.
@@ -560,9 +627,38 @@ function parseProtocolAccessInput(data: unknown): {
   };
 }
 
+/**
+ * Parses review logs input.
+ *
+ * @param {unknown} data Callable data.
+ * @return {{reservationId: string}} Parsed input.
+ */
+function parseReviewLogsInput(data: unknown): {
+  reservationId: string;
+} {
+  const input = data as GetReservationReviewLogsInput;
+  if (typeof input?.reservationId !== "string" ||
+      !input.reservationId.trim()) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Debe indicar la reserva para consultar la bitacora.",
+    );
+  }
+
+  return {
+    reservationId: input.reservationId.trim(),
+  };
+}
+
 interface ProtocolAccessContext {
   profile: AppUser;
   reservation: ReservationDoc;
+}
+
+interface ReviewLogsContext {
+  profile: AppUser;
+  reservation: ReservationDoc;
+  repository: ReservationRepository;
 }
 
 /**
@@ -600,6 +696,43 @@ async function loadProtocolAccessContext(
   }
 
   return {profile, reservation};
+}
+
+/**
+ * Loads context required to read safe review logs.
+ *
+ * @param {CallableRequest<unknown>} request Callable request.
+ * @param {{reservationId: string}} input Parsed input.
+ * @return {Promise<ReviewLogsContext>} Review logs context.
+ */
+async function loadReviewLogsContext(
+    request: CallableRequest<unknown>,
+    input: {reservationId: string},
+): Promise<ReviewLogsContext> {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError(
+        "unauthenticated",
+        "Debe iniciar sesion para consultar la bitacora.",
+    );
+  }
+
+  const repository = new ReservationRepository(getFirestore());
+  const profile = await repository.getUserProfile(uid);
+
+  if (!profile?.active) {
+    throw new HttpsError(
+        "permission-denied",
+        "Su perfil institucional no esta activo.",
+    );
+  }
+
+  const reservation = await repository.getReservationById(input.reservationId);
+  if (!reservation) {
+    throw new HttpsError("not-found", "La reserva no existe.");
+  }
+
+  return {profile, reservation, repository};
 }
 
 /**
@@ -658,6 +791,236 @@ function assertCanAccessProtocol(
       "permission-denied",
       "No tiene permiso para abrir este protocolo.",
   );
+}
+
+/**
+ * Converts a raw reservation log into a safe timeline item for reviewers.
+ *
+ * @param {string} documentId Firestore document id.
+ * @param {ReservationLogDoc} log Raw reservation log.
+ * @param {ReservationRepository} repository Repository for date parsing.
+ * @return {ReservationReviewTimelineItem} Safe timeline item.
+ */
+function toReviewTimelineItem(
+    documentId: string,
+    log: ReservationLogDoc,
+    repository: ReservationRepository,
+): ReservationReviewTimelineItem {
+  const text = buildTimelineText(log);
+  const safeNote = toSafeTimelineNote(log.note);
+  const createdAt = repository.toDate(log.createdAt)?.toISOString() ?? "";
+
+  return {
+    id: log.id || documentId,
+    action: log.action,
+    title: text.title,
+    description: safeNote ?? text.description,
+    severity: text.severity,
+    createdAt,
+    actorLabel: toSafeActorLabel(log),
+  };
+}
+
+/**
+ * Builds readable title, description and severity for a log.
+ *
+ * @param {ReservationLogDoc} log Reservation log.
+ * @return {object} Readable timeline text.
+ */
+function buildTimelineText(log: ReservationLogDoc): {
+  title: string;
+  description: string;
+  severity: ReviewTimelineSeverity;
+} {
+  if (log.action === "STATUS_CHANGED") {
+    const status = log.newStatus;
+    return {
+      title: status ? statusToReadableLabel(status) : "Estatus actualizado",
+      description: "El estatus de la reserva fue actualizado.",
+      severity: status ? severityFromStatus(status) : "info",
+    };
+  }
+
+  const fallback: Record<ReservationLogDoc["action"], {
+    title: string;
+    description: string;
+    severity: ReviewTimelineSeverity;
+  }> = {
+    APPROVED: {
+      title: "Solicitud aprobada",
+      description: "La solicitud fue aprobada por el responsable.",
+      severity: "success",
+    },
+    AUTO_CONFIRMED: {
+      title: "Reserva confirmada automaticamente",
+      description: "La reserva fue confirmada automaticamente por el sistema.",
+      severity: "success",
+    },
+    CALENDAR_ERROR: {
+      title: "Error de calendario",
+      description: "Hubo un problema al sincronizar con Google Calendar.",
+      severity: "danger",
+    },
+    CALENDAR_EVENT_CANCELLED: {
+      title: "Evento de calendario cancelado",
+      description: "El evento asociado fue cancelado en el calendario.",
+      severity: "neutral",
+    },
+    CALENDAR_EVENT_CREATED: {
+      title: "Agendada en calendario",
+      description: "El evento fue creado en el calendario institucional.",
+      severity: "success",
+    },
+    CANCELLED: {
+      title: "Reserva cancelada",
+      description: "La reserva fue cancelada.",
+      severity: "neutral",
+    },
+    CREATED: {
+      title: "Solicitud registrada",
+      description: "La solicitud fue recibida por el sistema.",
+      severity: "info",
+    },
+    EMAIL_ERROR: {
+      title: "Error al enviar notificacion",
+      description: "No fue posible enviar una notificacion por correo.",
+      severity: "warning",
+    },
+    EMAIL_SENT: {
+      title: "Notificacion enviada",
+      description: "Se envio la notificacion correspondiente.",
+      severity: "info",
+    },
+    PENDING_APPROVAL: {
+      title: "Pendiente de validacion",
+      description: "La solicitud requiere revision del responsable.",
+      severity: "warning",
+    },
+    REJECTED: {
+      title: "Solicitud rechazada",
+      description: "La solicitud fue rechazada por el responsable.",
+      severity: "danger",
+    },
+    STATUS_CHANGED: {
+      title: "Estatus actualizado",
+      description: "El estatus de la reserva fue actualizado.",
+      severity: "info",
+    },
+  };
+
+  return fallback[log.action];
+}
+
+/**
+ * Converts official reservation status into a readable label.
+ *
+ * @param {ReservationStatus} status Reservation status.
+ * @return {string} Readable status.
+ */
+function statusToReadableLabel(status: ReservationStatus): string {
+  const labels: Record<ReservationStatus, string> = {
+    CANCELADA: "Reserva cancelada",
+    CONFIRMADA: "Reserva confirmada",
+    CONFIRMADA_TRAS_VALIDACION: "Reserva aprobada",
+    ERROR_CALENDAR: "Error de calendario",
+    PENDIENTE_VALIDACION: "Pendiente de validacion",
+    RECIBIDA: "Solicitud recibida",
+    RECHAZADA_CONFLICTO: "Rechazada por conflicto",
+    RECHAZADA_MIN_ANTICIPACION: "Rechazada por anticipacion minima",
+    RECHAZADA_POR_RESPONSABLE: "Rechazada por responsable",
+    RECHAZADA_REGLA_HORARIO: "Rechazada por regla de horario",
+  };
+
+  return labels[status];
+}
+
+/**
+ * Maps reservation status to visual severity.
+ *
+ * @param {ReservationStatus} status Reservation status.
+ * @return {ReviewTimelineSeverity} Timeline severity.
+ */
+function severityFromStatus(
+    status: ReservationStatus,
+): ReviewTimelineSeverity {
+  if (status === "CONFIRMADA" ||
+      status === "CONFIRMADA_TRAS_VALIDACION") {
+    return "success";
+  }
+
+  if (status === "PENDIENTE_VALIDACION" || status === "RECIBIDA") {
+    return "warning";
+  }
+
+  if (status === "CANCELADA") {
+    return "neutral";
+  }
+
+  return "danger";
+}
+
+/**
+ * Keeps only safe human notes for the reviewer timeline.
+ *
+ * @param {string | undefined} note Raw note.
+ * @return {string | undefined} Safe note.
+ */
+function toSafeTimelineNote(note?: string): string | undefined {
+  if (typeof note !== "string") {
+    return undefined;
+  }
+
+  const trimmed = note.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const unsafePattern =
+    /[{}`]|protocolUploads\/|labImages\/|storagePath|calendarId|stack/i;
+  if (unsafePattern.test(trimmed)) {
+    return undefined;
+  }
+
+  return trimmed.length > 260 ? `${trimmed.slice(0, 257)}...` : trimmed;
+}
+
+/**
+ * Returns a non-sensitive actor label.
+ *
+ * @param {ReservationLogDoc} log Reservation log.
+ * @return {string | undefined} Actor label.
+ */
+function toSafeActorLabel(log: ReservationLogDoc): string | undefined {
+  if (log.action === "CREATED") {
+    return "Docente";
+  }
+
+  if (log.action === "APPROVED" || log.action === "REJECTED") {
+    return "Responsable";
+  }
+
+  if (
+    log.action === "AUTO_CONFIRMED" ||
+    log.action === "PENDING_APPROVAL" ||
+    log.action === "CALENDAR_EVENT_CREATED" ||
+    log.action === "CALENDAR_EVENT_CANCELLED" ||
+    log.action === "CALENDAR_ERROR" ||
+    log.action === "EMAIL_SENT" ||
+    log.action === "EMAIL_ERROR" ||
+    log.action === "STATUS_CHANGED"
+  ) {
+    return "Sistema";
+  }
+
+  if (log.action === "CANCELLED") {
+    return "Usuario institucional";
+  }
+
+  if (log.actorUid || log.actorEmail) {
+    return "Sistema";
+  }
+
+  return undefined;
 }
 
 /**

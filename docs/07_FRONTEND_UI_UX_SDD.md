@@ -1122,3 +1122,21 @@ secundario real con icono, fondo suave, borde, radio consistente, foco visible y
 area tactil completa. `Reservar` sigue siendo la accion primaria. No se deben
 alterar rutas, servicios, modelos, roles ni reglas de negocio por ajustes
 visuales.
+## Actualizacion Fase 17C.2: timeline responsable saneado
+
+La vista `/responsable/reserva/:reservationId` debe mostrar la bitacora basica
+con el componente visual reutilizable `ReservationTimelineComponent`.
+
+Reglas de UI:
+
+- mostrar titulos legibles, no acciones tecnicas como texto principal;
+- usar severidades visuales `success`, `warning`, `danger`, `info` y
+  `neutral`;
+- no repetir datos ya visibles en las cards de la reserva;
+- si la callable falla por permisos, mostrar:
+  `No tienes permiso para consultar la bitacora de esta reserva.`;
+- si falla el servicio, mostrar:
+  `No fue posible cargar la bitacora. Intenta nuevamente.`;
+- si no hay eventos, mostrar:
+  `Sin eventos de bitacora disponibles.`;
+- no mostrar JSON crudo, `internal`, stack traces ni metadata sensible.

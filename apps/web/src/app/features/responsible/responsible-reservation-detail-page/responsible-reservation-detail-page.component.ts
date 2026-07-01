@@ -22,9 +22,10 @@ import {
   ConfirmationDialogComponent,
   ConfirmationDialogData,
 } from '../../../shared/components';
-import { ProtocolFile, ReservationLogDoc } from '../../../shared/models';
+import { ProtocolFile } from '../../../shared/models';
 import {
   ReservationReviewService,
+  ReservationReviewTimelineItem,
   ResponsibleReservationView,
 } from '../services/reservation-review.service';
 
@@ -55,10 +56,11 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal('');
+  protected readonly logsMessage = signal('');
   protected readonly protocolMessage = signal('');
   protected readonly openingProtocolPath = signal<string | null>(null);
   protected readonly reservation = signal<ResponsibleReservationView | null>(null);
-  protected readonly logs = signal<ReservationLogDoc[]>([]);
+  protected readonly logs = signal<ReservationReviewTimelineItem[]>([]);
   protected approvalNote = '';
   protected rejectionReason = '';
 
@@ -79,7 +81,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
       const reservation =
         await this.reviewService.getReservationById(reservationId);
       this.reservation.set(reservation);
-      this.logs.set(await this.reviewService.getReservationLogs(reservationId));
+      await this.loadTimeline(reservationId);
 
       if (!reservation) {
         this.errorMessage.set('La reserva no existe o no esta disponible.');
@@ -135,11 +137,11 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
 
   protected timelineEvents(): ReservationTimelineEvent[] {
     return this.logs().map((log) => ({
-      status: log.action,
-      label: log.note || 'Sin nota',
-      date: this.formatLogDate(log),
-      actor: log.actorEmail || log.actorUid || 'Sistema',
-      variant: this.logVariant(log.action),
+      status: log.title,
+      label: log.description,
+      date: this.formatLogDate(log.createdAt),
+      actor: log.actorLabel,
+      variant: log.severity,
       icon: this.logIcon(log.action),
     }));
   }
@@ -330,11 +332,23 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
     return result === true;
   }
 
-  private formatLogDate(log: ReservationLogDoc): string {
-    const createdAt = log.createdAt as unknown;
-    const date = this.toDate(createdAt);
+  private async loadTimeline(reservationId: string): Promise<void> {
+    try {
+      this.logs.set(await this.reviewService.getReservationLogs(reservationId));
+      this.logsMessage.set('');
+    } catch (error) {
+      this.logs.set([]);
+      this.logsMessage.set(
+        (error as { message?: string }).message ??
+          'No fue posible cargar la bitacora. Intenta nuevamente.',
+      );
+    }
+  }
 
-    if (!date) {
+  private formatLogDate(value: string): string {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
       return '';
     }
 
@@ -348,74 +362,20 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
     }).format(date);
   }
 
-  private toDate(value: unknown): Date | null {
-    if (value instanceof Date) {
-      return value;
-    }
-
-    if (
-      typeof value === 'object' &&
-      value !== null &&
-      typeof (value as { toDate?: unknown }).toDate === 'function'
-    ) {
-      return (value as { toDate: () => Date }).toDate();
-    }
-
-    if (
-      typeof value === 'object' &&
-      value !== null &&
-      typeof (value as { seconds?: unknown }).seconds === 'number'
-    ) {
-      const timestamp = value as { seconds: number; nanoseconds?: number };
-      return new Date(
-        timestamp.seconds * 1000 +
-          Math.floor((timestamp.nanoseconds ?? 0) / 1_000_000),
-      );
-    }
-
-    if (
-      typeof value === 'object' &&
-      value !== null &&
-      typeof (value as { _seconds?: unknown })._seconds === 'number'
-    ) {
-      const timestamp = value as { _seconds: number; _nanoseconds?: number };
-      return new Date(
-        timestamp._seconds * 1000 +
-          Math.floor((timestamp._nanoseconds ?? 0) / 1_000_000),
-      );
-    }
-
-    return null;
-  }
-
-  private logVariant(
-    action: ReservationLogDoc['action'],
-  ): ReservationTimelineEvent['variant'] {
-    if (action === 'APPROVED' || action === 'EMAIL_SENT') {
-      return 'success';
-    }
-
-    if (action === 'REJECTED' || action === 'CALENDAR_ERROR' || action === 'EMAIL_ERROR') {
-      return 'danger';
-    }
-
-    if (action === 'PENDING_APPROVAL') {
-      return 'warning';
-    }
-
-    return 'info';
-  }
-
-  private logIcon(action: ReservationLogDoc['action']): string {
-    const icons: Partial<Record<ReservationLogDoc['action'], string>> = {
+  private logIcon(action: string): string {
+    const icons: Record<string, string> = {
       APPROVED: 'check_circle',
       AUTO_CONFIRMED: 'check_circle',
       CALENDAR_ERROR: 'error',
+      CALENDAR_EVENT_CANCELLED: 'event_busy',
+      CALENDAR_EVENT_CREATED: 'event_available',
+      CANCELLED: 'event_busy',
       CREATED: 'add_circle',
       EMAIL_ERROR: 'mark_email_unread',
       EMAIL_SENT: 'mail',
       PENDING_APPROVAL: 'schedule',
       REJECTED: 'cancel',
+      STATUS_CHANGED: 'sync_alt',
     };
 
     return icons[action] ?? 'radio_button_checked';

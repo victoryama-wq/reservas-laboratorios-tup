@@ -1446,3 +1446,25 @@ El catalogo de laboratorios mantiene `Reservar` como accion primaria y muestra
 `Ver detalle` como boton secundario real, con icono, borde, fondo suave y area
 clickeable completa. Esta fase no modifica rutas, roles, permisos, servicios,
 backend ni reglas de negocio.
+
+## Fase 17C.2: bitacora basica para responsables asignados
+
+El detalle de revision en `/responsable/reserva/:reservationId` consulta la
+bitacora basica mediante la callable segura `getReservationReviewLogs`.
+
+Comportamiento:
+
+- `admin_sistemas` puede consultar la bitacora de cualquier reserva;
+- `responsable_laboratorio` solo puede consultar bitacoras de reservas cuyo
+  `labId` este incluido en `users/{uid}.labsAssigned`;
+- `docente` no usa esta callable para revision;
+- no se abre lectura directa amplia de `reservationLogs` en Firestore Rules;
+- la callable devuelve eventos saneados con titulo, descripcion, severidad,
+  fecha y etiqueta de actor segura;
+- no se devuelven `calendarId`, `storagePath`, URLs firmadas, UIDs como dato
+  principal, stack traces, secretos ni metadata cruda;
+- no se registra un `auditEvent` por cada lectura para evitar ruido operativo;
+- la UI reutiliza el componente `ReservationTimelineComponent`.
+
+Esta fase no modifica creacion, aprobacion, rechazo, cancelacion, Google
+Calendar API, Gmail API, roles, estatus ni reglas de seguridad.

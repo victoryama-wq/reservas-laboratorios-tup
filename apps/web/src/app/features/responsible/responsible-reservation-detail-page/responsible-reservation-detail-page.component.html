@@ -79,7 +79,17 @@
         }
       </div>
 
-      <app-reservation-timeline [events]="timelineEvents()" />
+      <div class="timeline-stack">
+        @if (logsMessage()) {
+          <app-info-callout
+            variant="warning"
+            icon="info"
+            [message]="logsMessage()"
+          />
+        }
+
+        <app-reservation-timeline [events]="timelineEvents()" />
+      </div>
     </div>
   }
 </section>

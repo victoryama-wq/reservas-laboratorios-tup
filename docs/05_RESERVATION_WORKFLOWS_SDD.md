@@ -188,3 +188,20 @@ flujo controlado por backend:
 Este flujo no cambia aprobacion, rechazo, creacion, cancelacion, Calendar ni
 Gmail. Si el usuario no tiene permiso, debe mostrarse un error claro sin exponer
 rutas internas o detalles sensibles.
+## Actualizacion Fase 17C.2: bitacora en revision responsable
+
+Durante la revision de una reserva, el responsable asignado debe poder ver una
+linea de tiempo basica con eventos de negocio relevantes:
+
+- solicitud registrada;
+- pendiente de validacion;
+- aprobacion o rechazo;
+- sincronizacion o cancelacion de calendario;
+- notificaciones enviadas o fallidas;
+- cambios de estatus legibles.
+
+La bitacora no debe repetir datos ya visibles en el detalle de la reserva
+como folio, laboratorio, docente, asignatura, practica u objetivo en cada
+evento. Tampoco debe mostrar metadata tecnica.
+
+La consulta de bitacora no modifica la reserva ni crea auditoria de lectura.

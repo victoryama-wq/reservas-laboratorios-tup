@@ -223,3 +223,23 @@ Requisitos:
 
 Esto permite revisar protocolos sin ampliar la superficie de lectura directa en
 Cloud Storage.
+
+## Actualizacion Fase 17C.2: lectura segura de reservationLogs
+
+No se debe abrir lectura directa amplia de `reservationLogs` en Firestore Rules
+para responsables.
+
+La lectura operativa de bitacora en el modulo Responsable se resuelve mediante
+la callable `getReservationReviewLogs`, que valida:
+
+- autenticacion;
+- perfil activo;
+- rol oficial;
+- existencia de la reserva;
+- `admin_sistemas` con acceso global;
+- `responsable_laboratorio` asignado al laboratorio de la reserva mediante
+  `users/{uid}.labsAssigned`.
+
+La callable devuelve solo eventos saneados para UI. No devuelve `calendarId`,
+`storagePath`, URLs firmadas, secretos, stack traces, metadata cruda ni UIDs
+como dato principal.

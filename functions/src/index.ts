@@ -6,6 +6,7 @@ export {createReservation} from
   "./modules/reservations/create-reservation.function";
 export {
   approveReservation,
+  getReservationReviewLogs,
   getReservationProtocolAccess,
   rejectReservation,
 } from
