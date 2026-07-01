@@ -251,3 +251,14 @@ devolver un rechazo controlado. No se debe abrir lectura directa de
 `reservationLogs` en reglas Firestore para compensar errores de frontend o de
 perfil. El diagnostico operativo debe registrarse en Cloud Logging sin
 `calendarId`, rutas de Storage, URLs firmadas, secretos ni stack traces.
+
+## Actualizacion Fase 17C.2C: disponibilidad sin abrir Firestore Rules
+
+La disponibilidad docente no requiere abrir lectura amplia de `reservations`.
+El frontend debe usar la callable `getLabAvailability`, que opera con Admin SDK,
+valida perfil activo y devuelve datos saneados.
+
+Las reglas de Firestore pueden conservar la restriccion de lectura directa de
+reservas. La callable no devuelve `calendarId`, datos del docente, campos
+academicos, protocolos, rutas Storage ni metadata sensible. Este enfoque evita
+usar reglas amplias solo para pintar ocupacion en calendario.

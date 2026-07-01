@@ -1502,3 +1502,22 @@ mantiene intacta la validacion de conflictos.
 
 No se borran reservas, logs ni notificaciones historicas. No se modifican
 estatus, Calendar API, Gmail API ni reglas de seguridad.
+
+## Correccion 17C.2C: disponibilidad sanitizada para vista docente
+
+La disponibilidad visual de laboratorios ya no depende de lecturas directas de
+`reservations` o `blockedPeriods` desde Angular. El calendario consulta la
+callable `getLabAvailability`, que valida usuario autenticado con perfil activo
+y devuelve solamente bloques sanitizados para el rango visible.
+
+La respuesta incluye:
+
+- rangos ocupados por reservas bloqueantes como `Ocupado`;
+- solicitudes pendientes como `Pendiente de validacion`;
+- bloqueos activos como `No disponible`.
+
+La callable no devuelve datos privados de reserva como docente, correo,
+asignatura, grupo, practica, objetivo, material, protocolo, rutas Storage,
+`calendarId`, responsables ni metadata tecnica. No se modifican reglas de
+Firestore/Storage, reservas existentes, Calendar API, Gmail API, roles ni
+estatus.

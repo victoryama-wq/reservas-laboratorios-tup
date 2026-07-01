@@ -690,3 +690,36 @@ Correccion aplicada:
   existentes.
 
 Pendiente: smoke manual con doble click rapido en una reserva de prueba.
+
+### 34.3 Correccion Fase 17C.2C
+
+Folio revisado: `RES-20260701-54A6`.
+
+Resultado del diagnostico:
+
+- el documento existe como `uwWbLpKLZbwiXDyckq1o`;
+- estatus: `CONFIRMADA_TRAS_VALIDACION`;
+- laboratorio real: `camara-de-gesell` / `Camara de Gesell`;
+- horario guardado: `2026-07-04T17:00:00.000Z` a
+  `2026-07-04T18:00:00.000Z`, equivalente a 12:00 - 13:00 hora local Cancun;
+- el folio no pertenece a Centro de Computo, aunque asi se reporto
+  inicialmente.
+
+Causa atendida:
+
+- el calendario Angular leia `reservations` y `blockedPeriods` directamente;
+- esa lectura puede quedar limitada para docentes por Firestore Rules;
+- la ocupacion visual debe ser saneada y no depender de permisos amplios sobre
+  documentos completos.
+
+Correccion aplicada:
+
+- se agrega `getLabAvailability`;
+- el frontend consulta la callable con el rango visible;
+- la respuesta devuelve solo bloques `Ocupado`, `Pendiente de validacion` y
+  `No disponible`;
+- no se devuelven datos privados, `calendarId`, protocolo, rutas Storage ni
+  metadata tecnica.
+
+No se modifican reservas existentes, Calendar API, Gmail API, roles, estatus,
+Firestore Rules ni Storage Rules.

@@ -591,3 +591,19 @@ Pruebas manuales recomendadas:
 - confirmar que el boton muestra `Enviando...` y permanece deshabilitado
   durante la operacion;
 - confirmar que no se modifican datos historicos ni se eliminan notificaciones.
+
+## Correccion Fase 17C.2C: QA de disponibilidad sanitizada
+
+Pruebas recomendadas:
+
+- entrar como `docente` activo y abrir `/laboratorios/:labId`;
+- confirmar que reservas bloqueantes se muestran como `Ocupado` o
+  `Pendiente de validacion`;
+- confirmar que no se muestran docente, correo, asignatura, grupo, practica,
+  objetivo, protocolo, `calendarId` ni rutas Storage;
+- confirmar que un folio aprobado para el laboratorio correcto aparece en el
+  rango semanal/mensual correspondiente;
+- confirmar que `admin_sistemas` y `responsable_laboratorio` siguen viendo la
+  misma ocupacion visual sin depender de lecturas directas de `reservations`;
+- confirmar que no se cambiaron reglas Firestore/Storage, Calendar API, Gmail
+  API, roles ni estatus.

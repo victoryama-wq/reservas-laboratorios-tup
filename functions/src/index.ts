@@ -4,6 +4,8 @@ initializeApp();
 
 export {createReservation} from
   "./modules/reservations/create-reservation.function";
+export {getLabAvailability} from
+  "./modules/reservations/get-lab-availability.function";
 export {
   approveReservation,
   getReservationReviewLogs,

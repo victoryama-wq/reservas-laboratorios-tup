@@ -61,6 +61,18 @@ export class LabCalendarComponent {
     this.selectedView() === 'month' ? this.monthDays() : this.weekDays(),
   );
 
+  protected readonly availabilityRange = computed(() => {
+    const days = this.calendarDays();
+    const firstDay = days.at(0)?.key;
+    const lastDay = days.at(-1)?.key;
+    const from = firstDay ? this.slotDate(firstDay, '00:00') : new Date();
+    const to = lastDay
+      ? this.addDays(this.slotDate(lastDay, '00:00'), 1)
+      : this.addDays(from, 1);
+
+    return { from, to };
+  });
+
   protected readonly calendarHours = computed(() => this.getCalendarHours());
 
   protected readonly visibleEvents = computed(() => {
@@ -95,7 +107,7 @@ export class LabCalendarComponent {
 
   protected readonly readLimitMessage = computed(() =>
     this.hasReadLimit()
-      ? 'La vista actual puede estar limitada por permisos de lectura. En fases posteriores se usara una vista publica sanitizada para disponibilidad.'
+      ? 'No fue posible consultar la disponibilidad sanitizada. Intente nuevamente.'
       : '',
   );
 
@@ -107,12 +119,17 @@ export class LabCalendarComponent {
 
     effect((onCleanup) => {
       const lab = this.lab();
+      const range = this.availabilityRange();
       this.refreshKey();
       this.loading.set(true);
       this.errorMessage.set('');
       this.selectedSlot.set(null);
 
-      const subscription = this.availabilityService.getAvailabilityEvents(lab).subscribe({
+      const subscription = this.availabilityService.getAvailabilityEvents(
+        lab,
+        range.from,
+        range.to,
+      ).subscribe({
         next: (state) => {
           this.events.set(state.events);
           this.hasReadLimit.set(state.hasReadLimit);

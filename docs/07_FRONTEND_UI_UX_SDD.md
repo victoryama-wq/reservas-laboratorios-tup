@@ -1124,6 +1124,25 @@ alterar rutas, servicios, modelos, roles ni reglas de negocio por ajustes
 visuales.
 ## Actualizacion Fase 17C.2: timeline responsable saneado
 
+## Actualizacion Fase 17C.2C: calendario con disponibilidad sanitizada
+
+El calendario visible para docentes debe consumir disponibilidad saneada desde
+`getLabAvailability`. La UI no debe consultar directamente `reservations` para
+pintar ocupacion general, porque eso puede fallar por permisos o exponer campos
+innecesarios.
+
+La vista debe mostrar solamente etiquetas operativas:
+
+- `Ocupado`;
+- `Pendiente de validacion`;
+- `No disponible`.
+
+Los bloques siguen el patron visual institucional del calendario: rangos
+continuos, sin texto repetitivo en celdas disponibles y sin datos privados del
+docente o de la practica. El calendario puede seguir calculando localmente el
+horario semanal del laboratorio y las reglas especiales ya disponibles en el
+documento de laboratorio.
+
 La vista `/responsable/reserva/:reservationId` debe mostrar la bitacora basica
 con el componente visual reutilizable `ReservationTimelineComponent`.
 

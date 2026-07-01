@@ -208,6 +208,23 @@ La consulta de bitacora no modifica la reserva ni crea auditoria de lectura.
 
 ## Correccion Fase 17C.2B: doble envio del formulario
 
+## Correccion Fase 17C.2C: disponibilidad sanitizada docente
+
+El flujo docente de disponibilidad no debe leer documentos completos de
+`reservations` desde el frontend. La vista de calendario debe consultar la
+callable `getLabAvailability` con `labId`, `from` y `to`.
+
+La callable devuelve unicamente bloques operativos saneados:
+
+- `Ocupado` para reservas bloqueantes confirmadas o con error de calendario;
+- `Pendiente de validacion` para reservas en revision;
+- `No disponible` para bloqueos institucionales activos.
+
+El frontend usa esos bloques solo para pintar disponibilidad. No recibe datos
+del docente, asignatura, grupo, practica, objetivo, protocolo, `calendarId` ni
+metadata sensible. Firestore sigue siendo fuente de verdad interna y Google
+Calendar sigue siendo calendario sincronizado, sin cambios de estatus ni reglas.
+
 El formulario de reserva debe impedir envios simultaneos. Si una solicitud con
 protocolo se envia dos veces, la primera puede quedar `PENDIENTE_VALIDACION` y
 la segunda sera rechazada por conflicto contra la primera porque ese estatus es

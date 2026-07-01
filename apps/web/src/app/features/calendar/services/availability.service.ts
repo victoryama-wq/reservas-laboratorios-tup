@@ -1,22 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { EventInput } from '@fullcalendar/core';
-import {
-  collection,
-  Firestore,
-  getDocs,
-  query,
-  Timestamp,
-  where,
-} from 'firebase/firestore';
-import { catchError, forkJoin, from, map, Observable, of } from 'rxjs';
+import { Functions, httpsCallable } from 'firebase/functions';
+import { catchError, from, map, Observable, of } from 'rxjs';
 
-import { FIREBASE_FIRESTORE } from '../../../core/firebase/firebase.providers';
+import { FIREBASE_FUNCTIONS } from '../../../core/firebase/firebase.providers';
 import {
-  BlockedPeriodDoc,
   LabDoc,
   LabSpecialRule,
-  ReservationDoc,
-  ReservationStatus,
 } from '../../../shared/models';
 
 export interface AvailabilityCalendarState {
@@ -24,71 +14,66 @@ export interface AvailabilityCalendarState {
   hasReadLimit: boolean;
 }
 
-const BLOCKING_RESERVATION_STATUSES: ReservationStatus[] = [
-  'PENDIENTE_VALIDACION',
-  'CONFIRMADA',
-  'CONFIRMADA_TRAS_VALIDACION',
-  'ERROR_CALENDAR',
-];
+type AvailabilityBlockKind =
+  | 'reservation'
+  | 'blockedPeriod'
+  | 'specialRule'
+  | 'weeklySchedule';
+
+type AvailabilityBlockStatus = 'busy' | 'pending' | 'blocked';
+
+interface AvailabilityBusyBlock {
+  id: string;
+  startAt: string;
+  endAt: string;
+  label: 'Ocupado' | 'Pendiente de validacion' | 'No disponible';
+  kind: AvailabilityBlockKind;
+  status: AvailabilityBlockStatus;
+}
+
+interface GetLabAvailabilityInput {
+  labId: string;
+  from: string;
+  to: string;
+}
+
+interface GetLabAvailabilityOutput {
+  labId: string;
+  from: string;
+  to: string;
+  busyBlocks: AvailabilityBusyBlock[];
+  blockedPeriods: AvailabilityBusyBlock[];
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class AvailabilityService {
-  private readonly firestore = inject(FIREBASE_FIRESTORE);
+  private readonly functions = inject<Functions>(FIREBASE_FUNCTIONS);
 
-  getAvailabilityEvents(lab: LabDoc): Observable<AvailabilityCalendarState> {
-    return forkJoin({
-      reservations: this.getReservationEvents(lab.id),
-      blockedPeriods: this.getBlockedPeriodEvents(lab.id),
-    }).pipe(
-      map(({ reservations, blockedPeriods }) => ({
+  getAvailabilityEvents(
+    lab: LabDoc,
+    rangeFrom: Date,
+    rangeTo: Date,
+  ): Observable<AvailabilityCalendarState> {
+    const callable = httpsCallable<
+      GetLabAvailabilityInput,
+      GetLabAvailabilityOutput
+    >(this.functions, 'getLabAvailability');
+
+    return from(
+      callable({
+        labId: lab.id,
+        from: rangeFrom.toISOString(),
+        to: rangeTo.toISOString(),
+      }),
+    ).pipe(
+      map((result) => ({
         events: [
-          ...reservations.events,
-          ...blockedPeriods.events,
+          ...result.data.busyBlocks.map((block) => this.toAvailabilityEvent(block)),
+          ...result.data.blockedPeriods.map((block) => this.toAvailabilityEvent(block)),
           ...this.getSpecialRuleEvents(lab.specialRules),
         ],
-        hasReadLimit: reservations.hasReadLimit || blockedPeriods.hasReadLimit,
-      })),
-    );
-  }
-
-  private getReservationEvents(
-    labId: string,
-  ): Observable<AvailabilityCalendarState> {
-    const reservationsQuery = query(
-      collection(this.firestore, 'reservations'),
-      where('labId', '==', labId),
-      where('status', 'in', BLOCKING_RESERVATION_STATUSES),
-    );
-
-    return from(getDocs(reservationsQuery)).pipe(
-      map((snapshot) => ({
-        events: snapshot.docs
-          .map((document) =>
-            this.toReservationEvent(document.data() as ReservationDoc),
-          )
-          .filter((event): event is EventInput => event !== null),
-        hasReadLimit: false,
-      })),
-      catchError(() => of({ events: [], hasReadLimit: true })),
-    );
-  }
-
-  private getBlockedPeriodEvents(
-    labId: string,
-  ): Observable<AvailabilityCalendarState> {
-    const blockedPeriodsQuery = query(
-      collection(this.firestore, 'blockedPeriods'),
-      where('active', '==', true),
-    );
-
-    return from(getDocs(blockedPeriodsQuery)).pipe(
-      map((snapshot) => ({
-        events: snapshot.docs
-          .map((document) => document.data() as BlockedPeriodDoc)
-          .filter((blockedPeriod) => this.appliesToLab(blockedPeriod, labId))
-          .map((blockedPeriod) => this.toBlockedPeriodEvent(blockedPeriod)),
         hasReadLimit: false,
       })),
       catchError(() => of({ events: [], hasReadLimit: true })),
@@ -113,106 +98,23 @@ export class AvailabilityService {
       }));
   }
 
-  private toReservationEvent(reservation: ReservationDoc): EventInput | null {
-    const startAt = this.toDate(reservation.startAt);
-    const endAt = this.toDate(reservation.endAt);
-
-    if (!startAt || !endAt) {
-      return null;
-    }
-
-    const title =
-      reservation.status === 'PENDIENTE_VALIDACION'
-        ? 'Pendiente de validacion'
-        : 'Ocupado';
-
+  private toAvailabilityEvent(block: AvailabilityBusyBlock): EventInput {
     return {
-      id: reservation.id,
-      title,
-      start: startAt,
-      end: endAt,
+      id: block.id,
+      title: block.label,
+      start: block.startAt,
+      end: block.endAt,
       backgroundColor:
-        reservation.status === 'PENDIENTE_VALIDACION' ? '#888887' : '#252a86',
+        block.status === 'pending' ? '#888887' : '#252a86',
       borderColor:
-        reservation.status === 'ERROR_CALENDAR' ? '#b3261e' : '#252a86',
+        block.status === 'blocked' ? '#271e5d' : '#252a86',
       extendedProps: {
-        source: 'reservation',
-        status: reservation.status,
+        source: block.kind,
+        status:
+          block.status === 'pending'
+            ? 'PENDIENTE_VALIDACION'
+            : block.status,
       },
     };
-  }
-
-  private toBlockedPeriodEvent(blockedPeriod: BlockedPeriodDoc): EventInput {
-    const startAt = this.toDate(blockedPeriod.startAt);
-    const endAt = this.toDate(blockedPeriod.endAt);
-
-    return {
-      id: blockedPeriod.id,
-      title: 'No disponible',
-      start: startAt ?? undefined,
-      end: endAt ?? undefined,
-      allDay: blockedPeriod.fullDay,
-      backgroundColor: '#271e5d',
-      borderColor: '#271e5d',
-      extendedProps: {
-        source: 'blockedPeriod',
-        reason: blockedPeriod.reason,
-      },
-    };
-  }
-
-  private appliesToLab(blockedPeriod: BlockedPeriodDoc, labId: string): boolean {
-    return blockedPeriod.scope === 'global' || blockedPeriod.labIds?.includes(labId) === true;
-  }
-
-  private toDate(value: unknown): Date | null {
-    if (value instanceof Timestamp) {
-      return value.toDate();
-    }
-
-    if (value instanceof Date) {
-      return value;
-    }
-
-    if (typeof value === 'string') {
-      const parsed = new Date(value);
-      return Number.isNaN(parsed.getTime()) ? null : parsed;
-    }
-
-    if (this.isSerializedAdminTimestamp(value)) {
-      return new Date(
-        value._seconds * 1000 + Math.floor((value._nanoseconds ?? 0) / 1_000_000),
-      );
-    }
-
-    if (this.isSerializedClientTimestamp(value)) {
-      return new Date(
-        value.seconds * 1000 + Math.floor((value.nanoseconds ?? 0) / 1_000_000),
-      );
-    }
-
-    return null;
-  }
-
-  private isSerializedAdminTimestamp(value: unknown): value is {
-    _seconds: number;
-    _nanoseconds?: number;
-  } {
-    return (
-      typeof value === 'object' &&
-      value !== null &&
-      typeof (value as { _seconds?: unknown })._seconds === 'number'
-    );
-  }
-
-  private isSerializedClientTimestamp(value: unknown): value is {
-    seconds: number;
-    nanoseconds?: number;
-  } {
-    return (
-      typeof value === 'object' &&
-      value !== null &&
-      typeof (value as { seconds?: unknown }).seconds === 'number'
-    );
   }
 }

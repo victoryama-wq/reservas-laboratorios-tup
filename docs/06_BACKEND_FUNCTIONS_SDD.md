@@ -687,6 +687,40 @@ Validaciones:
   `users/{uid}.labsAssigned`;
 - rechazo de docentes y responsables no asignados.
 
+## Actualizacion Fase 17C.2C: getLabAvailability
+
+`getLabAvailability` es una callable HTTPS v2 para disponibilidad visual
+saneada. Recibe:
+
+```ts
+{
+  labId: string;
+  from: string;
+  to: string;
+}
+```
+
+Valida usuario autenticado, perfil activo, rol oficial, laboratorio activo y
+rango de fechas acotado. Consulta con Admin SDK las reservas bloqueantes y
+`blockedPeriods` activos que traslapan con el rango solicitado.
+
+La funcion devuelve solo bloques visuales:
+
+```ts
+{
+  labId: string;
+  from: string;
+  to: string;
+  busyBlocks: AvailabilityBusyBlock[];
+  blockedPeriods: AvailabilityBusyBlock[];
+}
+```
+
+No devuelve campos privados de `reservations`, `labs` ni Storage. En
+particular, no expone docente, correo, asignatura, grupo, practica, objetivo,
+material, protocolo, `calendarId`, responsables, rutas internas ni metadata
+tecnica. Esta funcion no crea, aprueba, rechaza ni cancela reservas.
+
 La funcion lee `reservationLogs`, limita la respuesta a 100 eventos, ordena por
 fecha y traduce acciones tecnicas a titulos administrativos. No devuelve
 metadata cruda, `calendarId`, `storagePath`, URLs firmadas, secretos, stack
