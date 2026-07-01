@@ -577,3 +577,17 @@ Pruebas tecnicas:
 - `npm --prefix functions run build`;
 - `npm --prefix apps/web run build`;
 - `git diff --check`.
+
+## Correccion Fase 17C.2B: QA contra doble envio
+
+Pruebas manuales recomendadas:
+
+- crear una reserva con protocolo y presionar el boton final una sola vez;
+- confirmar que queda `PENDIENTE_VALIDACION`;
+- intentar doble click rapido sobre el boton final;
+- confirmar que solo se ejecuta una llamada a `createReservation`;
+- confirmar que no se genera una segunda reserva `RECHAZADA_CONFLICTO` por
+  duplicado;
+- confirmar que el boton muestra `Enviando...` y permanece deshabilitado
+  durante la operacion;
+- confirmar que no se modifican datos historicos ni se eliminan notificaciones.

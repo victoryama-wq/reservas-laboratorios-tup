@@ -249,6 +249,10 @@ export class ReservationFormComponent {
   }
 
   protected async submitDraft(): Promise<void> {
+    if (this.submitting()) {
+      return;
+    }
+
     this.reservationForm.markAllAsTouched();
     this.result.set(null);
 

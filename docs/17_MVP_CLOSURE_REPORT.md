@@ -663,3 +663,30 @@ Correcciones:
 
 No se modifican reservas, aprobaciones, rechazos, cancelaciones, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
+
+### 34.2 Diagnostico Fase 17C.2B
+
+Folio revisado: `RES-20260701-B785`.
+
+Resultado del diagnostico:
+
+- existia una reserva previa casi identica para el mismo docente, laboratorio y
+  horario: `RES-20260701-545E`;
+- la primera reserva quedo `PENDIENTE_VALIDACION`;
+- la segunda reserva, creada 13 segundos despues, quedo
+  `RECHAZADA_CONFLICTO`;
+- no fue autoconflicto ni rechazo posterior de la misma reserva;
+- el horario real guardado fue `12:30 - 15:15` hora local;
+- el correo uso el horario guardado en Firestore.
+
+Causa: doble envio del formulario durante la creacion de una solicitud con
+protocolo.
+
+Correccion aplicada:
+
+- el formulario ignora un segundo submit si `submitting` ya esta activo;
+- se conserva el estado visual `Enviando...`;
+- no se modifican datos productivos, reservas, logs ni notificaciones
+  existentes.
+
+Pendiente: smoke manual con doble click rapido en una reserva de prueba.

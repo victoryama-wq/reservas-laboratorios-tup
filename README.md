@@ -1488,3 +1488,17 @@ La funcion registra diagnostico seguro en Cloud Logging para diferenciar:
 No registra `calendarId`, rutas de Storage, URLs firmadas, correos, secretos ni
 stack traces. La UI diferencia entre bitacora vacia, falta de permiso y error
 tecnico.
+
+## Correccion 17C.2B: bloqueo de doble envio en reservas con protocolo
+
+Durante QA real se detecto que una solicitud con protocolo podia enviarse dos
+veces con pocos segundos de diferencia. La primera reserva quedaba
+`PENDIENTE_VALIDACION` y la segunda era rechazada correctamente como
+`RECHAZADA_CONFLICTO` por traslaparse contra la primera.
+
+El formulario de reserva ahora ignora cualquier segundo envio mientras
+`submitting` esta activo. La UI conserva el estado `Enviando...` y el backend
+mantiene intacta la validacion de conflictos.
+
+No se borran reservas, logs ni notificaciones historicas. No se modifican
+estatus, Calendar API, Gmail API ni reglas de seguridad.

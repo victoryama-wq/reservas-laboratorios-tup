@@ -205,3 +205,21 @@ como folio, laboratorio, docente, asignatura, practica u objetivo en cada
 evento. Tampoco debe mostrar metadata tecnica.
 
 La consulta de bitacora no modifica la reserva ni crea auditoria de lectura.
+
+## Correccion Fase 17C.2B: doble envio del formulario
+
+El formulario de reserva debe impedir envios simultaneos. Si una solicitud con
+protocolo se envia dos veces, la primera puede quedar `PENDIENTE_VALIDACION` y
+la segunda sera rechazada por conflicto contra la primera porque ese estatus es
+bloqueante.
+
+Regla de interfaz:
+
+- mientras `submitting` esta activo, cualquier intento adicional de envio debe
+  ignorarse;
+- el boton final debe permanecer deshabilitado y mostrar estado de envio;
+- no se debe relajar la validacion backend de traslapes para compensar doble
+  click del usuario.
+
+La correccion no modifica el contrato de `createReservation`, los estatus ni la
+logica de Calendar/Gmail.
