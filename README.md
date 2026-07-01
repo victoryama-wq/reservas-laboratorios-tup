@@ -1431,3 +1431,18 @@ Comportamiento:
 Esta fase no modifica reservas, Calendar API, Gmail API, roles, estatus,
 galeria, QR ni reglas Firestore/Storage. `/admin/reglas` permanece como fuente
 oficial para crear y editar reglas especiales.
+
+## Fase 17D.1: navegacion movil y acciones del catalogo
+
+La Web App incorpora un menu hamburguesa para vista movil en el AppShell. En
+celulares se oculta la navegacion horizontal para evitar saturacion y el menu
+movil muestra solo las rutas permitidas segun el perfil confirmado del usuario:
+Laboratorios, Mis reservas, Responsable cuando aplica, Panel Admin cuando aplica
+y Cerrar sesion.
+
+En tablet y escritorio se conserva la navegacion horizontal institucional.
+
+El catalogo de laboratorios mantiene `Reservar` como accion primaria y muestra
+`Ver detalle` como boton secundario real, con icono, borde, fondo suave y area
+clickeable completa. Esta fase no modifica rutas, roles, permisos, servicios,
+backend ni reglas de negocio.

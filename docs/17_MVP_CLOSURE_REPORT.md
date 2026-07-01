@@ -604,3 +604,15 @@ Correcciones:
 - se conservan etiquetas reales y dialogos con horario exacto;
 - no se modifican reservas, Google Calendar API, Gmail API, roles, estatus,
   payloads ni reglas de seguridad.
+
+## 33. Seguimiento Fase 17D.1: navegacion movil y catalogo
+
+La Fase 17D.1 deja el header listo para uso movil con menu hamburguesa y evita
+que la navegacion de escritorio sature pantallas pequenas. El menu conserva las
+mismas restricciones por rol del AppShell y no introduce rutas nuevas.
+
+El catalogo de laboratorios mejora la claridad de acciones: `Ver detalle` queda
+como boton secundario completo y `Reservar` sigue como accion primaria. La fase
+es exclusivamente visual/responsive y no modifica reservas, aprobaciones,
+cancelaciones, Calendar API, Gmail API, Firestore Rules, Storage Rules, roles ni
+estatus.

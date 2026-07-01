@@ -16,6 +16,74 @@
         <span class="brand-text">{{ systemName }}</span>
       </a>
 
+      <button
+        mat-icon-button
+        class="mobile-menu-button"
+        type="button"
+        aria-label="Abrir menú de navegación"
+        [matMenuTriggerFor]="mobileNavigationMenu"
+      >
+        <mat-icon aria-hidden="true">menu</mat-icon>
+      </button>
+
+      <mat-menu #mobileNavigationMenu="matMenu" class="mobile-navigation-menu">
+        @if (state.kind === 'ready') {
+          <a mat-menu-item routerLink="/laboratorios">
+            <mat-icon aria-hidden="true">science</mat-icon>
+            <span>Laboratorios</span>
+          </a>
+          <a mat-menu-item routerLink="/mis-reservas">
+            <mat-icon aria-hidden="true">event_note</mat-icon>
+            <span>Mis reservas</span>
+          </a>
+
+          @if (canSeeResponsibleNav$ | async) {
+            <a mat-menu-item routerLink="/responsable/solicitudes">
+              <mat-icon aria-hidden="true">fact_check</mat-icon>
+              <span>Responsable</span>
+            </a>
+          }
+
+          @if (canSeeAdminNav$ | async) {
+            <a mat-menu-item routerLink="/admin/dashboard">
+              <mat-icon aria-hidden="true">dashboard</mat-icon>
+              <span>Panel Admin</span>
+            </a>
+            <a mat-menu-item routerLink="/admin/usuarios">
+              <mat-icon aria-hidden="true">manage_accounts</mat-icon>
+              <span>Usuarios</span>
+            </a>
+            <a mat-menu-item routerLink="/admin/laboratorios">
+              <mat-icon aria-hidden="true">business</mat-icon>
+              <span>Laboratorios admin</span>
+            </a>
+            <a mat-menu-item routerLink="/admin/reglas">
+              <mat-icon aria-hidden="true">rule</mat-icon>
+              <span>Reglas</span>
+            </a>
+            <a mat-menu-item routerLink="/admin/bitacora">
+              <mat-icon aria-hidden="true">history</mat-icon>
+              <span>Bitacora</span>
+            </a>
+          }
+
+          <button mat-menu-item type="button" (click)="signOut()">
+            <mat-icon aria-hidden="true">logout</mat-icon>
+            <span>Cerrar sesion</span>
+          </button>
+        } @else if (state.kind === 'signed-out') {
+          <a mat-menu-item routerLink="/login">
+            <mat-icon aria-hidden="true">login</mat-icon>
+            <span>Ingresar</span>
+          </a>
+        } @else {
+          <button mat-menu-item type="button" disabled>
+            <mat-icon aria-hidden="true">hourglass_empty</mat-icon>
+            <span>Validando perfil...</span>
+          </button>
+        }
+      </mat-menu>
+
       <nav class="nav-actions" aria-label="Navegacion principal">
         @if (state.kind === 'ready') {
           <a

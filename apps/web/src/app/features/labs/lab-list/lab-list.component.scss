@@ -185,15 +185,31 @@
 .lab-card__reserve-button {
   display: inline-flex !important;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   min-height: 44px;
   border-radius: 12px !important;
   font-weight: 800;
+  padding-inline: 16px !important;
 }
 
 .lab-card__detail-link {
+  border-color: var(--info-border, #c7d2fe) !important;
+  background: var(--info-bg, #eef2ff) !important;
   color: var(--brand-secondary, #5b21b6) !important;
-  padding-inline: 0 !important;
+  box-shadow: 0 10px 20px rgb(67 56 202 / 8%);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.lab-card__detail-link:hover {
+  border-color: var(--brand-accent, #6366f1) !important;
+  background: #f5f3ff !important;
+  box-shadow: 0 14px 26px rgb(67 56 202 / 12%);
+  transform: translateY(-1px);
 }
 
 .lab-card__detail-link mat-icon,

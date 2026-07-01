@@ -1574,3 +1574,19 @@ Cambios visuales:
 El SVG de QR permanece sin logo incrustado para evitar problemas de
 compatibilidad vectorial. No se guardan logos, QR ni imagenes base64 en
 Firestore o Storage.
+
+## Fase 17D.1: navegacion movil y accion secundaria de catalogo
+
+Se agrego una mejora responsive al AppShell: en celulares se usa un menu
+hamburguesa institucional, con Material Icons, contraste sobre morado profundo y
+rutas condicionadas por rol. En tablet y escritorio se mantiene la barra
+horizontal existente para conservar eficiencia de navegacion.
+
+Tambien se ajusto la accion `Ver detalle` en las tarjetas de laboratorios para
+que se lea como boton secundario, no como enlace suelto. El boton usa fondo
+suave, borde, radio consistente, icono de ojo y estado hover/focus alineado al
+sistema visual. `Reservar` permanece como accion primaria.
+
+La fase mantiene la tipografia Inter/system-ui, la paleta operativa morada,
+cards blancas con bordes suaves y accesibilidad basica mediante Angular
+Material. No se alteraron flujos funcionales ni backend.

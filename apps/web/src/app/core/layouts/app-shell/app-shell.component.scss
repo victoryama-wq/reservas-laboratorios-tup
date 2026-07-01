@@ -65,6 +65,45 @@
   white-space: nowrap;
 }
 
+.mobile-menu-button {
+  display: inline-grid !important;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 14px;
+  color: #ffffff !important;
+  background: rgb(255 255 255 / 10%);
+
+  mat-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    line-height: 24px;
+  }
+}
+
+:host ::ng-deep .mobile-navigation-menu .mat-mdc-menu-content {
+  min-width: 248px;
+  padding: 8px;
+}
+
+:host ::ng-deep .mobile-navigation-menu .mat-mdc-menu-item {
+  min-height: 46px;
+  border-radius: 12px;
+  font-family: var(--app-font-family);
+  font-weight: 750;
+}
+
+:host ::ng-deep .mobile-navigation-menu .mat-mdc-menu-item .mat-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--brand-secondary);
+  font-size: 22px;
+  line-height: 22px;
+}
+
 .nav-actions {
   display: none;
   align-items: center;
@@ -217,6 +256,10 @@
     display: inline-flex;
   }
 
+  .mobile-menu-button {
+    display: none !important;
+  }
+
   .header-user {
     display: inline-flex;
   }
@@ -279,12 +322,48 @@
   }
 }
 
-@media (max-width: 520px) {
-  .brand {
-    width: 100%;
+@media (min-width: 768px) and (max-width: 1099px) {
+  .mobile-menu-button {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-header {
+    align-items: center;
+    flex-wrap: nowrap;
+    padding: 12px 14px;
   }
 
+  .brand {
+    flex: 1 1 auto;
+    width: auto;
+  }
+
+  .brand-mark {
+    width: 42px;
+    height: 42px;
+
+    img {
+      width: 31px;
+      height: 31px;
+    }
+  }
+
+  .brand-text {
+    font-size: 0.94rem;
+    line-height: 1.15;
+    white-space: normal;
+  }
+
+  .nav-actions,
   .header-user {
-    width: 100%;
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .brand-text {
+    max-width: 13.5rem;
   }
 }

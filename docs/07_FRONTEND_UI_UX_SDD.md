@@ -1100,3 +1100,25 @@ Reglas visuales:
 
 Este ajuste no cambia servicios, payloads, reservas, Calendar API, Gmail API ni
 reglas de negocio.
+
+## Actualizacion Fase 17D.1: navegacion movil y acciones del catalogo
+
+En vista movil el AppShell debe usar un boton hamburguesa accesible con icono
+`menu` y `aria-label="Abrir menu de navegacion"`. La navegacion horizontal se
+oculta en celulares para evitar overflow y saturacion visual.
+
+El menu movil debe respetar exactamente los mismos permisos visuales que la
+navegacion de escritorio:
+
+- `Laboratorios` y `Mis reservas` para usuarios autenticados con perfil valido.
+- `Responsable` solo para `responsable_laboratorio` o `admin_sistemas`.
+- rutas de Admin solo para `admin_sistemas`.
+- `Cerrar sesion` dentro del menu movil.
+
+En escritorio se conserva la navegacion horizontal.
+
+En el catalogo de laboratorios, `Ver detalle` debe presentarse como boton
+secundario real con icono, fondo suave, borde, radio consistente, foco visible y
+area tactil completa. `Reservar` sigue siendo la accion primaria. No se deben
+alterar rutas, servicios, modelos, roles ni reglas de negocio por ajustes
+visuales.

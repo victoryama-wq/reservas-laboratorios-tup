@@ -497,3 +497,24 @@ Requisitos responsive:
 
 Este comportamiento visual no debe cambiar la seleccion, los formularios,
 payloads, servicios ni backend.
+
+## Actualizacion Fase 17D.1: header movil y botones del catalogo
+
+El header responsive debe comportarse asi:
+
+- hasta 767 px, ocultar la navegacion horizontal y mostrar menu hamburguesa;
+- desde tablet/escritorio, conservar navegacion horizontal si hay espacio;
+- evitar overflow horizontal;
+- conservar logo institucional sin compresion;
+- cerrar el menu movil al seleccionar una ruta o cerrar sesion;
+- mantener contraste suficiente y foco visible.
+
+Las acciones de cards del catalogo deben ser tactiles y claras en movil:
+
+- `Ver detalle` como boton secundario de ancho y altura comodos;
+- `Reservar` como boton primario;
+- apilar acciones cuando el ancho no permita una fila estable;
+- mantener iconos Material completos y centrados.
+
+Estos ajustes son visuales y responsive; no cambian backend, permisos,
+consultas, payloads ni reglas de negocio.
