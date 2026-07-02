@@ -20,6 +20,21 @@
       />
     }
 
+    @if (statusReasonNotice(); as notice) {
+      <app-info-callout
+        [variant]="notice.variant"
+        [icon]="notice.icon"
+        [title]="notice.title"
+      >
+        <p class="reason-notice__message">{{ notice.message }}</p>
+        @if (notice.dateLabel) {
+          <small class="reason-notice__date">
+            Fecha registrada: {{ notice.dateLabel }}
+          </small>
+        }
+      </app-info-callout>
+    }
+
     <div class="detail-grid">
       @for (item of detailItems(); track item.label) {
         <div class="detail-item">

@@ -779,6 +779,31 @@ Correcciones:
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
 
+## 38. Seguimiento Fase 17F.3: motivos destacados en Mis reservas
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Causa atendida:
+
+- el docente podia depender de la bitacora para entender el motivo de rechazo o
+  cancelacion;
+- el motivo principal debia aparecer como dato destacado dentro del detalle de
+  la reserva.
+
+Correcciones:
+
+- `/mis-reservas/:reservationId` muestra un bloque destacado para
+  `RECHAZADA_*`, `CANCELADA` y `ERROR_CALENDAR`;
+- el bloque usa `rejectionReason`, `cancellationReason` o `statusReason` segun
+  el estatus, con fallbacks claros de negocio;
+- si existen `rejectedAt` o `cancelledAt`, se muestra fecha registrada;
+- la bitacora se conserva como linea de tiempo y no se duplica como fuente
+  principal del motivo.
+
+No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
+Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
+
 ## 37. Seguimiento Fase 17F.2: apertura segura de protocolos en Mis reservas
 
 Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el

@@ -152,6 +152,22 @@ interface ReservationDoc {
   source: 'web' | 'qr' | 'admin';
 }
 
+Uso de campos de motivo en Mis reservas
+
+La vista personal `/mis-reservas/:reservationId` debe mostrar motivos
+destacados usando campos propios de `ReservationDoc`, sin depender de
+`reservationLogs`:
+
+- `RECHAZADA_POR_RESPONSABLE`: `rejectionReason`, luego `statusReason`;
+- `RECHAZADA_CONFLICTO`, `RECHAZADA_REGLA_HORARIO` y
+  `RECHAZADA_MIN_ANTICIPACION`: `statusReason`;
+- `CANCELADA`: `cancellationReason`, luego `statusReason`;
+- `ERROR_CALENDAR`: `statusReason`.
+
+Si el campo no existe, la interfaz debe usar un texto fallback de negocio. No se
+deben mostrar UIDs, `calendarId`, rutas Storage, URLs firmadas, errores crudos
+ni metadata tecnica al docente.
+
 Tipos oficiales de practica
 
 El campo practiceType solo debe aceptar estos valores:

@@ -638,6 +638,27 @@ Pruebas manuales recomendadas:
   durante la operacion;
 - confirmar que no se modifican datos historicos ni se eliminan notificaciones.
 
+## Pruebas Fase 17F.3: motivos destacados en Mis reservas
+
+Casos minimos:
+
+- abrir una reserva `RECHAZADA_POR_RESPONSABLE` y confirmar que aparece
+  `Motivo del rechazo` con `rejectionReason` si existe;
+- abrir una reserva `RECHAZADA_CONFLICTO` y confirmar explicacion clara de
+  traslape;
+- abrir una reserva `RECHAZADA_REGLA_HORARIO` y confirmar explicacion de regla
+  de disponibilidad;
+- abrir una reserva `RECHAZADA_MIN_ANTICIPACION` y confirmar explicacion de
+  anticipacion minima;
+- abrir una reserva `CANCELADA` y confirmar `Motivo de cancelacion`;
+- abrir una reserva `ERROR_CALENDAR` y confirmar `Revision tecnica requerida`;
+- abrir reservas `CONFIRMADA` y `PENDIENTE_VALIDACION` y confirmar que no
+  aparece bloque de motivo;
+- confirmar que no se muestran UIDs, `calendarId`, `storagePath`, URLs firmadas,
+  JSON crudo, stack traces ni metadata tecnica;
+- probar 360, 390 y 414 px para confirmar que textos largos no generan
+  overflow horizontal.
+
 ## Correccion Fase 17C.2C: QA de disponibilidad sanitizada
 
 Pruebas recomendadas:

@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 import {
   AppIconBoxComponent,
+  InfoCalloutVariant,
   AppInfoCalloutComponent,
   AppSectionCardComponent,
   AppStatusChipComponent,
@@ -29,6 +30,14 @@ interface TimelineItem {
   title: string;
   description: string;
   variant: TimelineVariant;
+}
+
+interface StatusReasonNotice {
+  title: string;
+  message: string;
+  variant: InfoCalloutVariant;
+  icon: string;
+  dateLabel?: string;
 }
 
 @Component({
@@ -160,6 +169,85 @@ export class MyReservationDetailComponent {
     return 'warning';
   }
 
+  protected statusReasonNotice(): StatusReasonNotice | null {
+    const reservation = this.reservation();
+
+    switch (reservation.status) {
+      case 'RECHAZADA_POR_RESPONSABLE':
+        return {
+          title: 'Motivo del rechazo',
+          message: this.firstAvailableText(
+            reservation.rejectionReason,
+            reservation.statusReason,
+            'La solicitud fue rechazada por el responsable del laboratorio.',
+          ),
+          variant: 'danger',
+          icon: 'cancel',
+          dateLabel: this.formatOptionalDate(reservation.rejectedAt),
+        };
+
+      case 'RECHAZADA_CONFLICTO':
+        return {
+          title: 'Motivo del rechazo',
+          message: this.firstAvailableText(
+            reservation.statusReason,
+            'La solicitud no pudo confirmarse porque existe un traslape de horario para este laboratorio.',
+          ),
+          variant: 'warning',
+          icon: 'event_busy',
+        };
+
+      case 'RECHAZADA_REGLA_HORARIO':
+        return {
+          title: 'Motivo del rechazo',
+          message: this.firstAvailableText(
+            reservation.statusReason,
+            'La solicitud no cumple con las reglas de disponibilidad del laboratorio.',
+          ),
+          variant: 'warning',
+          icon: 'rule',
+        };
+
+      case 'RECHAZADA_MIN_ANTICIPACION':
+        return {
+          title: 'Motivo del rechazo',
+          message: this.firstAvailableText(
+            reservation.statusReason,
+            'La solicitud no cumple con la anticipacion minima requerida para este laboratorio.',
+          ),
+          variant: 'warning',
+          icon: 'schedule',
+        };
+
+      case 'CANCELADA':
+        return {
+          title: 'Motivo de cancelacion',
+          message: this.firstAvailableText(
+            reservation.cancellationReason,
+            reservation.statusReason,
+            'La reserva fue cancelada.',
+          ),
+          variant: 'info',
+          icon: 'event_busy',
+          dateLabel: this.formatOptionalDate(reservation.cancelledAt),
+        };
+
+      case 'ERROR_CALENDAR':
+        return {
+          title: 'Revision tecnica requerida',
+          message: this.firstAvailableText(
+            reservation.statusReason,
+            'La reserva requiere revision tecnica por sincronizacion de calendario.',
+          ),
+          variant: 'danger',
+          icon: 'sync_problem',
+        };
+
+      default:
+        return null;
+    }
+  }
+
   protected formatFileSize(sizeBytes: number): string {
     if (!sizeBytes) {
       return 'Tamano no disponible';
@@ -198,5 +286,76 @@ export class MyReservationDetailComponent {
       description: log.description,
       variant: log.severity,
     };
+  }
+
+  private firstAvailableText(...values: Array<string | undefined>): string {
+    return values.find((value) => value?.trim())?.trim() ?? '';
+  }
+
+  private formatOptionalDate(value: unknown): string | undefined {
+    const date = this.toDate(value);
+
+    if (!date) {
+      return undefined;
+    }
+
+    return new Intl.DateTimeFormat('es-MX', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  private toDate(value: unknown): Date | null {
+    if (value instanceof Date) {
+      return value;
+    }
+
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'toDate' in value &&
+      typeof (value as { toDate?: unknown }).toDate === 'function'
+    ) {
+      return (value as { toDate: () => Date }).toDate();
+    }
+
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      '_seconds' in value &&
+      typeof (value as { _seconds?: unknown })._seconds === 'number'
+    ) {
+      const timestamp = value as {
+        _seconds: number;
+        _nanoseconds?: number;
+      };
+
+      return new Date(
+        timestamp._seconds * 1000 +
+          Math.floor((timestamp._nanoseconds ?? 0) / 1_000_000),
+      );
+    }
+
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'seconds' in value &&
+      typeof (value as { seconds?: unknown }).seconds === 'number'
+    ) {
+      const timestamp = value as {
+        seconds: number;
+        nanoseconds?: number;
+      };
+
+      return new Date(
+        timestamp.seconds * 1000 +
+          Math.floor((timestamp.nanoseconds ?? 0) / 1_000_000),
+      );
+    }
+
+    return null;
   }
 }

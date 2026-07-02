@@ -21,6 +21,22 @@
   margin-top: 1rem;
 }
 
+.reason-notice__message {
+  margin: 0;
+  color: inherit;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.reason-notice__date {
+  display: block;
+  margin-top: 0.35rem;
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.78;
+}
+
 .detail-item {
   display: grid;
   gap: 0.35rem;

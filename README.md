@@ -1576,3 +1576,30 @@ reglas completas al cliente. Admin/Sistemas mantiene lectura completa de
 Las reglas de Firestore se endurecieron: solo `admin_sistemas` puede leer
 directamente documentos completos de `labs`. Los usuarios no admin deben usar
 las callables sanitizadas.
+
+## Fase 17F.3: motivos destacados en Mis reservas
+
+El detalle personal `/mis-reservas/:reservationId` muestra un bloque destacado
+cuando la reserva esta rechazada, cancelada o requiere revision tecnica por
+calendario.
+
+Estatus cubiertos:
+
+- `RECHAZADA_POR_RESPONSABLE`;
+- `RECHAZADA_CONFLICTO`;
+- `RECHAZADA_REGLA_HORARIO`;
+- `RECHAZADA_MIN_ANTICIPACION`;
+- `CANCELADA`;
+- `ERROR_CALENDAR`.
+
+El motivo se obtiene de campos propios saneados de la reserva, con esta
+prioridad:
+
+- rechazo por responsable: `rejectionReason`, `statusReason`, fallback claro;
+- otros rechazos: `statusReason`, fallback claro segun el tipo de rechazo;
+- cancelacion: `cancellationReason`, `statusReason`, fallback claro;
+- error de calendario: `statusReason`, fallback de revision tecnica.
+
+La bitacora basica se mantiene como linea de tiempo, pero el docente no depende
+de ella para entender el motivo principal. La UI no muestra UIDs, `calendarId`,
+`storagePath`, URLs firmadas, metadata tecnica, JSON crudo ni stack traces.

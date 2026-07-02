@@ -552,3 +552,12 @@ Requisitos:
 
 La apertura del archivo se resuelve con `getReservationProtocolAccess`; el
 diseño responsive no debe depender de `getDownloadURL` directo desde Angular.
+
+## Actualizacion Fase 17F.3: motivos destacados responsive
+
+En `/mis-reservas/:reservationId`, el bloque de motivo destacado debe ocupar el
+ancho disponible, envolver textos largos y mantener iconos completos en 360,
+390 y 414 px.
+
+El bloque no debe generar scroll horizontal ni desplazar acciones criticas fuera
+del flujo. La bitacora permanece debajo como linea de tiempo independiente.

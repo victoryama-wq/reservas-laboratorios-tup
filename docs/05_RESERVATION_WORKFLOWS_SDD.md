@@ -296,3 +296,24 @@ Reglas:
 
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
+
+## Actualizacion Fase 17F.3: motivo destacado en Mis reservas
+
+El detalle personal `/mis-reservas/:reservationId` debe explicar de forma
+directa por que una reserva fue rechazada, cancelada o marcada con
+`ERROR_CALENDAR`.
+
+La regla de presentacion es:
+
+- mostrar un bloque `Motivo del rechazo` para `RECHAZADA_*`;
+- mostrar `Motivo de cancelacion` para `CANCELADA`;
+- mostrar `Revision tecnica requerida` para `ERROR_CALENDAR`;
+- no mostrar el bloque para reservas `CONFIRMADA`, `CONFIRMADA_TRAS_VALIDACION`
+  o `PENDIENTE_VALIDACION`.
+
+El motivo se toma de `rejectionReason`, `cancellationReason` o `statusReason`
+segun el estatus. La bitacora continua abajo como linea de tiempo y no se usa
+como unica fuente visual del motivo principal.
+
+Este cambio no modifica creacion, aprobacion, rechazo, cancelacion, Calendar
+API, Gmail API, roles, estatus ni reglas de seguridad.

@@ -1221,3 +1221,20 @@ La tarjeta de protocolo debe:
 
 En mobile, el boton debe ser tactil y el nombre del archivo debe cortar o
 saltar linea sin generar overflow horizontal.
+
+## Actualizacion Fase 17F.3: motivos destacados en Mis reservas
+
+La vista `/mis-reservas/:reservationId` debe mostrar un callout destacado debajo
+del estatus principal cuando aplique:
+
+- `Motivo del rechazo` para reservas rechazadas;
+- `Motivo de cancelacion` para reservas canceladas;
+- `Revision tecnica requerida` para `ERROR_CALENDAR`.
+
+El bloque debe usar icono Material, tono visual institucional y texto claro para
+docentes. Debe mostrarse antes de la grilla de datos principales y no debe
+duplicar toda la bitacora.
+
+No se deben mostrar UIDs, `calendarId`, `storagePath`, URLs firmadas, JSON,
+stack traces ni errores tecnicos crudos. Para reservas confirmadas o pendientes
+no debe aparecer este bloque.
