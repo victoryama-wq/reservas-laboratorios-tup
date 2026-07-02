@@ -1202,3 +1202,22 @@ La UI no debe mostrar `INTERNAL`, JSON crudo, stack traces, metadata,
 La bitacora solo representa eventos de estado de negocio. No debe repetir datos
 ya visibles en el detalle principal como folio, laboratorio, docente,
 asignatura, grupo, practica, objetivo, material o protocolo.
+
+## Actualizacion Fase 17F.2: protocolos en Mis reservas
+
+La vista `/mis-reservas/:reservationId` debe abrir protocolos mediante
+`getReservationProtocolAccess`, no mediante `getDownloadURL` directo desde
+Angular.
+
+La tarjeta de protocolo debe:
+
+- mostrar nombre, tipo y tamano del archivo sin exponer `storagePath`;
+- usar boton claro `Abrir protocolo`;
+- mostrar carga solo en el archivo seleccionado;
+- mantener el resto de la vista utilizable;
+- mapear errores a mensajes seguros: sin permiso, archivo no encontrado o error
+  tecnico;
+- evitar textos tecnicos como `INTERNAL`, rutas Storage, JSON o stack traces.
+
+En mobile, el boton debe ser tactil y el nombre del archivo debe cortar o
+saltar linea sin generar overflow horizontal.

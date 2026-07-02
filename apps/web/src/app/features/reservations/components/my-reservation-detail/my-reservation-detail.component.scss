@@ -62,12 +62,14 @@
   background: var(--surface-soft);
 }
 
+.protocol-file > div {
+  min-width: 0;
+}
+
 .protocol-file strong,
 .protocol-file span {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .protocol-file strong {
@@ -80,6 +82,16 @@
   color: var(--text-muted);
   font-size: 0.8rem;
   line-height: 1.45;
+}
+
+.protocol-file__action {
+  min-height: 2.5rem;
+  border-radius: 0.85rem;
+  white-space: nowrap;
+}
+
+.protocol-file__action mat-icon {
+  margin-right: 0.35rem;
 }
 
 .timeline {
@@ -169,5 +181,17 @@
 
   .detail-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .protocol-file {
+    grid-template-columns: auto 1fr;
+  }
+
+  .protocol-file__action {
+    grid-column: 1 / -1;
+    justify-content: center;
+    width: 100%;
   }
 }

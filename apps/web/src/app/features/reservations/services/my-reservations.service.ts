@@ -10,13 +10,11 @@ import {
   where,
 } from 'firebase/firestore';
 import { Functions, httpsCallable } from 'firebase/functions';
-import { getDownloadURL, ref } from 'firebase/storage';
 import { firstValueFrom, take } from 'rxjs';
 
 import {
   FIREBASE_FIRESTORE,
   FIREBASE_FUNCTIONS,
-  FIREBASE_STORAGE,
 } from '../../../core/firebase/firebase.providers';
 import { AuthService } from '../../../core/services/auth.service';
 import {
@@ -57,13 +55,19 @@ interface GetMyReservationLogsResult {
   items: MyReservationTimelineItem[];
 }
 
+interface ReservationProtocolAccessResult {
+  fileName: string;
+  contentType: string;
+  url: string;
+  expiresInSeconds: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class MyReservationsService {
   private readonly firestore = inject<Firestore>(FIREBASE_FIRESTORE);
   private readonly functions = inject<Functions>(FIREBASE_FUNCTIONS);
-  private readonly storage = inject(FIREBASE_STORAGE);
   private readonly authService = inject(AuthService);
 
   async listMyReservations(
@@ -136,14 +140,24 @@ export class MyReservationsService {
     }
   }
 
-  async getProtocolUrl(file: ProtocolFile): Promise<string> {
-    const uid = await this.getCurrentUid();
+  async getProtocolAccessUrl(
+    reservationId: string,
+    file: ProtocolFile,
+  ): Promise<string> {
+    const callable = httpsCallable<
+      { reservationId: string; storagePath: string },
+      ReservationProtocolAccessResult
+    >(this.functions, 'getReservationProtocolAccess');
 
-    if (file.uploadedByUid !== uid) {
-      throw new Error('El protocolo no pertenece al usuario autenticado.');
+    try {
+      const result = await callable({
+        reservationId,
+        storagePath: file.storagePath,
+      });
+      return result.data.url;
+    } catch (error) {
+      throw new Error(this.toProtocolAccessErrorMessage(error));
     }
-
-    return getDownloadURL(ref(this.storage, file.storagePath));
   }
 
   formatDate(value: Date | null): string {
@@ -249,5 +263,20 @@ export class MyReservationsService {
     }
 
     return 'No fue posible cargar la bitacora. Intenta nuevamente.';
+  }
+
+  private toProtocolAccessErrorMessage(error: unknown): string {
+    const record = error as { code?: unknown; message?: unknown };
+    const code = typeof record.code === 'string' ? record.code : '';
+
+    if (code.includes('permission-denied')) {
+      return 'No tienes permiso para abrir este protocolo.';
+    }
+
+    if (code.includes('not-found')) {
+      return 'No se encontro el archivo del protocolo.';
+    }
+
+    return 'No fue posible abrir el protocolo. Intenta nuevamente.';
   }
 }

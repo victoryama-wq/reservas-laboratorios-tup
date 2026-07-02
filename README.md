@@ -656,11 +656,12 @@ las reglas de Firestore.
 
 Los protocolos se listan en el detalle de la reserva y se abren mediante la
 Cloud Function callable `getReservationProtocolAccess`. El frontend no solicita
-`getDownloadURL` directo a Storage para responsables. La funcion valida usuario
-activo, rol, laboratorio asignado y que el `storagePath` solicitado pertenezca
+`getDownloadURL` directo a Storage para responsables ni para la vista personal
+de Mis reservas. La funcion valida usuario activo, rol, laboratorio asignado o
+propiedad de la reserva, y que el `storagePath` solicitado pertenezca
 exactamente a `reservations/{reservationId}.protocolFiles`. Si procede, devuelve
 una URL firmada temporal de lectura. No se generan URLs publicas permanentes ni
-se amplian reglas de Storage para lectura directa de responsables.
+se amplian reglas de Storage para lectura directa.
 
 ## Mis reservas
 
@@ -723,11 +724,13 @@ URLs firmadas, protocolos, UIDs, correos de actores, providerMessageId, secretos
 ni stack traces. No se abren reglas Firestore para lectura directa de
 `reservationLogs` a docentes.
 
-El detalle de protocolo usa una Cloud Function para solicitar acceso temporal al
-archivo privado. No se generan enlaces publicos permanentes, no se muestra
-`storagePath`, no se muestra `calendarId` y no se permite aprobar, rechazar ni
-modificar reservas desde esta vista. La cancelacion controlada solo se permite
-para reservas futuras con estatus cancelable y siempre pasa por Cloud Functions.
+El detalle de protocolo usa `getReservationProtocolAccess` para solicitar acceso
+temporal al archivo privado. El docente propietario puede abrir su propio
+protocolo, pero Angular no usa `getDownloadURL` directo desde esta vista. No se
+generan enlaces publicos permanentes, no se muestra `storagePath`, no se muestra
+`calendarId` y no se permite aprobar, rechazar ni modificar reservas desde esta
+vista. La cancelacion controlada solo se permite para reservas futuras con
+estatus cancelable y siempre pasa por Cloud Functions.
 
 Actualizacion 17C.1A:
 

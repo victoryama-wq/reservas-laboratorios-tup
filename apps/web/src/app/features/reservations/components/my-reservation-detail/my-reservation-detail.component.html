@@ -46,13 +46,15 @@
                 <span>{{ file.contentType }} - {{ formatFileSize(file.sizeBytes) }}</span>
               </div>
               <button
-                mat-icon-button
+                mat-stroked-button
                 type="button"
-                aria-label="Abrir protocolo"
-                [disabled]="protocolLoading()"
+                class="protocol-file__action"
+                [attr.aria-label]="'Abrir protocolo ' + file.fileName"
+                [disabled]="isProtocolLoading(file)"
                 (click)="downloadProtocol.emit(file)"
               >
-                <mat-icon>download</mat-icon>
+                <mat-icon>{{ isProtocolLoading(file) ? 'hourglass_empty' : 'open_in_new' }}</mat-icon>
+                {{ isProtocolLoading(file) ? 'Abriendo...' : 'Abrir protocolo' }}
               </button>
             </article>
           }

@@ -49,7 +49,7 @@ export class MyReservationDetailPageComponent implements OnInit {
   private readonly cancelReservationService = inject(CancelReservationService);
 
   protected readonly loading = signal(true);
-  protected readonly protocolLoading = signal(false);
+  protected readonly protocolLoadingPath = signal<string | null>(null);
   protected readonly cancelLoading = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly logErrorMessage = signal('');
@@ -122,19 +122,39 @@ export class MyReservationDetailPageComponent implements OnInit {
   }
 
   protected async openProtocol(file: ProtocolFile): Promise<void> {
-    this.protocolLoading.set(true);
+    const reservation = this.reservation();
+    if (!reservation) {
+      return;
+    }
+
+    this.protocolLoadingPath.set(file.storagePath);
+    const protocolWindow = window.open('', '_blank', 'noopener,noreferrer');
 
     try {
-      const url = await this.reservationsService.getProtocolUrl(file);
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch {
+      const url = await this.reservationsService.getProtocolAccessUrl(
+        reservation.id,
+        file,
+      );
+
+      if (protocolWindow) {
+        protocolWindow.location.href = url;
+      } else {
+        const openedWindow = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!openedWindow) {
+          throw new Error(
+            'El navegador bloqueo la apertura del protocolo.',
+          );
+        }
+      }
+    } catch (error) {
+      protocolWindow?.close();
       this.snackBar.open(
-        'No fue posible abrir el protocolo. Verifica permisos o contacta a Admin/Sistemas.',
+        this.toProtocolErrorMessage(error),
         'Cerrar',
         { duration: 6000, panelClass: ['app-snackbar-warning'] },
       );
     } finally {
-      this.protocolLoading.set(false);
+      this.protocolLoadingPath.set(null);
     }
   }
 
@@ -262,5 +282,27 @@ export class MyReservationDetailPageComponent implements OnInit {
     return typeof record.message === 'string' && record.message.trim()
       ? record.message
       : 'No fue posible cargar la bitacora. Intenta nuevamente.';
+  }
+
+  private toProtocolErrorMessage(error: unknown): string {
+    const message = (error as { message?: unknown }).message;
+    const text = typeof message === 'string' ? message : '';
+
+    if (text.includes('permiso')) {
+      return 'No tienes permiso para abrir este protocolo.';
+    }
+
+    if (text.includes('encontro')) {
+      return 'No se encontro el archivo del protocolo.';
+    }
+
+    if (text.includes('bloqueo')) {
+      return [
+        'El navegador bloqueo la nueva pestaña.',
+        'Permite ventanas emergentes para abrir el protocolo.',
+      ].join(' ');
+    }
+
+    return 'No fue posible abrir el protocolo. Intenta nuevamente.';
   }
 }

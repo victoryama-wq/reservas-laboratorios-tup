@@ -44,7 +44,7 @@
       [logErrorMessage]="logErrorMessage()"
       [dateLabel]="formatDate(selectedReservation)"
       [timeLabel]="formatTime(selectedReservation)"
-      [protocolLoading]="protocolLoading()"
+      [protocolLoadingPath]="protocolLoadingPath()"
       [canCancel]="canCancelReservation(selectedReservation)"
       [cancelLoading]="cancelLoading()"
       (downloadProtocol)="openProtocol($event)"

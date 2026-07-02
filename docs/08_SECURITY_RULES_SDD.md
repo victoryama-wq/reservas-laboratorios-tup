@@ -301,3 +301,21 @@ deben usar los modulos Responsable/Admin correspondientes.
 La callable devuelve solo eventos saneados. No devuelve metadata cruda,
 `calendarId`, `storagePath`, URLs firmadas, protocolos, UIDs, correos de
 actores, errores tecnicos crudos, stack traces ni secretos.
+
+## Actualizacion Fase 17F.2: protocolos personales sin getDownloadURL directo
+
+Mis reservas no debe abrir protocolos con `getDownloadURL` directo desde
+Angular. La lectura del archivo privado se resuelve mediante
+`getReservationProtocolAccess`, que usa Admin SDK y genera una URL firmada
+temporal despues de validar permisos.
+
+Reglas de seguridad:
+
+- no se abren Firestore Rules ni Storage Rules adicionales;
+- no se exponen rutas internas de Storage en UI;
+- no se guardan URLs firmadas en Firestore;
+- el docente solo puede abrir protocolos de reservas propias;
+- Responsable y Admin/Sistemas conservan el mismo patron seguro para sus flujos
+  operativos;
+- la carga inicial de protocolos al crear reserva sigue usando Storage SDK bajo
+  las reglas existentes.

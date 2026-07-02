@@ -601,6 +601,22 @@ Pruebas adicionales de correccion 17C.2A:
 - confirmar que los logs no imprimen `calendarId`, rutas de Storage, URLs
   firmadas, secretos ni stack traces completos.
 
+## Pruebas Fase 17F.2: protocolos en Mis reservas
+
+Casos minimos:
+
+- entrar como docente propietario y abrir una reserva propia con protocolo;
+- presionar `Abrir protocolo`;
+- confirmar que se llama `getReservationProtocolAccess`;
+- confirmar que no se llama `getDownloadURL` desde Mis reservas;
+- confirmar que el archivo abre en una nueva pestana mediante URL temporal;
+- confirmar que no se muestra `storagePath` ni la URL firmada en UI;
+- confirmar mensajes seguros para sin permiso, archivo no encontrado y error
+  tecnico;
+- confirmar que solo el boton del archivo seleccionado muestra carga;
+- probar mobile 360, 390 y 414 px sin overflow horizontal;
+- confirmar que Responsable sigue abriendo protocolos con el mismo flujo.
+
 Pruebas tecnicas:
 
 - `npm --prefix functions run lint`;

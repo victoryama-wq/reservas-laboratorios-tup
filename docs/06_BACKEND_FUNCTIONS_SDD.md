@@ -818,6 +818,38 @@ La callable no concede acceso a reservas ajenas aunque el usuario sea
 `admin_sistemas` o `responsable_laboratorio`. Esos roles conservan sus flujos
 globales en Responsable/Admin, no en Mis reservas.
 
+## Actualizacion Fase 17F.2: reutilizacion de getReservationProtocolAccess
+
+`/mis-reservas/:reservationId` reutiliza la callable existente:
+
+```text
+getReservationProtocolAccess
+```
+
+Input:
+
+```ts
+{
+  reservationId: string;
+  storagePath: string;
+}
+```
+
+La funcion ya valida:
+
+- sesion autenticada;
+- perfil activo;
+- reserva existente;
+- archivo vinculado exactamente en `reservation.protocolFiles`;
+- acceso por `admin_sistemas`;
+- acceso por `responsable_laboratorio` asignado;
+- acceso por docente propietario de la reserva;
+- existencia del archivo en Cloud Storage.
+
+La respuesta contiene una URL firmada temporal de lectura. El frontend debe
+abrirla en una nueva pestana y no almacenarla ni mostrarla en la interfaz. No se
+agregan URLs publicas permanentes ni se modifican reglas de Storage.
+
 La respuesta no debe incluir metadata cruda, `calendarId`, `storagePath`, URLs
 firmadas, `protocolFiles`, UIDs, correos de actores, providerMessageId, errores
 tecnicos crudos, stack traces ni secretos.

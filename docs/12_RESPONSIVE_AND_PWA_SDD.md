@@ -535,3 +535,20 @@ En movil, tablet y escritorio se debe conservar:
 
 Ninguna vista responsive docente debe depender de lectura directa de
 `labs/{labId}` completo.
+
+## Actualizacion Fase 17F.2: protocolo personal en mobile
+
+En `/mis-reservas/:reservationId`, el card de protocolo debe mantenerse usable
+en 360, 390 y 414 px.
+
+Requisitos:
+
+- no generar overflow horizontal;
+- permitir que nombres largos de archivo corten o salten linea;
+- mostrar un boton tactil `Abrir protocolo`;
+- mostrar estado de carga solo en el archivo seleccionado;
+- no usar tablas ni columnas rigidas para protocolos;
+- no mostrar `storagePath`, URL firmada ni mensajes tecnicos.
+
+La apertura del archivo se resuelve con `getReservationProtocolAccess`; el
+diseño responsive no debe depender de `getDownloadURL` directo desde Angular.

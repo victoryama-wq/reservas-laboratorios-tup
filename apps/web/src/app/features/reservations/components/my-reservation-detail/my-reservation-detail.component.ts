@@ -51,7 +51,7 @@ export class MyReservationDetailComponent {
   readonly logErrorMessage = input('');
   readonly dateLabel = input.required<string>();
   readonly timeLabel = input.required<string>();
-  readonly protocolLoading = input(false);
+  readonly protocolLoadingPath = input<string | null>(null);
   readonly canCancel = input(false);
   readonly cancelLoading = input(false);
 
@@ -166,6 +166,10 @@ export class MyReservationDetailComponent {
     }
 
     return `${(sizeBytes / 1024 / 1024).toFixed(2)} MB`;
+  }
+
+  protected isProtocolLoading(file: ProtocolFile): boolean {
+    return this.protocolLoadingPath() === file.storagePath;
   }
 
   protected formatLogDate(log: MyReservationTimelineItem): string {

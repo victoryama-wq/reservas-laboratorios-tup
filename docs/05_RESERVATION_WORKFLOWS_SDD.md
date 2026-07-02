@@ -276,3 +276,23 @@ Reglas:
 
 La revision global de bitacoras permanece en el modulo Responsable mediante
 `getReservationReviewLogs`.
+
+## Actualizacion Fase 17F.2: apertura segura de protocolos en Mis reservas
+
+La ruta `/mis-reservas/:reservationId` abre protocolos propios mediante la
+callable `getReservationProtocolAccess`.
+
+Reglas:
+
+- el docente propietario puede abrir archivos vinculados a su propia reserva;
+- Angular no usa `getDownloadURL` directo para abrir protocolos desde Mis
+  reservas;
+- la callable valida que el `storagePath` solicitado pertenezca exactamente a
+  `reservation.protocolFiles`;
+- la respuesta se usa como URL temporal y no se guarda en Firestore;
+- la UI no muestra `storagePath`, URL firmada, `calendarId` ni errores tecnicos;
+- Responsable conserva el mismo patron seguro para revisar protocolos de
+  laboratorios asignados.
+
+No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
+Gmail API, roles, estatus, Firestore Rules ni Storage Rules.

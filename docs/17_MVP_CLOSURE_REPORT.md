@@ -252,7 +252,7 @@ No se identificaron pendientes bloqueantes con la evidencia tecnica disponible.
 ## 18. Deuda tecnica conocida
 
 - Algunas validaciones integrales dependen de pruebas manuales con cuentas reales y datos productivos controlados.
-- `getDownloadURL` se usa para abrir protocolos autenticados bajo reglas de Storage; no se generan enlaces publicos permanentes, pero conviene mantener auditoria sobre expiracion/uso de URLs firmadas por SDK.
+- Mis reservas y Responsable abren protocolos mediante `getReservationProtocolAccess`; `getDownloadURL` directo queda limitado a flujos no relacionados con apertura personal de protocolos.
 - El cierre MVP requiere smoke postdeploy con usuario `docente`, `responsable_laboratorio` y `admin_sistemas` para convertir varios `PENDING` en `PASS`.
 
 ## 19. Recomendaciones post-MVP
@@ -775,6 +775,31 @@ Correcciones:
 - se excluyen metadata cruda, `calendarId`, rutas Storage, URLs firmadas,
   archivos de protocolo, UIDs, correos de actores, `providerMessageId`,
   stack traces, secretos y errores crudos.
+
+No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
+Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
+
+## 37. Seguimiento Fase 17F.2: apertura segura de protocolos en Mis reservas
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Causa atendida:
+
+- `/mis-reservas/:reservationId` podia abrir protocolos propios con
+  `getDownloadURL` directo desde Angular;
+- se homologa el patron seguro con Responsable usando una callable backend.
+
+Correcciones:
+
+- `MyReservationsService` reutiliza `getReservationProtocolAccess`;
+- Angular deja de importar Storage para abrir protocolos desde Mis reservas;
+- el docente propietario recibe una URL temporal solo despues de validacion
+  backend;
+- la UI no muestra `storagePath`, URL firmada, `calendarId` ni errores crudos;
+- el boton `Abrir protocolo` muestra carga solo para el archivo seleccionado;
+- en movil, el card permite nombres largos sin overflow horizontal;
+- Responsable conserva el mismo contrato y no se modifica su flujo.
 
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
