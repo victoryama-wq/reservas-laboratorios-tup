@@ -280,3 +280,24 @@ Este enfoque evita enviar al cliente docente `calendarId`, responsables,
 correos internos, `specialRules` completas, `qrConfig`, rutas internas de
 galeria o metadata administrativa. Admin/Sistemas conserva la administracion
 completa de laboratorios.
+
+## Actualizacion Fase 17F.1: bitacora personal sin abrir reglas
+
+No se debe abrir lectura directa de `reservationLogs` a docentes en Firestore
+Rules para resolver la bitacora de Mis reservas.
+
+La lectura personal se resuelve mediante `getMyReservationLogs`, que usa Admin
+SDK y valida:
+
+- autenticacion;
+- perfil activo;
+- reserva existente;
+- propiedad estricta `reservation.teacherUid === uid`.
+
+`admin_sistemas` y `responsable_laboratorio` no reciben excepciones en esta
+callable para ver reservas ajenas. Si necesitan revisar reservas de terceros,
+deben usar los modulos Responsable/Admin correspondientes.
+
+La callable devuelve solo eventos saneados. No devuelve metadata cruda,
+`calendarId`, `storagePath`, URLs firmadas, protocolos, UIDs, correos de
+actores, errores tecnicos crudos, stack traces ni secretos.

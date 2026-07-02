@@ -1185,3 +1185,20 @@ anticipacion minima, banderas de protocolo/riesgo, galeria publica y acciones
 Si una imagen de galeria no cuenta con URL temporal, debe omitirse de forma
 silenciosa y conservar el estado visual de galeria no disponible. Admin/Sistemas
 mantiene la vista completa en `/admin/laboratorios`.
+## Actualizacion Fase 17F.1: bitacora personal de Mis reservas
+
+La vista `/mis-reservas/:reservationId` debe mostrar la bitacora basica personal
+usando `getMyReservationLogs`.
+
+Estados de interfaz:
+
+- sin eventos: `No hay eventos de bitacora registrados para esta reserva.`;
+- sin permiso: `No tienes permiso para consultar la bitacora de esta reserva.`;
+- error tecnico: `No fue posible cargar la bitacora. Intenta nuevamente.`
+
+La UI no debe mostrar `INTERNAL`, JSON crudo, stack traces, metadata,
+`calendarId`, `storagePath`, URLs firmadas, UIDs ni correos de actores.
+
+La bitacora solo representa eventos de estado de negocio. No debe repetir datos
+ya visibles en el detalle principal como folio, laboratorio, docente,
+asignatura, grupo, practica, objetivo, material o protocolo.

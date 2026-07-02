@@ -9,18 +9,19 @@ import {
   Timestamp,
   where,
 } from 'firebase/firestore';
+import { Functions, httpsCallable } from 'firebase/functions';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { firstValueFrom, take } from 'rxjs';
 
 import {
   FIREBASE_FIRESTORE,
+  FIREBASE_FUNCTIONS,
   FIREBASE_STORAGE,
 } from '../../../core/firebase/firebase.providers';
 import { AuthService } from '../../../core/services/auth.service';
 import {
   ProtocolFile,
   ReservationDoc,
-  ReservationLogDoc,
   ReservationStatus,
 } from '../../../shared/models';
 
@@ -35,11 +36,33 @@ export interface MyReservationsFilters {
   search?: string;
 }
 
+export type MyReservationTimelineSeverity =
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+  | 'neutral';
+
+export interface MyReservationTimelineItem {
+  id: string;
+  action: string;
+  title: string;
+  description: string;
+  severity: MyReservationTimelineSeverity;
+  createdAt: string;
+}
+
+interface GetMyReservationLogsResult {
+  reservationId: string;
+  items: MyReservationTimelineItem[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class MyReservationsService {
   private readonly firestore = inject<Firestore>(FIREBASE_FIRESTORE);
+  private readonly functions = inject<Functions>(FIREBASE_FUNCTIONS);
   private readonly storage = inject(FIREBASE_STORAGE);
   private readonly authService = inject(AuthService);
 
@@ -97,26 +120,19 @@ export class MyReservationsService {
     return this.toView(reservation, snapshot.id);
   }
 
-  async getReservationLogs(reservationId: string): Promise<ReservationLogDoc[]> {
-    try {
-      const logsQuery = query(
-        collection(this.firestore, 'reservationLogs'),
-        where('reservationId', '==', reservationId),
-      );
-      const snapshot = await getDocs(logsQuery);
+  async getReservationLogs(
+    reservationId: string,
+  ): Promise<MyReservationTimelineItem[]> {
+    const callable = httpsCallable<
+      { reservationId: string },
+      GetMyReservationLogsResult
+    >(this.functions, 'getMyReservationLogs');
 
-      return snapshot.docs
-        .map((document) => ({
-          ...(document.data() as ReservationLogDoc),
-          id: document.id,
-        }))
-        .sort(
-          (first, second) =>
-            (this.toDate(first.createdAt)?.getTime() ?? 0) -
-            (this.toDate(second.createdAt)?.getTime() ?? 0),
-        );
-    } catch {
-      return [];
+    try {
+      const result = await callable({ reservationId });
+      return result.data.items ?? [];
+    } catch (error) {
+      throw new Error(this.toReservationLogsErrorMessage(error));
     }
   }
 
@@ -218,5 +234,20 @@ export class MyReservationsService {
       '_seconds' in value &&
       typeof (value as { _seconds?: unknown })._seconds === 'number'
     );
+  }
+
+  private toReservationLogsErrorMessage(error: unknown): string {
+    const record = error as { code?: unknown; message?: unknown };
+    const code = typeof record.code === 'string' ? record.code : '';
+
+    if (code.includes('permission-denied')) {
+      return 'No tienes permiso para consultar la bitacora de esta reserva.';
+    }
+
+    if (code.includes('not-found')) {
+      return 'No se encontro la reserva solicitada.';
+    }
+
+    return 'No fue posible cargar la bitacora. Intenta nuevamente.';
   }
 }

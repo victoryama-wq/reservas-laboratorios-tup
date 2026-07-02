@@ -12,6 +12,7 @@ export {
 } from "./modules/labs/public-labs.function";
 export {
   approveReservation,
+  getMyReservationLogs,
   getReservationReviewLogs,
   getReservationProtocolAccess,
   rejectReservation,

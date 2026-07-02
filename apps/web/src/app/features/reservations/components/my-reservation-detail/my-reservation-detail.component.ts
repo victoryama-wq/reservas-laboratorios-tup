@@ -11,10 +11,12 @@ import {
 } from '../../../../shared/components';
 import {
   ProtocolFile,
-  ReservationLogDoc,
   ReservationStatus,
 } from '../../../../shared/models';
-import { MyReservationView } from '../../services/my-reservations.service';
+import {
+  MyReservationTimelineItem,
+  MyReservationView,
+} from '../../services/my-reservations.service';
 
 interface DetailItem {
   label: string;
@@ -45,7 +47,8 @@ interface TimelineItem {
 })
 export class MyReservationDetailComponent {
   readonly reservation = input.required<MyReservationView>();
-  readonly logs = input<ReservationLogDoc[]>([]);
+  readonly logs = input<MyReservationTimelineItem[]>([]);
+  readonly logErrorMessage = input('');
   readonly dateLabel = input.required<string>();
   readonly timeLabel = input.required<string>();
   readonly protocolLoading = input(false);
@@ -165,10 +168,10 @@ export class MyReservationDetailComponent {
     return `${(sizeBytes / 1024 / 1024).toFixed(2)} MB`;
   }
 
-  protected formatLogDate(log: ReservationLogDoc): string {
-    const date = log.createdAt?.toDate?.();
+  protected formatLogDate(log: MyReservationTimelineItem): string {
+    const date = new Date(log.createdAt);
 
-    if (!date) {
+    if (Number.isNaN(date.getTime())) {
       return 'Fecha no disponible';
     }
 
@@ -185,132 +188,11 @@ export class MyReservationDetailComponent {
     return value ? 'Si' : 'No';
   }
 
-  protected timelineItem(log: ReservationLogDoc): TimelineItem {
-    const fallback = this.defaultLogText(log);
-
+  protected timelineItem(log: MyReservationTimelineItem): TimelineItem {
     return {
-      title: fallback.title,
-      description: log.note || fallback.description,
-      variant: fallback.variant,
+      title: log.title,
+      description: log.description,
+      variant: log.severity,
     };
-  }
-
-  private defaultLogText(log: ReservationLogDoc): TimelineItem {
-    switch (log.action) {
-      case 'CREATED':
-        return {
-          title: 'Solicitud registrada',
-          description: 'Tu solicitud fue recibida por el sistema.',
-          variant: 'info',
-        };
-      case 'AUTO_CONFIRMED':
-        return {
-          title: 'Reserva confirmada',
-          description:
-            'La reserva fue confirmada automaticamente y quedo registrada.',
-          variant: 'success',
-        };
-      case 'PENDING_APPROVAL':
-        return {
-          title: 'Pendiente de validacion',
-          description:
-            'Un responsable debe revisar la solicitud antes de confirmarla.',
-          variant: 'warning',
-        };
-      case 'APPROVED':
-        return {
-          title: 'Reserva aprobada',
-          description: 'La solicitud fue aprobada por el responsable.',
-          variant: 'success',
-        };
-      case 'REJECTED':
-        return {
-          title: 'Reserva rechazada',
-          description: 'La solicitud fue rechazada por el responsable.',
-          variant: 'danger',
-        };
-      case 'CANCELLED':
-        return {
-          title: 'Reserva cancelada',
-          description: 'La reserva fue cancelada.',
-          variant: 'neutral',
-        };
-      case 'CALENDAR_EVENT_CREATED':
-        return {
-          title: 'Agendada en calendario',
-          description:
-            'El evento fue creado en el calendario institucional del laboratorio.',
-          variant: 'success',
-        };
-      case 'CALENDAR_EVENT_CANCELLED':
-        return {
-          title: 'Evento de calendario cancelado',
-          description: 'El evento asociado fue cancelado en Google Calendar.',
-          variant: 'neutral',
-        };
-      case 'CALENDAR_ERROR':
-        return {
-          title: 'Error de calendario',
-          description:
-            'Hubo un problema tecnico al validar o sincronizar Google Calendar.',
-          variant: 'danger',
-        };
-      case 'EMAIL_SENT':
-        return {
-          title: 'Notificacion enviada',
-          description:
-            'Se envio la notificacion correspondiente por correo institucional.',
-          variant: 'success',
-        };
-      case 'EMAIL_ERROR':
-        return {
-          title: 'Error al enviar notificacion',
-          description:
-            'La reserva conserva su estatus, pero el correo no pudo enviarse.',
-          variant: 'warning',
-        };
-      case 'STATUS_CHANGED':
-        return this.statusChangedText(log);
-      default:
-        return {
-          title: 'Actualizacion de reserva',
-          description: 'Se registro una actualizacion en la reserva.',
-          variant: 'info',
-        };
-    }
-  }
-
-  private statusChangedText(log: ReservationLogDoc): TimelineItem {
-    const newStatus = log.newStatus;
-
-    if (newStatus) {
-      return {
-        title: this.statusLabel(newStatus),
-        description: 'El estatus de la reserva fue actualizado.',
-        variant: this.timelineVariantFromStatus(newStatus),
-      };
-    }
-
-    return {
-      title: 'Estatus actualizado',
-      description: 'El estatus de la reserva fue actualizado.',
-      variant: 'info',
-    };
-  }
-
-  private timelineVariantFromStatus(status: ReservationStatus): TimelineVariant {
-    if (status === 'CONFIRMADA' || status === 'CONFIRMADA_TRAS_VALIDACION') {
-      return 'success';
-    }
-
-    if (status === 'PENDIENTE_VALIDACION' || status === 'RECIBIDA') {
-      return 'warning';
-    }
-
-    if (status === 'CANCELADA') {
-      return 'neutral';
-    }
-
-    return 'danger';
   }
 }

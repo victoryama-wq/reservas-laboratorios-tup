@@ -41,6 +41,7 @@
     <app-my-reservation-detail
       [reservation]="selectedReservation"
       [logs]="logs()"
+      [logErrorMessage]="logErrorMessage()"
       [dateLabel]="formatDate(selectedReservation)"
       [timeLabel]="formatTime(selectedReservation)"
       [protocolLoading]="protocolLoading()"

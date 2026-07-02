@@ -690,10 +690,22 @@ La ruta:
 muestra el detalle personal de una reserva si pertenece al usuario autenticado.
 Incluye folio, laboratorio, fecha, horario, estatus, datos academicos, tipo de
 practica, condiciones de seguridad, protocolo requerido/adunto, estatus de
-sincronizacion de Calendar y bitacora basica cuando las reglas permiten leerla.
+sincronizacion de Calendar y bitacora basica personal.
 
-La bitacora basica del detalle traduce acciones tecnicas de `reservationLogs` a
-textos comprensibles para el usuario final. Por ejemplo:
+La bitacora basica del detalle no lee `reservationLogs` directamente desde
+Angular. Usa la Cloud Function callable `getMyReservationLogs`, que valida
+sesion, perfil activo, reserva existente y propiedad:
+
+```text
+reservation.teacherUid === currentUser.uid
+```
+
+`admin_sistemas` y `responsable_laboratorio` no ven reservas ajenas desde esta
+callable; si son propietarios de la reserva, pueden ver su bitacora personal.
+La revision global se mantiene en el modulo Responsable.
+
+La callable traduce acciones tecnicas de `reservationLogs` a textos
+comprensibles para el usuario final. Por ejemplo:
 
 - `CREATED` se muestra como `Solicitud registrada`.
 - `STATUS_CHANGED` se muestra como el estatus legible de la reserva.
@@ -705,6 +717,11 @@ Si el log incluye `note`, se muestra como detalle contextual. Si no existe nota,
 la interfaz usa una descripcion predeterminada clara. La linea de tiempo usa
 colores por severidad para distinguir eventos exitosos, pendientes, errores,
 informativos o neutrales.
+
+La respuesta saneada no devuelve metadata cruda, `calendarId`, `storagePath`,
+URLs firmadas, protocolos, UIDs, correos de actores, providerMessageId, secretos
+ni stack traces. No se abren reglas Firestore para lectura directa de
+`reservationLogs` a docentes.
 
 El detalle de protocolo usa una Cloud Function para solicitar acceso temporal al
 archivo privado. No se generan enlaces publicos permanentes, no se muestra

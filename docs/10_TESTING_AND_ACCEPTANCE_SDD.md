@@ -559,6 +559,36 @@ Pruebas manuales requeridas:
 - confirmar que consultar la bitacora no modifica reservas ni crea eventos de
   auditoria de lectura.
 
+## Pruebas Fase 17F.1: bitacora personal de Mis reservas
+
+Docente:
+
+- entrar como docente;
+- abrir `/mis-reservas`;
+- abrir una reserva propia confirmada;
+- confirmar que la bitacora muestra eventos saneados;
+- abrir una reserva pendiente y confirmar `Pendiente de validacion`;
+- abrir una reserva rechazada y confirmar motivo si existe;
+- abrir una reserva cancelada y confirmar evento `Reserva cancelada`.
+
+Seguridad:
+
+- intentar abrir `/mis-reservas/:reservationId` de otro usuario;
+- confirmar error controlado;
+- confirmar que no carga bitacora de reserva ajena;
+- confirmar en DevTools que no hay lectura directa a `reservationLogs`;
+- confirmar llamada a `getMyReservationLogs`;
+- confirmar que no aparecen `calendarId`, `storagePath`, metadata, UIDs,
+  correos de actores, URLs firmadas ni stack traces.
+
+Roles:
+
+- entrar como `admin_sistemas` y confirmar que `/mis-reservas` muestra solo sus
+  reservas propias como solicitante;
+- entrar como `responsable_laboratorio` y confirmar que `/mis-reservas` muestra
+  solo sus reservas propias como solicitante;
+- confirmar que la revision global permanece en `/responsable/solicitudes`.
+
 Pruebas adicionales de correccion 17C.2A:
 
 - confirmar que una reserva sin eventos muestra

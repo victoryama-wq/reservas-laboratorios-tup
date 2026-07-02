@@ -768,3 +768,56 @@ Estas funciones no devuelven `calendarId`, responsables, correos internos,
 `getLabAvailability` mantiene la disponibilidad y puede devolver reglas
 especiales como bloques `No disponible` saneados, sin exponer la regla completa.
 Admin/Sistemas conserva las funciones admin y lectura completa de `LabDoc`.
+
+## Actualizacion Fase 17F.1: getMyReservationLogs
+
+Se agrega la callable HTTPS Function v2:
+
+```text
+getMyReservationLogs
+```
+
+Objetivo:
+
+- entregar una bitacora basica saneada para `/mis-reservas/:reservationId`;
+- permitir solo al propietario de la reserva consultar su linea de tiempo;
+- evitar lectura directa de `reservationLogs` desde Angular.
+
+Input:
+
+```ts
+{
+  reservationId: string;
+}
+```
+
+Output:
+
+```ts
+{
+  reservationId: string;
+  items: Array<{
+    id: string;
+    action: string;
+    title: string;
+    description: string;
+    severity: 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+    createdAt: string;
+  }>;
+}
+```
+
+Validaciones:
+
+- sesion autenticada;
+- perfil `users/{uid}` existente y activo;
+- reserva existente;
+- `reservation.teacherUid === uid`.
+
+La callable no concede acceso a reservas ajenas aunque el usuario sea
+`admin_sistemas` o `responsable_laboratorio`. Esos roles conservan sus flujos
+globales en Responsable/Admin, no en Mis reservas.
+
+La respuesta no debe incluir metadata cruda, `calendarId`, `storagePath`, URLs
+firmadas, `protocolFiles`, UIDs, correos de actores, providerMessageId, errores
+tecnicos crudos, stack traces ni secretos.

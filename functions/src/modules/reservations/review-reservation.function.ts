@@ -60,6 +60,10 @@ interface GetReservationReviewLogsInput {
   reservationId?: string;
 }
 
+interface GetMyReservationLogsInput {
+  reservationId?: string;
+}
+
 interface ReviewReservationOutput {
   reservationId: string;
   folio: string;
@@ -94,6 +98,20 @@ interface ReservationReviewTimelineItem {
 interface GetReservationReviewLogsOutput {
   reservationId: string;
   logs: ReservationReviewTimelineItem[];
+}
+
+interface MyReservationTimelineItem {
+  id: string;
+  action: string;
+  title: string;
+  description: string;
+  severity: ReviewTimelineSeverity;
+  createdAt: string;
+}
+
+interface GetMyReservationLogsOutput {
+  reservationId: string;
+  items: MyReservationTimelineItem[];
 }
 
 const PROTOCOL_ACCESS_TTL_SECONDS = 10 * 60;
@@ -422,6 +440,50 @@ export const getReservationReviewLogs = onCall(
 );
 
 /**
+ * Returns a safe, readable timeline for the reservation owner.
+ */
+export const getMyReservationLogs = onCall(
+    {
+      region: REGION,
+      invoker: "public",
+    },
+    async (
+        request: CallableRequest<unknown>,
+    ): Promise<GetMyReservationLogsOutput> => {
+      const input = parseMyReservationLogsInput(request.data);
+      const context = await loadMyReservationLogsContext(request, input);
+
+      if (context.reservation.teacherUid !== context.profile.uid) {
+        throw new HttpsError(
+            "permission-denied",
+            "No tiene permiso para consultar la bitacora de esta reserva.",
+        );
+      }
+
+      const snapshot = await getFirestore()
+          .collection("reservationLogs")
+          .where("reservationId", "==", input.reservationId)
+          .limit(100)
+          .get();
+
+      const items = snapshot.docs
+          .map((document) => toMyReservationTimelineItem(
+              document.id,
+              document.data() as ReservationLogDoc,
+              context.repository,
+          ))
+          .sort((first, second) =>
+            first.createdAt.localeCompare(second.createdAt),
+          );
+
+      return {
+        reservationId: input.reservationId,
+        items,
+      };
+    },
+);
+
+/**
  * Marks a reservation as ERROR_CALENDAR after a Calendar failure.
  *
  * @param {ReviewContext} context Review context.
@@ -681,12 +743,41 @@ function parseReviewLogsInput(data: unknown): {
   };
 }
 
+/**
+ * Parses owner reservation logs input.
+ *
+ * @param {unknown} data Callable data.
+ * @return {{reservationId: string}} Parsed input.
+ */
+function parseMyReservationLogsInput(data: unknown): {
+  reservationId: string;
+} {
+  const input = data as GetMyReservationLogsInput;
+  if (typeof input?.reservationId !== "string" ||
+      !input.reservationId.trim()) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Debe indicar la reserva para consultar la bitacora.",
+    );
+  }
+
+  return {
+    reservationId: input.reservationId.trim(),
+  };
+}
+
 interface ProtocolAccessContext {
   profile: AppUser;
   reservation: ReservationDoc;
 }
 
 interface ReviewLogsContext {
+  profile: AppUser;
+  reservation: ReservationDoc;
+  repository: ReservationRepository;
+}
+
+interface MyReservationLogsContext {
   profile: AppUser;
   reservation: ReservationDoc;
   repository: ReservationRepository;
@@ -769,6 +860,43 @@ async function loadReviewLogsContext(
       allowed: false,
     });
 
+    throw new HttpsError("not-found", "La reserva no existe.");
+  }
+
+  return {profile, reservation, repository};
+}
+
+/**
+ * Loads context required to read personal reservation logs.
+ *
+ * @param {CallableRequest<unknown>} request Callable request.
+ * @param {{reservationId: string}} input Parsed input.
+ * @return {Promise<MyReservationLogsContext>} Personal logs context.
+ */
+async function loadMyReservationLogsContext(
+    request: CallableRequest<unknown>,
+    input: {reservationId: string},
+): Promise<MyReservationLogsContext> {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError(
+        "unauthenticated",
+        "Debe iniciar sesion para consultar la bitacora.",
+    );
+  }
+
+  const repository = new ReservationRepository(getFirestore());
+  const profile = await repository.getUserProfile(uid);
+
+  if (!profile?.active) {
+    throw new HttpsError(
+        "permission-denied",
+        "Su perfil institucional no esta activo.",
+    );
+  }
+
+  const reservation = await repository.getReservationById(input.reservationId);
+  if (!reservation) {
     throw new HttpsError("not-found", "La reserva no existe.");
   }
 
@@ -911,6 +1039,33 @@ function toReviewTimelineItem(
 }
 
 /**
+ * Converts a raw reservation log into a safe timeline item for the owner.
+ *
+ * @param {string} documentId Firestore document id.
+ * @param {ReservationLogDoc} log Raw reservation log.
+ * @param {ReservationRepository} repository Repository for date parsing.
+ * @return {MyReservationTimelineItem} Safe timeline item.
+ */
+function toMyReservationTimelineItem(
+    documentId: string,
+    log: ReservationLogDoc,
+    repository: ReservationRepository,
+): MyReservationTimelineItem {
+  const text = buildMyReservationTimelineText(log);
+  const safeNote = toSafeOwnerTimelineNote(log.note);
+  const createdAt = repository.toDate(log.createdAt)?.toISOString() ?? "";
+
+  return {
+    id: log.id || documentId,
+    action: log.action,
+    title: text.title,
+    description: safeNote ?? text.description,
+    severity: text.severity,
+    createdAt,
+  };
+}
+
+/**
  * Builds readable title, description and severity for a log.
  *
  * @param {ReservationLogDoc} log Reservation log.
@@ -1001,6 +1156,116 @@ function buildTimelineText(log: ReservationLogDoc): {
 }
 
 /**
+ * Builds readable owner-facing text for a reservation log.
+ *
+ * @param {ReservationLogDoc} log Reservation log.
+ * @return {object} Readable timeline text.
+ */
+function buildMyReservationTimelineText(log: ReservationLogDoc): {
+  title: string;
+  description: string;
+  severity: ReviewTimelineSeverity;
+} {
+  if (log.action === "STATUS_CHANGED") {
+    return {
+      title: "Estado actualizado",
+      description: "El estado de la reserva fue actualizado.",
+      severity: "info",
+    };
+  }
+
+  const fallback: Record<ReservationLogDoc["action"], {
+    title: string;
+    description: string;
+    severity: ReviewTimelineSeverity;
+  }> = {
+    APPROVED: {
+      title: "Solicitud aprobada",
+      description: [
+        "La solicitud fue aprobada por el responsable",
+        "del laboratorio.",
+      ].join(" "),
+      severity: "success",
+    },
+    AUTO_CONFIRMED: {
+      title: "Reserva confirmada",
+      description: "La reserva fue confirmada automaticamente.",
+      severity: "success",
+    },
+    CALENDAR_ERROR: {
+      title: "Error de calendario",
+      description: [
+        "La reserva requiere revision tecnica",
+        "por sincronizacion de calendario.",
+      ].join(" "),
+      severity: "danger",
+    },
+    CALENDAR_EVENT_CANCELLED: {
+      title: "Evento de calendario cancelado",
+      description: "El evento institucional asociado fue cancelado.",
+      severity: "neutral",
+    },
+    CALENDAR_EVENT_CREATED: {
+      title: "Agendada en calendario institucional",
+      description: [
+        "La reserva fue registrada en el calendario",
+        "institucional del laboratorio.",
+      ].join(" "),
+      severity: "success",
+    },
+    CANCELLED: {
+      title: "Reserva cancelada",
+      description: "La reserva fue cancelada.",
+      severity: "neutral",
+    },
+    CREATED: {
+      title: "Solicitud registrada",
+      description: "Tu solicitud fue recibida por el sistema.",
+      severity: "info",
+    },
+    EMAIL_ERROR: {
+      title: "Error de notificacion",
+      description: [
+        "No fue posible enviar una notificacion",
+        "por correo institucional.",
+      ].join(" "),
+      severity: "warning",
+    },
+    EMAIL_SENT: {
+      title: "Notificacion enviada",
+      description: [
+        "Se envio la notificacion correspondiente",
+        "por correo institucional.",
+      ].join(" "),
+      severity: "success",
+    },
+    PENDING_APPROVAL: {
+      title: "Pendiente de validacion",
+      description: [
+        "La solicitud esta pendiente de revision",
+        "por el responsable del laboratorio.",
+      ].join(" "),
+      severity: "warning",
+    },
+    REJECTED: {
+      title: "Solicitud rechazada",
+      description: [
+        "La solicitud fue rechazada por el responsable",
+        "del laboratorio.",
+      ].join(" "),
+      severity: "danger",
+    },
+    STATUS_CHANGED: {
+      title: "Estado actualizado",
+      description: "El estado de la reserva fue actualizado.",
+      severity: "info",
+    },
+  };
+
+  return fallback[log.action];
+}
+
+/**
  * Converts official reservation status into a readable label.
  *
  * @param {ReservationStatus} status Reservation status.
@@ -1071,6 +1336,26 @@ function toSafeTimelineNote(note?: string): string | undefined {
   }
 
   return trimmed.length > 260 ? `${trimmed.slice(0, 257)}...` : trimmed;
+}
+
+/**
+ * Keeps only safe human notes for the reservation owner timeline.
+ *
+ * @param {string | undefined} note Raw note.
+ * @return {string | undefined} Safe note.
+ */
+function toSafeOwnerTimelineNote(note?: string): string | undefined {
+  const safeNote = toSafeTimelineNote(note);
+  if (!safeNote) {
+    return undefined;
+  }
+
+  const emailPattern = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
+  if (emailPattern.test(safeNote)) {
+    return undefined;
+  }
+
+  return safeNote;
 }
 
 /**

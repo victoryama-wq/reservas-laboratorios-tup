@@ -257,3 +257,22 @@ Storage.
 La disponibilidad del calendario sigue por `getLabAvailability`, que devuelve
 bloques saneados de reservas, bloqueos y reglas especiales. La creacion,
 aprobacion, rechazo y cancelacion de reservas no cambian.
+
+## Actualizacion Fase 17F.1: bitacora personal en Mis reservas
+
+La ruta `/mis-reservas/:reservationId` muestra la bitacora basica de una
+reserva propia mediante la callable `getMyReservationLogs`.
+
+Reglas:
+
+- la vista sigue siendo personal y filtra por propietario;
+- solo se permite consultar cuando `reservation.teacherUid === uid`;
+- `admin_sistemas` y `responsable_laboratorio` no ven reservas ajenas desde
+  Mis reservas, aunque tengan permisos globales en otros modulos;
+- no se lee `reservationLogs` directamente desde Angular;
+- no se abren reglas Firestore para lectura directa de bitacoras a docentes;
+- la bitacora devuelve textos saneados de estado de negocio y no repite folio,
+  laboratorio, docente, asignatura, grupo, practica, objetivo ni protocolo.
+
+La revision global de bitacoras permanece en el modulo Responsable mediante
+`getReservationReviewLogs`.

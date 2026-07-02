@@ -15,11 +15,11 @@ import {
 } from '../../../shared/components';
 import {
   ProtocolFile,
-  ReservationLogDoc,
   ReservationStatus,
 } from '../../../shared/models';
 import { MyReservationDetailComponent } from '../components';
 import {
+  MyReservationTimelineItem,
   MyReservationsService,
   MyReservationView,
 } from '../services/my-reservations.service';
@@ -52,8 +52,9 @@ export class MyReservationDetailPageComponent implements OnInit {
   protected readonly protocolLoading = signal(false);
   protected readonly cancelLoading = signal(false);
   protected readonly errorMessage = signal('');
+  protected readonly logErrorMessage = signal('');
   protected readonly reservation = signal<MyReservationView | null>(null);
-  protected readonly logs = signal<ReservationLogDoc[]>([]);
+  protected readonly logs = signal<MyReservationTimelineItem[]>([]);
 
   ngOnInit(): void {
     void this.loadReservation();
@@ -70,6 +71,7 @@ export class MyReservationDetailPageComponent implements OnInit {
 
     this.loading.set(true);
     this.errorMessage.set('');
+    this.logErrorMessage.set('');
 
     try {
       const reservation =
@@ -83,7 +85,7 @@ export class MyReservationDetailPageComponent implements OnInit {
       }
 
       this.reservation.set(reservation);
-      this.logs.set(await this.reservationsService.getReservationLogs(reservationId));
+      await this.loadReservationLogs(reservationId);
     } catch (error) {
       this.errorMessage.set(
         (error as { message?: string }).message ??
@@ -91,6 +93,19 @@ export class MyReservationDetailPageComponent implements OnInit {
       );
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async loadReservationLogs(reservationId: string): Promise<void> {
+    this.logErrorMessage.set('');
+
+    try {
+      this.logs.set(await this.reservationsService.getReservationLogs(
+        reservationId,
+      ));
+    } catch (error) {
+      this.logs.set([]);
+      this.logErrorMessage.set(this.toLogErrorMessage(error));
     }
   }
 
@@ -240,5 +255,12 @@ export class MyReservationDetailPageComponent implements OnInit {
     return typeof record.message === 'string' && record.message.trim()
       ? record.message
       : 'No fue posible cancelar la reserva.';
+  }
+
+  private toLogErrorMessage(error: unknown): string {
+    const record = error as { message?: unknown };
+    return typeof record.message === 'string' && record.message.trim()
+      ? record.message
+      : 'No fue posible cargar la bitacora. Intenta nuevamente.';
   }
 }

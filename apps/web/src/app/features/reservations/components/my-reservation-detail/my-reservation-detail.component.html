@@ -99,7 +99,13 @@
       subtitle="Eventos registrados para esta reserva."
       icon="history"
     >
-      @if (logs().length) {
+      @if (logErrorMessage()) {
+        <app-info-callout
+          variant="warning"
+          icon="warning"
+          [message]="logErrorMessage()"
+        />
+      } @else if (logs().length) {
         <ol class="timeline">
           @for (log of logs(); track log.id) {
             @let item = timelineItem(log);
@@ -125,7 +131,7 @@
         <app-info-callout
           variant="info"
           icon="info"
-          message="No hay bitacora disponible para mostrar."
+          message="No hay eventos de bitacora registrados para esta reserva."
         />
       }
     </app-section-card>

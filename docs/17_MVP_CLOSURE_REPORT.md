@@ -748,3 +748,33 @@ Correcciones:
 
 No se modifican reservas, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus ni datos historicos.
+
+## 36. Seguimiento Fase 17F.1: bitacora personal segura
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Causa atendida:
+
+- `/mis-reservas/:reservationId` necesitaba mostrar una bitacora clara para el
+  docente sin depender de lecturas directas a `reservationLogs`;
+- la bitacora personal no debe abrir reglas de Firestore ni exponer datos
+  tecnicos de backend.
+
+Correcciones:
+
+- se agrega la callable `getMyReservationLogs`;
+- la callable valida sesion, perfil activo y propiedad estricta:
+  `reservation.teacherUid === request.auth.uid`;
+- `admin_sistemas` y `responsable_laboratorio` no pueden usar esta callable
+  para consultar reservas ajenas;
+- Angular deja de leer `reservationLogs` directamente desde Mis reservas;
+- la UI muestra titulos y descripciones orientadas al docente;
+- se manejan estados vacio, permiso denegado y error tecnico con textos
+  claros;
+- se excluyen metadata cruda, `calendarId`, rutas Storage, URLs firmadas,
+  archivos de protocolo, UIDs, correos de actores, `providerMessageId`,
+  stack traces, secretos y errores crudos.
+
+No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
+Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
