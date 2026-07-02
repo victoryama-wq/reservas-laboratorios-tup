@@ -24,6 +24,11 @@ import {
 } from '../../../shared/components';
 import { ProtocolFile } from '../../../shared/models';
 import {
+  closeProtocolWindow,
+  openUrlInProtocolWindow,
+  prepareProtocolWindow,
+} from '../../../shared/utils/protocol-window.utils';
+import {
   ReservationReviewService,
   ReservationReviewTimelineItem,
   ResponsibleReservationView,
@@ -155,14 +160,21 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
 
     this.protocolMessage.set('');
     this.openingProtocolPath.set(file.storagePath);
+    const protocolWindow = prepareProtocolWindow();
 
     try {
       const access = await this.reviewService.getProtocolAccess(
         reservation.id,
         file.storagePath,
       );
-      window.open(access.url, '_blank', 'noopener,noreferrer');
+
+      if (!openUrlInProtocolWindow(protocolWindow, access.url)) {
+        throw new Error(
+          'El navegador bloqueo la apertura del protocolo.',
+        );
+      }
     } catch (error) {
+      closeProtocolWindow(protocolWindow);
       this.protocolMessage.set(
         (error as { message?: string }).message ??
           'No fue posible abrir el protocolo. Verifique permisos con Admin/Sistemas.',

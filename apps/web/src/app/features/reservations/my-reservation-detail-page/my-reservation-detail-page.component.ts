@@ -17,6 +17,11 @@ import {
   ProtocolFile,
   ReservationStatus,
 } from '../../../shared/models';
+import {
+  closeProtocolWindow,
+  openUrlInProtocolWindow,
+  prepareProtocolWindow,
+} from '../../../shared/utils/protocol-window.utils';
 import { MyReservationDetailComponent } from '../components';
 import {
   MyReservationTimelineItem,
@@ -128,7 +133,7 @@ export class MyReservationDetailPageComponent implements OnInit {
     }
 
     this.protocolLoadingPath.set(file.storagePath);
-    const protocolWindow = window.open('', '_blank', 'noopener,noreferrer');
+    const protocolWindow = prepareProtocolWindow();
 
     try {
       const url = await this.reservationsService.getProtocolAccessUrl(
@@ -136,18 +141,13 @@ export class MyReservationDetailPageComponent implements OnInit {
         file,
       );
 
-      if (protocolWindow) {
-        protocolWindow.location.href = url;
-      } else {
-        const openedWindow = window.open(url, '_blank', 'noopener,noreferrer');
-        if (!openedWindow) {
-          throw new Error(
-            'El navegador bloqueo la apertura del protocolo.',
-          );
-        }
+      if (!openUrlInProtocolWindow(protocolWindow, url)) {
+        throw new Error(
+          'El navegador bloqueo la apertura del protocolo.',
+        );
       }
     } catch (error) {
-      protocolWindow?.close();
+      closeProtocolWindow(protocolWindow);
       this.snackBar.open(
         this.toProtocolErrorMessage(error),
         'Cerrar',
