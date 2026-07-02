@@ -12,7 +12,7 @@ import {
   AppIconBoxComponent,
   AppStatusChipComponent,
 } from '../../../shared/components';
-import { LabDoc } from '../../../shared/models';
+import { PublicLab } from '../../../shared/models';
 import { LabService } from '../services/lab.service';
 
 type LabTypeFilter =
@@ -47,7 +47,7 @@ type SortOrder = 'nameAsc' | 'nameDesc' | 'noticeAsc';
 export class LabListComponent implements OnInit {
   private readonly labService = inject(LabService);
 
-  protected readonly labs = signal<LabDoc[]>([]);
+  protected readonly labs = signal<PublicLab[]>([]);
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal('');
   protected readonly searchTerm = signal('');
@@ -103,18 +103,18 @@ export class LabListComponent implements OnInit {
     });
   }
 
-  protected scheduleSummary(lab: LabDoc): string {
+  protected scheduleSummary(lab: PublicLab): string {
     return this.labService.getWeeklyScheduleSummary(lab.weeklySchedule);
   }
 
-  protected scheduleInline(lab: LabDoc): string {
+  protected scheduleInline(lab: PublicLab): string {
     return this.scheduleSummary(lab)
       .replaceAll('. ', ' | ')
       .replace(/\.$/, '')
       .replace('Domingo cerrado', 'Dom cerrado');
   }
 
-  protected minNoticeLabel(lab: LabDoc): string {
+  protected minNoticeLabel(lab: PublicLab): string {
     return lab.minNoticeHours > 0
       ? `${lab.minNoticeHours} h de anticipacion`
       : 'Sin anticipacion minima';
@@ -139,7 +139,7 @@ export class LabListComponent implements OnInit {
     this.sortOrder.set('nameAsc');
   }
 
-  protected labIcon(lab: LabDoc): string {
+  protected labIcon(lab: PublicLab): string {
     const name = this.normalizeText(lab.name);
 
     if (name.includes('computo')) {
@@ -185,7 +185,7 @@ export class LabListComponent implements OnInit {
     return 'science';
   }
 
-  private labType(lab: LabDoc): LabTypeFilter {
+  private labType(lab: PublicLab): LabTypeFilter {
     const name = this.normalizeText(lab.name);
 
     if (

@@ -240,3 +240,20 @@ Regla de interfaz:
 
 La correccion no modifica el contrato de `createReservation`, los estatus ni la
 logica de Calendar/Gmail.
+
+## Actualizacion Fase 17E.1: catalogo y detalle sanitizados
+
+El flujo previo a la reserva debe usar datos publicos saneados del laboratorio.
+Las rutas `/laboratorios`, `/laboratorios/:labId` y `/reservar/:labSlug` deben
+consumir `getPublicLabs` o `getPublicLabDetail`, no documentos completos
+`labs/{labId}`.
+
+El contrato visible para docentes es `PublicLab`. Este contrato permite mostrar
+catalogo, detalle, galeria, horario semanal, anticipacion minima y banderas de
+protocolo, pero no expone `calendarId`, responsables, correos internos,
+`specialRules` completas, `qrConfig` administrativa ni rutas internas de
+Storage.
+
+La disponibilidad del calendario sigue por `getLabAvailability`, que devuelve
+bloques saneados de reservas, bloqueos y reglas especiales. La creacion,
+aprobacion, rechazo y cancelacion de reservas no cambian.

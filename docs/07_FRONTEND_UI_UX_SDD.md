@@ -1170,3 +1170,18 @@ La UI debe conservar mensajes diferenciados para la bitacora responsable:
 
 Ningun caso debe mostrar `INTERNAL`, errores crudos del SDK, JSON, stack traces
 ni rutas tecnicas.
+
+## Actualizacion Fase 17E.1: UI con laboratorios sanitizados
+
+Las vistas docentes de catalogo, detalle y reserva por laboratorio deben usar
+`PublicLab` desde `getPublicLabs` o `getPublicLabDetail`.
+
+La UI puede mostrar nombre, descripcion, ubicacion, horario semanal,
+anticipacion minima, banderas de protocolo/riesgo, galeria publica y acciones
+`Ver detalle` / `Reservar`. No debe depender de campos administrativos como
+`calendarId`, responsables, correos internos, reglas especiales completas,
+`qrConfig` o rutas internas de Storage.
+
+Si una imagen de galeria no cuenta con URL temporal, debe omitirse de forma
+silenciosa y conservar el estado visual de galeria no disponible. Admin/Sistemas
+mantiene la vista completa en `/admin/laboratorios`.

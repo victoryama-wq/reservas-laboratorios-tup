@@ -196,6 +196,47 @@ interface ProtocolFile {
   uploadedAt: Timestamp;
 }
 
+## Actualizacion Fase 17E.1: modelo publico de laboratorio
+
+Para vistas docentes y usuarios no admin se define un modelo saneado:
+
+```ts
+interface PublicLab {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  shortDescription?: string;
+  imageUrl?: string;
+  gallery?: PublicLabGalleryImage[];
+  coverImageId?: string;
+  location?: string;
+  active: boolean;
+  visibleInCatalog: boolean;
+  minNoticeHours: number;
+  requiresApprovalWhenRisky: boolean;
+  requiresProtocolWhenRisky: boolean;
+  weeklySchedule: WeeklySchedule;
+  qrPath: string;
+}
+
+interface PublicLabGalleryImage {
+  id: string;
+  url?: string;
+  alt?: string;
+  caption?: string;
+  order: number;
+  active: boolean;
+}
+```
+
+`PublicLab` no incluye campos operativos internos como `calendarId`,
+`responsibleUids`, `responsibleEmails`, `defaultNotifyEmails`, `specialRules`
+completas, `qrConfig`, `storagePath`, `createdAt` o `updatedAt`.
+
+El documento completo `LabDoc` sigue siendo el modelo administrativo de
+Firestore para Admin/Sistemas y validaciones backend.
+
 reservationLogs/{logId}
 
 interface ReservationLogDoc {

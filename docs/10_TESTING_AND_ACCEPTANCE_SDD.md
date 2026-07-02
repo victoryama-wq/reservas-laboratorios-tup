@@ -607,3 +607,23 @@ Pruebas recomendadas:
   misma ocupacion visual sin depender de lecturas directas de `reservations`;
 - confirmar que no se cambiaron reglas Firestore/Storage, Calendar API, Gmail
   API, roles ni estatus.
+
+## Pruebas Fase 17E.1: laboratorios sanitizados
+
+Pruebas recomendadas:
+
+- entrar como docente y abrir `/laboratorios`;
+- confirmar que el catalogo carga desde `getPublicLabs`;
+- confirmar que no aparecen laboratorios inactivos u ocultos;
+- abrir `/laboratorios/:labId` y verificar galeria, resumen y disponibilidad;
+- abrir `/reservar/:labSlug` y confirmar que el formulario conserva laboratorio,
+  horario, anticipacion minima y protocolo;
+- revisar en DevTools que `getPublicLabs` y `getPublicLabDetail` no devuelvan
+  `calendarId`, responsables, correos internos, `defaultNotifyEmails`,
+  `specialRules` completas, `qrConfig`, `storagePath` ni timestamps
+  administrativos;
+- confirmar que `getLabAvailability` solo devuelve bloques saneados;
+- entrar como Admin/Sistemas y confirmar que `/admin/laboratorios` sigue viendo
+  y editando datos completos;
+- confirmar que un usuario no admin ya no puede leer directamente `labs/{labId}`
+  completo desde Firestore.

@@ -5,8 +5,7 @@ import { catchError, from, map, Observable, of } from 'rxjs';
 
 import { FIREBASE_FUNCTIONS } from '../../../core/firebase/firebase.providers';
 import {
-  LabDoc,
-  LabSpecialRule,
+  PublicLab,
 } from '../../../shared/models';
 
 export interface AvailabilityCalendarState {
@@ -52,7 +51,7 @@ export class AvailabilityService {
   private readonly functions = inject<Functions>(FIREBASE_FUNCTIONS);
 
   getAvailabilityEvents(
-    lab: LabDoc,
+    lab: PublicLab,
     rangeFrom: Date,
     rangeTo: Date,
   ): Observable<AvailabilityCalendarState> {
@@ -72,30 +71,11 @@ export class AvailabilityService {
         events: [
           ...result.data.busyBlocks.map((block) => this.toAvailabilityEvent(block)),
           ...result.data.blockedPeriods.map((block) => this.toAvailabilityEvent(block)),
-          ...this.getSpecialRuleEvents(lab.specialRules),
         ],
         hasReadLimit: false,
       })),
       catchError(() => of({ events: [], hasReadLimit: true })),
     );
-  }
-
-  private getSpecialRuleEvents(specialRules: LabSpecialRule[]): EventInput[] {
-    return specialRules
-      .filter((rule) => rule.active && rule.fullDayBlocked && rule.termStart)
-      .map((rule) => ({
-        id: `special-rule-${rule.id}`,
-        title: 'No disponible',
-        start: rule.termStart,
-        end: rule.termEnd,
-        allDay: true,
-        display: 'background',
-        backgroundColor: '#888887',
-        extendedProps: {
-          source: 'specialRule',
-          reason: rule.reason,
-        },
-      }));
   }
 
   private toAvailabilityEvent(block: AvailabilityBusyBlock): EventInput {

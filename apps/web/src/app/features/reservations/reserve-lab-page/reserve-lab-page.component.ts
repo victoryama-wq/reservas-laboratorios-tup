@@ -12,7 +12,7 @@ import {
   AppPageHeaderComponent,
   AppSectionCardComponent,
 } from '../../../shared/components';
-import { LabDoc } from '../../../shared/models';
+import { PublicLab } from '../../../shared/models';
 import { AvailabilitySlot } from '../../calendar/components';
 import { LabCalendarComponent } from '../../calendar/lab-calendar/lab-calendar.component';
 import { LabService } from '../../labs/services/lab.service';
@@ -47,7 +47,7 @@ export class ReserveLabPageComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
-  protected readonly lab = signal<LabDoc | null>(null);
+  protected readonly lab = signal<PublicLab | null>(null);
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal('');
   protected readonly labSlug = signal('');
@@ -81,7 +81,7 @@ export class ReserveLabPageComponent implements OnInit {
     this.selectedCalendarSlot.set(slot);
   }
 
-  protected openReservationDialog(selectedLab: LabDoc): void {
+  protected openReservationDialog(selectedLab: PublicLab): void {
     const dialogRef = this.dialog.open<
       ReservationFormDialogComponent,
       ReservationFormDialogData,

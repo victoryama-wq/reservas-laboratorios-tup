@@ -748,3 +748,23 @@ La funcion puede registrar diagnostico seguro en Cloud Logging:
 
 No se deben registrar `calendarId`, `storagePath`, URLs firmadas, metadata de
 archivos, secretos, correos ni stack traces completos.
+
+## Actualizacion Fase 17E.1: callables de laboratorio publico
+
+Se agregan dos callables de lectura saneada:
+
+- `getPublicLabs`;
+- `getPublicLabDetail`.
+
+Ambas funciones requieren usuario autenticado, perfil activo y rol oficial.
+`getPublicLabs` devuelve laboratorios `active === true` y
+`visibleInCatalog === true`, ordenados por nombre. `getPublicLabDetail` acepta
+`labId` o `slug` y devuelve un solo `PublicLab` activo y visible.
+
+Estas funciones no devuelven `calendarId`, responsables, correos internos,
+`defaultNotifyEmails`, `specialRules` completas, `qrConfig` administrativa,
+`storagePath` de galeria ni timestamps administrativos.
+
+`getLabAvailability` mantiene la disponibilidad y puede devolver reglas
+especiales como bloques `No disponible` saneados, sin exponer la regla completa.
+Admin/Sistemas conserva las funciones admin y lectura completa de `LabDoc`.

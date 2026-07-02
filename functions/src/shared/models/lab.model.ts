@@ -28,6 +28,25 @@ export interface LabDoc {
   updatedAt: Timestamp;
 }
 
+export interface PublicLab {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  shortDescription?: string;
+  imageUrl?: string;
+  gallery?: PublicLabGalleryImage[];
+  coverImageId?: string;
+  location?: string;
+  active: boolean;
+  visibleInCatalog: boolean;
+  minNoticeHours: number;
+  requiresApprovalWhenRisky: boolean;
+  requiresProtocolWhenRisky: boolean;
+  weeklySchedule: WeeklySchedule;
+  qrPath: string;
+}
+
 export interface WeeklySchedule {
   monday?: DaySchedule;
   tuesday?: DaySchedule;
@@ -61,6 +80,15 @@ export interface LabGalleryImage {
   active: boolean;
   createdAt: Timestamp;
   updatedAt?: Timestamp;
+}
+
+export interface PublicLabGalleryImage {
+  id: string;
+  url?: string;
+  alt?: string;
+  caption?: string;
+  order: number;
+  active: boolean;
 }
 
 export type LabQrFrameStyle = "classic" | "card" | "minimal";

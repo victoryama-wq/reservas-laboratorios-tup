@@ -22,8 +22,9 @@ Ningún usuario puede activarse o asignarse rol solo.
 labs
 
 Lectura
-Usuarios autenticados pueden leer laboratorios activos.
-Admin/Sistemas puede leer todos.
+Usuarios autenticados consultan laboratorios activos mediante callables
+sanitizadas.
+Admin/Sistemas puede leer documentos completos `labs/{labId}`.
 
 Nota sobre calendarId
 Los calendarId son datos operativos institucionales.
@@ -262,3 +263,20 @@ Las reglas de Firestore pueden conservar la restriccion de lectura directa de
 reservas. La callable no devuelve `calendarId`, datos del docente, campos
 academicos, protocolos, rutas Storage ni metadata sensible. Este enfoque evita
 usar reglas amplias solo para pintar ocupacion en calendario.
+
+## Actualizacion Fase 17E.1: lectura completa de labs solo para Admin/Sistemas
+
+Despues de migrar catalogo, detalle y reserva por slug a callables saneadas,
+las reglas de Firestore restringen la lectura directa de `labs/{labId}` a
+`admin_sistemas`.
+
+Los usuarios activos no admin deben obtener laboratorios mediante:
+
+- `getPublicLabs`;
+- `getPublicLabDetail`;
+- `getLabAvailability` para bloques de disponibilidad.
+
+Este enfoque evita enviar al cliente docente `calendarId`, responsables,
+correos internos, `specialRules` completas, `qrConfig`, rutas internas de
+galeria o metadata administrativa. Admin/Sistemas conserva la administracion
+completa de laboratorios.

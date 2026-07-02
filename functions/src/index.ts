@@ -7,6 +7,10 @@ export {createReservation} from
 export {getLabAvailability} from
   "./modules/reservations/get-lab-availability.function";
 export {
+  getPublicLabDetail,
+  getPublicLabs,
+} from "./modules/labs/public-labs.function";
+export {
   approveReservation,
   getReservationReviewLogs,
   getReservationProtocolAccess,

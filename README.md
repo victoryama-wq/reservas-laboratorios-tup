@@ -242,7 +242,8 @@ Resumen inicial:
 
 - El usuario autenticado puede leer su propio perfil.
 - `admin_sistemas` puede leer, crear, actualizar y desactivar usuarios.
-- Usuarios con perfil activo pueden leer laboratorios activos.
+- Usuarios con perfil activo consultan catalogo/detalle mediante callables
+  sanitizadas; solo `admin_sistemas` lee `labs/{labId}` completo.
 - Solo `admin_sistemas` puede escribir laboratorios, configuracion global y
   bloqueos extraordinarios.
 - Las reservas no se escriben directamente desde el frontend; la escritura
@@ -286,10 +287,9 @@ administracion valida en el entorno local. No subir service accounts, llaves
 privadas ni archivos `.env` al repositorio.
 
 `calendarId` es un dato operativo institucional. Los docentes no necesitan
-verlo en la interfaz; el catalogo actual no lo muestra. Como pendiente de
-seguridad fina queda crear una vista publica sanitizada o una lectura controlada
-por backend para evitar que clientes docentes reciban campos operativos que no
-requieren para navegar el catalogo.
+verlo ni recibirlo en el cliente. Desde la Fase 17E.1, el catalogo, detalle y
+ruta de reserva usan callables sanitizadas para evitar que clientes docentes
+reciban campos operativos que no requieren para navegar el catalogo.
 
 Los responsables de laboratorio se asignaran posteriormente mediante el modulo
 de administracion. Por ahora `responsibleUids`, `responsibleEmails` y
@@ -300,12 +300,13 @@ de administracion. Por ahora `responsibleUids`, `responsibleEmails` y
 La disponibilidad visual por laboratorio usa FullCalendar Angular dentro del
 frontend.
 
-La vista visual usa Firestore como fuente interna:
+La vista visual usa Firestore como fuente interna a traves de la callable
+sanitizada `getLabAvailability`:
 
 - `reservations` con estatus bloqueantes.
 - `blockedPeriods` activos.
 - `labs/{labId}.weeklySchedule`.
-- `labs/{labId}.specialRules`.
+- reglas especiales saneadas como bloques `No disponible`.
 
 Los estatus de reserva que se muestran como ocupados son:
 
@@ -1521,3 +1522,37 @@ asignatura, grupo, practica, objetivo, material, protocolo, rutas Storage,
 `calendarId`, responsables ni metadata tecnica. No se modifican reglas de
 Firestore/Storage, reservas existentes, Calendar API, Gmail API, roles ni
 estatus.
+
+## Fase 17E.1: catalogo y detalle de laboratorios sanitizados
+
+Las vistas docentes `/laboratorios`, `/laboratorios/:labId` y
+`/reservar/:labSlug` ya no leen documentos completos `labs/{labId}` desde
+Angular. Ahora consumen las callables:
+
+- `getPublicLabs`;
+- `getPublicLabDetail`.
+
+Ambas requieren sesion autenticada, perfil activo y rol oficial. Devuelven solo
+el modelo `PublicLab`, suficiente para navegar, consultar disponibilidad y
+crear solicitudes: `id`, `name`, `slug`, descripciones, ubicacion, estado
+activo/visible, anticipacion minima, banderas de validacion/protocolo, horario
+semanal, `qrPath`, `coverImageId` y galeria publica con URL temporal cuando se
+puede firmar.
+
+No se devuelven a vistas docentes:
+
+- `calendarId` ni `calendarSharedWith`;
+- `responsibleUids`, `responsibleEmails` ni `defaultNotifyEmails`;
+- `specialRules` completas ni razones administrativas;
+- `qrConfig` administrativa;
+- `storagePath` de galeria;
+- timestamps o metadata tecnica administrativa.
+
+`getLabAvailability` conserva la consulta de disponibilidad y ahora tambien
+expande reglas especiales como bloques saneados `No disponible`, sin enviar las
+reglas completas al cliente. Admin/Sistemas mantiene lectura completa de
+`labs/{labId}` desde `/admin/laboratorios`.
+
+Las reglas de Firestore se endurecieron: solo `admin_sistemas` puede leer
+directamente documentos completos de `labs`. Los usuarios no admin deben usar
+las callables sanitizadas.

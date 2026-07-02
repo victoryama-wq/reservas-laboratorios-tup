@@ -1,8 +1,6 @@
-import { inject, Injectable } from '@angular/core';
-import { FirebaseStorage, getDownloadURL, ref } from 'firebase/storage';
+import { Injectable } from '@angular/core';
 
-import { FIREBASE_STORAGE } from '../../../core/firebase/firebase.providers';
-import { LabGalleryImage } from '../../../shared/models';
+import { PublicLabGalleryImage } from '../../../shared/models';
 
 export interface LabGalleryViewImage {
   id: string;
@@ -17,15 +15,13 @@ export interface LabGalleryViewImage {
   providedIn: 'root',
 })
 export class LabGalleryViewService {
-  private readonly storage = inject<FirebaseStorage>(FIREBASE_STORAGE);
-
   async resolveGalleryImages(
-    gallery: LabGalleryImage[] | undefined,
+    gallery: PublicLabGalleryImage[] | undefined,
     coverImageId: string | undefined,
     labName: string,
   ): Promise<LabGalleryViewImage[]> {
-    const activeImages = (gallery ?? [])
-      .filter((image) => image.active)
+    return (gallery ?? [])
+      .filter((image) => image.active && Boolean(image.url))
       .sort((first, second) => {
         const firstIsCover = first.id === coverImageId;
         const secondIsCover = second.id === coverImageId;
@@ -35,24 +31,14 @@ export class LabGalleryViewService {
         }
 
         return first.order - second.order;
-      });
-
-    const results = await Promise.allSettled(
-      activeImages.map(async (image) => {
-        const src = await getDownloadURL(ref(this.storage, image.storagePath));
-        return {
-          id: image.id,
-          src,
-          alt: image.alt || `Imagen del laboratorio ${labName}`,
-          caption: image.caption,
-          order: image.order,
-          isCover: image.id === coverImageId,
-        } satisfies LabGalleryViewImage;
-      }),
-    );
-
-    return results.flatMap((result) =>
-      result.status === 'fulfilled' ? [result.value] : [],
-    );
+      })
+      .map((image) => ({
+        id: image.id,
+        src: image.url as string,
+        alt: image.alt || `Imagen del laboratorio ${labName}`,
+        caption: image.caption,
+        order: image.order,
+        isCover: image.id === coverImageId,
+      }));
   }
 }

@@ -59,8 +59,7 @@ service cloud.firestore {
     }
 
     match /labs/{labId} {
-      allow get, list: if isActiveUser()
-        && (isAdmin() || resource.data.active == true);
+      allow get, list: if isAdmin();
       allow create, update: if isAdmin();
       allow delete: if false;
     }

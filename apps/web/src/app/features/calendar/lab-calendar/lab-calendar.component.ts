@@ -2,7 +2,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { EventInput } from '@fullcalendar/core';
 
-import { LabDoc } from '../../../shared/models';
+import { PublicLab } from '../../../shared/models';
 import { LabService } from '../../labs/services/lab.service';
 import {
   AvailabilityCalendarComponent,
@@ -29,7 +29,7 @@ type WeekdayName =
   styleUrl: './lab-calendar.component.scss',
 })
 export class LabCalendarComponent {
-  readonly lab = input.required<LabDoc>();
+  readonly lab = input.required<PublicLab>();
   readonly refreshKey = input(0);
   readonly optimisticEvents = input<EventInput[]>([]);
   readonly slotSelected = output<AvailabilitySlot>();
@@ -286,7 +286,7 @@ export class LabCalendarComponent {
     return hours;
   }
 
-  private scheduleForDay(date: Date): LabDoc['weeklySchedule'][WeekdayName] {
+  private scheduleForDay(date: Date): PublicLab['weeklySchedule'][WeekdayName] {
     const weekdays: WeekdayName[] = [
       'sunday',
       'monday',
@@ -302,7 +302,7 @@ export class LabCalendarComponent {
 
   private isInsideSchedule(
     hour: string,
-    schedule: NonNullable<LabDoc['weeklySchedule'][WeekdayName]>,
+    schedule: NonNullable<PublicLab['weeklySchedule'][WeekdayName]>,
   ): boolean {
     return hour >= schedule.start && hour < schedule.end;
   }

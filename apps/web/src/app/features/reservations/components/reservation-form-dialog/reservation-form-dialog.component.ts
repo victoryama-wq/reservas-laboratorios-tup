@@ -8,7 +8,7 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 
 import { AppIconBoxComponent } from '../../../../shared/components';
-import { LabDoc } from '../../../../shared/models';
+import { PublicLab } from '../../../../shared/models';
 import { AvailabilitySlot } from '../../../calendar/components';
 import {
   ReservationCreatedEvent,
@@ -16,7 +16,7 @@ import {
 } from '../../reservation-form/reservation-form.component';
 
 export interface ReservationFormDialogData {
-  lab: LabDoc;
+  lab: PublicLab;
   calendarSlot: AvailabilitySlot | null;
 }
 

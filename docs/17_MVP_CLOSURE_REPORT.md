@@ -246,7 +246,7 @@ No se identificaron pendientes bloqueantes con la evidencia tecnica disponible.
 - Reducir SCSS del calendario o ajustar budget por componente si se acepta la complejidad visual.
 - Implementar idempotencia completa de Calendar ante reintentos.
 - Implementar limpieza programada de protocolos huerfanos.
-- Evaluar vista publica/sanitizada de laboratorios para ocultar campos operativos aun en payload cliente.
+- Mantener smoke manual de la vista publica/sanitizada de laboratorios implementada en Fase 17E.1.
 - Completar reportes avanzados si quedan diferidos.
 
 ## 18. Deuda tecnica conocida
@@ -723,3 +723,28 @@ Correccion aplicada:
 
 No se modifican reservas existentes, Calendar API, Gmail API, roles, estatus,
 Firestore Rules ni Storage Rules.
+
+## 35. Seguimiento Fase 17E.1: catalogo y detalle sanitizados
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Causa atendida:
+
+- las vistas docentes de laboratorios leian documentos completos `labs/{labId}`;
+- aunque la UI ocultara campos sensibles, esos datos podian viajar al cliente.
+
+Correcciones:
+
+- se agregan `getPublicLabs` y `getPublicLabDetail`;
+- `LabService` deja de usar lecturas directas Firestore sobre `labs`;
+- `/laboratorios`, `/laboratorios/:labId` y `/reservar/:labSlug` usan
+  `PublicLab`;
+- la galeria publica usa URL temporal firmada cuando esta disponible y no
+  recibe `storagePath`;
+- `getLabAvailability` devuelve reglas especiales como bloques saneados;
+- Firestore Rules restringen lectura completa de `labs/{labId}` a
+  `admin_sistemas`.
+
+No se modifican reservas, aprobacion, rechazo, cancelacion, Calendar API,
+Gmail API, roles, estatus ni datos historicos.

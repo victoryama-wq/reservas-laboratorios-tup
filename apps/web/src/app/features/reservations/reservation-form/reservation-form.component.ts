@@ -18,7 +18,7 @@ import {
 } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { LabDoc } from '../../../shared/models';
+import { PublicLab } from '../../../shared/models';
 import { AvailabilitySlot } from '../../calendar/components';
 import { ReservationStepperFormComponent } from '../components/reservation-stepper-form/reservation-stepper-form.component';
 import {
@@ -64,7 +64,7 @@ export interface ReservationCreatedEvent {
   styleUrl: './reservation-form.component.scss',
 })
 export class ReservationFormComponent {
-  readonly lab = input.required<LabDoc>();
+  readonly lab = input.required<PublicLab>();
   readonly calendarSlot = input<AvailabilitySlot | null>(null);
   readonly reservationCreated = output<ReservationCreatedEvent>();
   readonly submittingChange = output<boolean>();

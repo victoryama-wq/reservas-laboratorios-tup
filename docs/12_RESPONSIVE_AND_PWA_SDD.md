@@ -518,3 +518,20 @@ Las acciones de cards del catalogo deben ser tactiles y claras en movil:
 
 Estos ajustes son visuales y responsive; no cambian backend, permisos,
 consultas, payloads ni reglas de negocio.
+
+## Actualizacion Fase 17E.1: responsive con datos saneados
+
+El comportamiento responsive del catalogo, detalle y reserva por laboratorio se
+mantiene, pero sus datos provienen de `PublicLab`. Los componentes no deben
+requerir campos administrativos para pintar cards, resumen, galeria, calendario
+o formulario.
+
+En movil, tablet y escritorio se debe conservar:
+
+- catalogo por cards;
+- detalle con galeria, resumen y disponibilidad;
+- ruta QR `/reservar/:labSlug`;
+- calendario con bloques saneados de `getLabAvailability`.
+
+Ninguna vista responsive docente debe depender de lectura directa de
+`labs/{labId}` completo.

@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { LabDoc } from '../../../shared/models';
+import { PublicLab } from '../../../shared/models';
 import {
   AppIconBoxComponent,
   AppPageHeaderComponent,
@@ -39,7 +39,7 @@ export class LabDetailComponent implements OnInit {
   private readonly labService = inject(LabService);
   private readonly labGalleryViewService = inject(LabGalleryViewService);
 
-  protected readonly lab = signal<LabDoc | null>(null);
+  protected readonly lab = signal<PublicLab | null>(null);
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal('');
   protected readonly galleryImages = signal<LabGalleryViewImage[]>([]);
@@ -70,17 +70,17 @@ export class LabDetailComponent implements OnInit {
     });
   }
 
-  protected scheduleSummary(lab: LabDoc): string {
+  protected scheduleSummary(lab: PublicLab): string {
     return this.labService.getWeeklyScheduleSummary(lab.weeklySchedule);
   }
 
-  protected minNoticeLabel(lab: LabDoc): string {
+  protected minNoticeLabel(lab: PublicLab): string {
     return lab.minNoticeHours > 0
       ? `${lab.minNoticeHours} horas`
       : 'Sin anticipacion minima';
   }
 
-  private async loadGallery(lab: LabDoc): Promise<void> {
+  private async loadGallery(lab: PublicLab): Promise<void> {
     this.galleryLoading.set(true);
     this.galleryErrorMessage.set('');
     this.galleryImages.set([]);

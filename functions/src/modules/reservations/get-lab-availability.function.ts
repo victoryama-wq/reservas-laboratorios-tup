@@ -9,6 +9,7 @@ import {
   AppUser,
   BlockedPeriodDoc,
   LabDoc,
+  LabSpecialRule,
   ReservationDoc,
 } from "../../shared/models";
 import {ReservationRepository} from "./reservation.repository";
@@ -102,9 +103,12 @@ export const getLabAvailability = onCall(
         busyBlocks: reservations.map((reservation) =>
           toReservationBlock(repository, reservation),
         ),
-        blockedPeriods: blockedPeriods.map((blockedPeriod) =>
-          toBlockedPeriodBlock(repository, blockedPeriod),
-        ),
+        blockedPeriods: [
+          ...blockedPeriods.map((blockedPeriod) =>
+            toBlockedPeriodBlock(repository, blockedPeriod),
+          ),
+          ...toSpecialRuleBlocks(lab, input.from, input.to),
+        ],
       };
     },
 );
@@ -129,6 +133,109 @@ function parseInput(data: unknown): {labId: string; from: Date; to: Date} {
   }
 
   return {labId, from, to};
+}
+
+/**
+ * Builds sanitized blocks from active lab special rules.
+ *
+ * @param {LabDoc} lab Laboratory.
+ * @param {Date} rangeFrom Visible range start.
+ * @param {Date} rangeTo Visible range end.
+ * @return {AvailabilityBusyBlock[]} Sanitized special rule blocks.
+ */
+function toSpecialRuleBlocks(
+    lab: LabDoc,
+    rangeFrom: Date,
+    rangeTo: Date,
+): AvailabilityBusyBlock[] {
+  return (lab.specialRules ?? [])
+      .filter((rule) => rule.active)
+      .flatMap((rule) => blocksForSpecialRule(rule, rangeFrom, rangeTo));
+}
+
+/**
+ * Expands one special rule into visual availability blocks.
+ *
+ * @param {LabSpecialRule} rule Special rule.
+ * @param {Date} rangeFrom Visible range start.
+ * @param {Date} rangeTo Visible range end.
+ * @return {AvailabilityBusyBlock[]} Sanitized blocks.
+ */
+function blocksForSpecialRule(
+    rule: LabSpecialRule,
+    rangeFrom: Date,
+    rangeTo: Date,
+): AvailabilityBusyBlock[] {
+  const startDate = maxDate(startOfDay(rangeFrom), parseDay(rule.termStart));
+  const termEndDate = parseDay(rule.termEnd);
+  const endDate = minDate(
+      startOfDay(rangeTo),
+      termEndDate ? addDays(termEndDate, 1) : startOfDay(rangeTo),
+  );
+
+  if (!startDate || !endDate || startDate >= endDate) {
+    return [];
+  }
+
+  const blocks: AvailabilityBusyBlock[] = [];
+
+  for (
+    let day = startOfDay(startDate);
+    day < endDate;
+    day = addDays(day, 1)
+  ) {
+    if (rule.daysOfWeek?.length && !rule.daysOfWeek.includes(day.getDay())) {
+      continue;
+    }
+
+    const block = specialRuleBlockForDay(rule, day, rangeFrom, rangeTo);
+
+    if (block) {
+      blocks.push(block);
+    }
+  }
+
+  return blocks;
+}
+
+/**
+ * Builds one block for a day if it overlaps the requested range.
+ *
+ * @param {LabSpecialRule} rule Special rule.
+ * @param {Date} day Day.
+ * @param {Date} rangeFrom Visible range start.
+ * @param {Date} rangeTo Visible range end.
+ * @return {AvailabilityBusyBlock | null} Block or null.
+ */
+function specialRuleBlockForDay(
+    rule: LabSpecialRule,
+    day: Date,
+    rangeFrom: Date,
+    rangeTo: Date,
+): AvailabilityBusyBlock | null {
+  const startAt = rule.fullDayBlocked ?
+    day :
+    timeOnDay(day, rule.blockedStart);
+  const endAt = rule.fullDayBlocked ?
+    addDays(day, 1) :
+    timeOnDay(day, rule.blockedEnd);
+
+  if (!startAt || !endAt || startAt >= endAt) {
+    return null;
+  }
+
+  if (startAt >= rangeTo || endAt <= rangeFrom) {
+    return null;
+  }
+
+  return {
+    id: `special-rule-${rule.id}-${dateKey(day)}`,
+    startAt: toIso(startAt),
+    endAt: toIso(endAt),
+    label: "No disponible",
+    kind: "specialRule",
+    status: "blocked",
+  };
 }
 
 /**
@@ -310,4 +417,113 @@ function toIso(date: Date | null): string {
   }
 
   return date.toISOString();
+}
+
+/**
+ * Parses a YYYY-MM-DD day.
+ *
+ * @param {string | undefined} value Day value.
+ * @return {Date | null} Parsed day.
+ */
+function parseDay(value: string | undefined): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(`${value}T00:00:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
+ * Returns start of day.
+ *
+ * @param {Date} date Date.
+ * @return {Date} Start of day.
+ */
+function startOfDay(date: Date): Date {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
+
+/**
+ * Adds days.
+ *
+ * @param {Date} date Date.
+ * @param {number} days Days.
+ * @return {Date} Result.
+ */
+function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+/**
+ * Combines a day and HH:mm time.
+ *
+ * @param {Date} day Day.
+ * @param {string | undefined} time Time.
+ * @return {Date | null} Combined date.
+ */
+function timeOnDay(day: Date, time: string | undefined): Date | null {
+  if (!time || !/^\d{2}:\d{2}$/.test(time)) {
+    return null;
+  }
+
+  const [hours, minutes] = time.split(":").map(Number);
+  const result = new Date(day);
+  result.setHours(hours, minutes, 0, 0);
+  return result;
+}
+
+/**
+ * Returns max non-null date.
+ *
+ * @param {Date | null} first First date.
+ * @param {Date | null} second Second date.
+ * @return {Date | null} Max date.
+ */
+function maxDate(first: Date | null, second: Date | null): Date | null {
+  if (!first) {
+    return second;
+  }
+
+  if (!second) {
+    return first;
+  }
+
+  return first > second ? first : second;
+}
+
+/**
+ * Returns min non-null date.
+ *
+ * @param {Date | null} first First date.
+ * @param {Date | null} second Second date.
+ * @return {Date | null} Min date.
+ */
+function minDate(first: Date | null, second: Date | null): Date | null {
+  if (!first) {
+    return second;
+  }
+
+  if (!second) {
+    return first;
+  }
+
+  return first < second ? first : second;
+}
+
+/**
+ * Builds a local date key.
+ *
+ * @param {Date} date Date.
+ * @return {string} YYYY-MM-DD key.
+ */
+function dateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
