@@ -416,21 +416,32 @@ Dimensiones recomendadas para el dialogo de reserva:
 La seleccion de calendario puede seguir precargando el formulario sin cambiar
 los nombres de controles ni la estructura del payload.
 
-## Actualizacion Fase 16E: responsive de Mis reservas
+## Actualización Fase 16E: responsive de Mis reservas
 
 La ruta `/mis-reservas` debe mantener una experiencia mobile-first con:
 
-- selector de vista `Recientes`, `Historico` y `Todas`;
+- selector de vista `Recientes`, `Histórico` y `Todas`;
 - filtros apilados en movil y distribuidos en grid en escritorio;
 - cards de reserva en una columna en movil, dos columnas en tablet y hasta tres
   columnas en escritorio amplio;
-- callout informativo visible sobre la conservacion del historico;
-- estados vacios claros para recientes e historico;
+- callout informativo visible sobre la conservación del histórico;
+- estados vacíos claros para recientes e histórico;
 - sin tablas anchas ni overflow horizontal.
 
-La clasificacion temporal es solo visual. No debe eliminar documentos ni
+La clasificación temporal es solo visual. No debe eliminar documentos ni
 modificar rutas, servicios, guards, payloads, Cloud Functions o reglas de
 seguridad.
+
+## Actualización Fase 17H: QA responsive pendiente post 17G
+
+El cierre documental posterior a 17F/17G conserva como pendiente complementario
+un QA autenticado real en los siguientes anchos: 360 px, 390 px, 414 px, 768 px,
+820 px, 1024 px, 1366 px y 1440 px.
+
+Ese QA debe cubrir `/mis-reservas`, `/mis-reservas/:reservationId`, flujos con
+protocolo, bitácora, motivos destacados, filtros de fecha, navegación móvil y
+detalle de laboratorio. No debe cambiar rutas, payloads, Cloud Functions,
+Calendar API, Gmail API, roles ni reglas de seguridad.
 
 ## Actualizacion Fase 17B.2: responsive y movimiento del carrusel
 

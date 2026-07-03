@@ -1441,28 +1441,28 @@ Se ajusto la experiencia del formulario de nueva solicitud dentro del dialogo:
 - el ajuste es visual/accesible y no modifica controles, validaciones,
   payload, servicios ni backend.
 
-## Fase 16E: Mis reservas recientes e historico
+## Fase 16E: Mis reservas recientes e histórico
 
 Se ajusto la pantalla `/mis-reservas` para reducir saturacion visual sin perder
 trazabilidad institucional.
 
 Cambios visuales:
 
-- se agrego selector de vista `Recientes`, `Historico` y `Todas`;
+- se agregó selector de vista `Recientes`, `Histórico` y `Todas`;
 - la vista por defecto es `Recientes`;
-- se agrego callout informativo sobre la conservacion de reservas antiguas;
-- los estados vacios ahora distinguen `Sin reservas recientes` y
-  `No hay reservas historicas`;
+- se agregó callout informativo sobre la conservación de reservas antiguas;
+- los estados vacíos ahora distinguen `Sin reservas recientes` y
+  `No hay reservas históricas`;
 - los filtros existentes se conservan dentro de cada vista;
 - el selector usa superficies claras, bordes suaves, foco visible y la paleta
   operativa morada.
 
 Regla funcional documentada:
 
-- `Recientes` muestra reservas futuras, reservas de los ultimos 3 meses y
+- `Recientes` muestra reservas futuras, reservas de los últimos 3 meses y
   reservas antiguas con estatus `PENDIENTE_VALIDACION`, `CONFIRMADA`,
   `CONFIRMADA_TRAS_VALIDACION` o `ERROR_CALENDAR`;
-- `Historico` muestra reservas anteriores a 3 meses que no estan pendientes ni
+- `Histórico` muestra reservas anteriores a 3 meses que no están pendientes ni
   bloqueando horario;
 - `Todas` muestra todas las reservas personales.
 
@@ -1470,6 +1470,16 @@ No se eliminan documentos de Firestore. Permanecen intactas las colecciones
 `reservations`, `reservationLogs`, `notifications` y `auditEvents`. Tampoco se
 modifican Cloud Functions, Calendar API, Gmail API, rutas, roles, payloads ni
 reglas de negocio.
+
+## Fase 17H: cierre visual/documental post 17F y 17G
+
+Se deja como regla de continuidad visual que cualquier módulo posterior conserve
+la misma terminología con acentos, jerarquía limpia y estados seguros. En
+`Mis reservas`, el patrón final incluye selector `Recientes` / `Histórico` /
+`Todas`, búsqueda única, filtros compactos, detalle personal saneado, bitácora
+legible, protocolos privados y motivos destacados. En Calendar, la invitación al
+docente no debe agregar elementos visuales que expongan `calendarId`,
+`storagePath`, URLs firmadas ni metadata técnica.
 
 ## Fase 17B.1: galeria admin de laboratorios
 

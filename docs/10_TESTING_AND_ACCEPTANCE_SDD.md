@@ -418,7 +418,7 @@ Validaciones obligatorias:
 - confirmar que no cambia la estructura del payload enviado a
   `createReservation`.
 
-## Pruebas Fase 16E: Mis reservas recientes e historico
+## Pruebas Fase 16E: Mis reservas recientes e histórico
 
 Validaciones obligatorias:
 
@@ -429,10 +429,10 @@ Validaciones obligatorias:
 - confirmar que `Recientes` conserva reservas antiguas con estatus
   `PENDIENTE_VALIDACION`, `CONFIRMADA`, `CONFIRMADA_TRAS_VALIDACION` o
   `ERROR_CALENDAR`;
-- confirmar que `Historico` muestra reservas anteriores a 3 meses que no estan
+- confirmar que `Histórico` muestra reservas anteriores a 3 meses que no están
   pendientes ni bloqueando horario;
 - confirmar que `Todas` muestra todas las reservas personales;
-- confirmar que los filtros existentes por estatus, revision, fecha, busqueda y
+- confirmar que los filtros existentes por estatus, revisión, fecha, búsqueda y
   orden siguen funcionando dentro de cada vista;
 - confirmar que una cuenta no ve reservas de otros usuarios;
 - confirmar que no se muestra `calendarId` ni rutas internas de Storage;
@@ -733,3 +733,59 @@ Casos mínimos:
 - confirmar que la búsqueda por asignatura, práctica, grupo y tipo de práctica
   sigue funcionando;
 - validar 360, 390, 414, 768, 1024 y 1366 px sin overflow horizontal.
+
+## Pruebas Fase 17G: docente invitado en Google Calendar
+
+Casos mínimos:
+
+- crear una reserva no riesgosa y confirmar que queda `CONFIRMADA`;
+- abrir el evento en Google Calendar y confirmar que el docente solicitante
+  aparece como asistente usando `teacherEmail`;
+- confirmar que `teacherName` se usa como nombre visible cuando Calendar lo
+  permite;
+- crear una reserva con protocolo, aprobarla y confirmar que queda
+  `CONFIRMADA_TRAS_VALIDACION`;
+- abrir el evento aprobado y confirmar que el docente solicitante aparece como
+  asistente;
+- cancelar una reserva con `calendarEventId` y confirmar que Calendar elimina el
+  evento y solicita actualización al invitado;
+- confirmar que Gmail API sigue enviando el correo institucional
+  correspondiente;
+- confirmar que Calendar no incluye protocolos adjuntos, enlaces públicos a
+  Storage, responsables, admins ni listas operativas como asistentes.
+
+## QA general post 17F/17G
+
+Mis reservas:
+
+- buscar por folio;
+- buscar por laboratorio;
+- buscar por asignatura;
+- buscar por nombre de práctica;
+- buscar por grupo;
+- buscar por tipo de práctica;
+- buscar sin acentos y confirmar resultados;
+- probar Datepicker `Desde` y `Hasta`;
+- probar rango inválido y advertencia visible;
+- presionar `Limpiar` y confirmar restauración de filtros;
+- abrir detalle de reserva;
+- confirmar motivo destacado para rechazo, cancelación o `ERROR_CALENDAR`;
+- confirmar bitácora saneada con `getMyReservationLogs`;
+- abrir protocolo mediante `getReservationProtocolAccess`;
+- confirmar cancelación controlada de reserva futura;
+- intentar abrir una reserva ajena y confirmar error seguro.
+
+Calendar y correo:
+
+- reserva no riesgosa crea evento con docente invitado;
+- reserva aprobada crea evento con docente invitado;
+- cancelación elimina evento y solicita actualización al invitado;
+- Gmail sigue enviando correo institucional independiente;
+- Calendar no muestra protocolos ni enlaces públicos.
+
+Responsive complementario pendiente:
+
+- ejecutar QA autenticado real en 360 px, 390 px, 414 px, 768 px, 820 px,
+  1024 px, 1366 px y 1440 px;
+- confirmar que no hay overflow horizontal, botones fuera de pantalla,
+  cards comprimidas ni filtros duplicados.

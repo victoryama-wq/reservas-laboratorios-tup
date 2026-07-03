@@ -153,7 +153,7 @@ No se ejecuto deploy ni dry-run de reglas en esta fase.
 | `/laboratorios` | PENDING | Ruta protegida; estructura de ruta y guards verificados en codigo. |
 | `/laboratorios/:labId` | PENDING | Ruta protegida; no se ejecuto navegacion autenticada en esta fase. |
 | `/reservar/:labSlug` | PENDING | Ruta protegida; no se ejecuto flujo QR autenticado en esta fase. |
-| `/mis-reservas` | PENDING | Ruta protegida; filtro Recientes/Historico documentado y construido previamente. |
+| `/mis-reservas` | PENDING | Ruta protegida; filtro Recientes/Histórico documentado y construido previamente. |
 | `/mis-reservas/:reservationId` | PENDING | Ruta protegida; acceso por propietario validado en servicio por `teacherUid`. |
 | `/responsable/solicitudes` | PENDING | Protegida por rol `responsable_laboratorio` o `admin_sistemas`. |
 | `/responsable/historial` | PENDING | Protegida por rol `responsable_laboratorio` o `admin_sistemas`. |
@@ -245,9 +245,13 @@ No se identificaron pendientes bloqueantes con la evidencia tecnica disponible.
 - Reducir bundle inicial o ajustar presupuesto si se acepta el tamano actual.
 - Reducir SCSS del calendario o ajustar budget por componente si se acepta la complejidad visual.
 - Implementar idempotencia completa de Calendar ante reintentos.
-- Implementar limpieza programada de protocolos huerfanos.
+- Implementar limpieza programada de protocolos huérfanos.
+- Ejecutar QA móvil autenticado real complementario en 360 px, 390 px, 414 px,
+  768 px, 820 px, 1024 px, 1366 px y 1440 px.
 - Mantener smoke manual de la vista publica/sanitizada de laboratorios implementada en Fase 17E.1.
 - Completar reportes avanzados si quedan diferidos.
+- Revisar textos Gmail en una fase futura si el area operativa solicita ajustes
+  finos de redaccion o tono.
 
 ## 18. Deuda tecnica conocida
 
@@ -261,7 +265,7 @@ No se identificaron pendientes bloqueantes con la evidencia tecnica disponible.
 2. Registrar capturas de rutas clave en desktop/tablet/mobile.
 3. Cerrar evidencia real de Gmail y Calendar con un flujo de reserva completa.
 4. Documentar el checklist operativo de soporte para Admin/Sistemas.
-5. Preparar plan post-MVP para reportes avanzados y limpieza de archivos huerfanos.
+5. Preparar plan post-MVP para reportes avanzados y limpieza de archivos huérfanos.
 6. Revisar budgets de Angular antes de crecimiento de nuevos modulos.
 
 ## 19.1. Seguimiento QA posterior: refresco de perfil en AppShell
@@ -804,6 +808,38 @@ Correcciones:
 No se adjuntan protocolos, no se agregan enlaces publicos a Storage, no se
 invita a responsables/admins/listas operativas y no se modifican roles,
 estatus, reglas Firestore/Storage ni flujos de aprobacion/rechazo.
+
+## 42. Seguimiento Fase 17H: cierre documental post 17F/17G
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de commit cuando el propietario lo
+autorice.
+
+Cierre aplicado:
+
+- se alineó la documentación de `Mis reservas` como vista personal por
+  `teacherUid === currentUser.uid`;
+- se consolidó el criterio de vista `Recientes` / `Histórico` / `Todas`;
+- se documentó búsqueda única por folio, laboratorio, asignatura, práctica,
+  grupo y tipo de práctica, con normalización de acentos;
+- se reforzaron filtros de estatus, revisión, fechas y ordenamiento;
+- se dejó claro que el detalle personal no expone `calendarId`, `storagePath`,
+  URLs firmadas, UIDs ni metadata técnica;
+- se confirmó que bitácora y protocolos usan `getMyReservationLogs` y
+  `getReservationProtocolAccess`;
+- se cerró 17G indicando que Calendar invita al docente con `teacherEmail` y
+  `teacherName`, usa `sendUpdates: "all"` al crear/eliminar eventos y conserva
+  Gmail API como canal institucional independiente.
+
+Pendientes no bloqueantes mantenidos:
+
+- limpieza programada de protocolos huérfanos;
+- idempotencia completa Calendar ante reintentos inesperados;
+- QA móvil autenticado real complementario;
+- reportes avanzados de Admin si siguen diferidos;
+- revisión futura de textos Gmail si aplica.
+
+No se modifican funciones, frontend, reglas Firestore/Storage, Calendar API,
+Gmail API, roles, estatus ni flujos de negocio.
 
 ## 40. Seguimiento Fase 17F.4A: filtros de fecha en Mis reservas
 

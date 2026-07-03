@@ -1230,7 +1230,7 @@ roles, permisos, modelos, servicios, Cloud Functions, reglas de negocio,
 Firestore Rules, Storage Rules, Google Calendar API, Gmail API ni estructura del
 payload de reserva.
 
-## Fase 16E: Mis reservas recientes e historico
+## Fase 16E: Mis reservas recientes e histórico
 
 La ruta `/mis-reservas` ahora evita saturar el panel docente con solicitudes
 antiguas sin eliminar documentos de Firestore.
@@ -1242,7 +1242,7 @@ Vista por defecto:
 
 Vistas disponibles:
 
-- `Historico`: muestra reservas anteriores a 3 meses que no tienen estatus
+- `Histórico`: muestra reservas anteriores a 3 meses que no tienen estatus
   bloqueante o pendiente.
 - `Todas`: muestra todas las reservas personales sin corte temporal.
 
@@ -1655,3 +1655,23 @@ Si la fecha `Desde` es posterior a `Hasta`, la interfaz muestra una advertencia:
 
 Este ajuste es visual/frontend. No modifica Functions, Calendar API, Gmail API,
 reglas, roles, estatus, apertura de protocolos, bitácora ni datos de reservas.
+
+## Fase 17H: cierre documental y QA post 17F/17G
+
+La documentación de cierre deja alineado que `Mis reservas` conserva una vista
+personal filtrada por `teacherUid === currentUser.uid`, con selector
+`Recientes` / `Histórico` / `Todas`, búsqueda única por folio, laboratorio,
+asignatura, práctica, grupo y tipo de práctica, normalización de acentos,
+filtros de estatus, revisión, fechas y ordenamiento, y detalle personal seguro
+sin `calendarId`, `storagePath`, URLs firmadas, UIDs ni metadata técnica.
+
+También queda documentado que Google Calendar agrega al docente solicitante como
+asistente cuando una reserva queda `CONFIRMADA` o
+`CONFIRMADA_TRAS_VALIDACION`, usando `teacherEmail` y `teacherName`, y que las
+cancelaciones con `calendarEventId` solicitan actualización al invitado mediante
+Calendar. Gmail API se mantiene como canal institucional independiente.
+
+No se marcan como resueltos los pendientes no bloqueantes: limpieza programada
+de protocolos huérfanos, idempotencia completa de Calendar ante reintentos,
+QA móvil autenticado real complementario, reportes avanzados de Admin y revisión
+futura de textos Gmail si aplica.

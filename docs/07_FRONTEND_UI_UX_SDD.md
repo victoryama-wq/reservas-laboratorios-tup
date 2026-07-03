@@ -837,7 +837,7 @@ Mensajes recomendados:
 Esta fase es visual. No debe modificar payload, validaciones backend, servicios
 de reserva, rutas, guards, roles, estatus, reglas de seguridad ni integraciones.
 
-## Actualizacion Fase 16E: Mis reservas recientes e historico
+## Actualización Fase 16E: Mis reservas recientes e histórico
 
 La pantalla `/mis-reservas` debe mostrar por defecto la vista `Recientes` para
 evitar saturacion visual del panel docente.
@@ -847,24 +847,38 @@ Regla de interfaz:
 - `Recientes`: reservas futuras, reservas de los ultimos 3 meses y reservas
   antiguas con estatus `PENDIENTE_VALIDACION`, `CONFIRMADA`,
   `CONFIRMADA_TRAS_VALIDACION` o `ERROR_CALENDAR`;
-- `Historico`: reservas anteriores a 3 meses que no estan pendientes ni
+- `Histórico`: reservas anteriores a 3 meses que no están pendientes ni
   bloqueando horario;
 - `Todas`: reservas personales sin corte temporal.
 
 La vista debe incluir un mensaje visible:
 
 ```text
-Por defecto se muestran reservas recientes y futuras. Las reservas anteriores a 3 meses permanecen disponibles en Historico.
+Por defecto se muestran reservas recientes y futuras. Las reservas anteriores a 3 meses permanecen disponibles en Histórico.
 ```
 
-Estados vacios recomendados:
+Estados vacíos recomendados:
 
 - `Sin reservas recientes.`
-- `No hay reservas historicas.`
+- `No hay reservas históricas.`
 
-Esta separacion es visual. No debe eliminar documentos de `reservations`,
+Esta separación es visual. No debe eliminar documentos de `reservations`,
 `reservationLogs`, `notifications` ni `auditEvents`; tampoco debe modificar
 Cloud Functions, estatus, rutas, reglas de negocio ni permisos.
+
+## Actualización Fase 17H: consistencia posterior a 17F/17G
+
+Toda vista nueva o ajuste posterior de `Mis reservas` debe conservar la línea
+visual y funcional cerrada en 17F: selector `Recientes` / `Histórico` /
+`Todas`, una sola búsqueda, filtros de estatus, revisión, fechas y ordenamiento,
+detalle personal seguro, bitácora saneada y protocolos abiertos mediante
+`getReservationProtocolAccess`.
+
+La interfaz no debe mostrar `calendarId`, `storagePath`, URLs firmadas, UIDs,
+metadata técnica ni errores crudos. Los textos visibles deben usar acentos y
+terminología clara para usuarios finales: `Histórico`, `validación`,
+`revisión`, `práctica`, `bitácora`, `cancelación`, `técnico` y
+`sincronización`.
 
 ## Actualizacion Fase 17B.1: UI admin para galeria de laboratorios
 
