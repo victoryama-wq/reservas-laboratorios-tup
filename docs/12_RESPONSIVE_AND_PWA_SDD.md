@@ -561,3 +561,12 @@ ancho disponible, envolver textos largos y mantener iconos completos en 360,
 
 El bloque no debe generar scroll horizontal ni desplazar acciones criticas fuera
 del flujo. La bitacora permanece debajo como linea de tiempo independiente.
+
+## Actualización Fase 17F.4: búsqueda responsive en Mis reservas
+
+La búsqueda de `/mis-reservas` debe mantenerse como un solo control táctil y
+usable en 360, 390 y 414 px. El placeholder largo debe recortarse o envolver
+según el comportamiento de Angular Material sin provocar overflow horizontal.
+
+Los filtros existentes deben conservar su composición responsive y no deben
+duplicarse al ampliar campos internos de búsqueda.

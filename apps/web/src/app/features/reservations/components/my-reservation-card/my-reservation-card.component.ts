@@ -32,15 +32,15 @@ export class MyReservationCardComponent {
   protected statusLabel(status: ReservationStatus): string {
     const labels: Record<ReservationStatus, string> = {
       RECIBIDA: 'Recibida',
-      PENDIENTE_VALIDACION: 'Pendiente de validacion',
+      PENDIENTE_VALIDACION: 'Pendiente de validación',
       CONFIRMADA: 'Confirmada',
-      CONFIRMADA_TRAS_VALIDACION: 'Confirmada tras validacion',
+      CONFIRMADA_TRAS_VALIDACION: 'Confirmada tras validación',
       RECHAZADA_CONFLICTO: 'Rechazada por conflicto',
       RECHAZADA_REGLA_HORARIO: 'Rechazada por horario',
-      RECHAZADA_MIN_ANTICIPACION: 'Rechazada por anticipacion',
+      RECHAZADA_MIN_ANTICIPACION: 'Rechazada por anticipación',
       RECHAZADA_POR_RESPONSABLE: 'Rechazada por responsable',
       CANCELADA: 'Cancelada',
-      ERROR_CALENDAR: 'Error Calendar',
+      ERROR_CALENDAR: 'Revisión técnica',
     };
 
     return labels[status];
@@ -79,6 +79,6 @@ export class MyReservationCardComponent {
   }
 
   protected yesNo(value: boolean): string {
-    return value ? 'Si' : 'No';
+    return value ? 'Sí' : 'No';
   }
 }

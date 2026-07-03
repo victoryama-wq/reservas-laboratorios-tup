@@ -1603,3 +1603,25 @@ prioridad:
 La bitacora basica se mantiene como linea de tiempo, pero el docente no depende
 de ella para entender el motivo principal. La UI no muestra UIDs, `calendarId`,
 `storagePath`, URLs firmadas, metadata tecnica, JSON crudo ni stack traces.
+
+## Fase 17F.4: búsqueda y textos de Mis reservas
+
+La vista `/mis-reservas` conserva una sola barra de búsqueda y reutiliza el
+filtro existente. No se crean filtros ni pipelines paralelos.
+
+La búsqueda ahora evalúa:
+
+- folio;
+- laboratorio;
+- asignatura;
+- nombre de práctica;
+- grupo;
+- tipo de práctica.
+
+La comparación es insensible a mayúsculas/minúsculas, tolera acentos mediante
+normalización y respeta los filtros existentes de estatus, revisión, fechas,
+modo `Recientes` / `Histórico` / `Todas` y ordenamiento.
+
+También se corrigieron textos visibles de Mis reservas y su detalle para usar
+acentos y etiquetas más claras, sin cambiar nombres internos de estatus,
+contratos de datos, backend, Calendar, Gmail ni reglas de seguridad.

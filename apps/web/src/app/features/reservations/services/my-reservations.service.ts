@@ -192,7 +192,7 @@ export class MyReservationsService {
     const user = await firstValueFrom(this.authService.authState$.pipe(take(1)));
 
     if (!user) {
-      throw new Error('Debe iniciar sesion.');
+      throw new Error('Debe iniciar sesión.');
     }
 
     return user.uid;
@@ -255,14 +255,14 @@ export class MyReservationsService {
     const code = typeof record.code === 'string' ? record.code : '';
 
     if (code.includes('permission-denied')) {
-      return 'No tienes permiso para consultar la bitacora de esta reserva.';
+      return 'No tienes permiso para consultar la bitácora de esta reserva.';
     }
 
     if (code.includes('not-found')) {
       return 'No se encontro la reserva solicitada.';
     }
 
-    return 'No fue posible cargar la bitacora. Intenta nuevamente.';
+    return 'No fue posible cargar la bitácora. Intenta nuevamente.';
   }
 
   private toProtocolAccessErrorMessage(error: unknown): string {

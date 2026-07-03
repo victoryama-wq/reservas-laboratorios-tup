@@ -39,7 +39,7 @@
     <app-info-callout
       variant="info"
       icon="info"
-      message="Por defecto se muestran reservas recientes y futuras. Las reservas anteriores a 3 meses permanecen disponibles en Historico."
+      message="Por defecto se muestran reservas recientes y futuras. Las reservas anteriores a 3 meses permanecen disponibles en Histórico."
     />
 
     <mat-form-field appearance="outline">
@@ -48,7 +48,7 @@
       <input
         matInput
         type="search"
-        placeholder="Folio o laboratorio"
+        placeholder="Folio, laboratorio, asignatura o práctica"
         [ngModel]="searchTerm()"
         (ngModelChange)="searchTerm.set($event)"
       />
@@ -67,14 +67,14 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>Revision</mat-label>
+      <mat-label>Revisión</mat-label>
       <mat-select
         [ngModel]="reviewFilter()"
         (ngModelChange)="reviewFilter.set($event)"
       >
         <mat-option value="all">Todas</mat-option>
-        <mat-option value="required">Requieren revision</mat-option>
-        <mat-option value="not-required">Sin revision requerida</mat-option>
+        <mat-option value="required">Requieren revisión</mat-option>
+        <mat-option value="not-required">Sin revisión requerida</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -104,8 +104,8 @@
         [ngModel]="sortOrder()"
         (ngModelChange)="sortOrder.set($event)"
       >
-        <mat-option value="recent">Mas recientes</mat-option>
-        <mat-option value="upcoming">Proximas primero</mat-option>
+        <mat-option value="recent">Más recientes</mat-option>
+        <mat-option value="upcoming">Próximas primero</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -129,9 +129,9 @@
   } @else if (!reservations().length) {
     <div class="app-state-panel">
       <app-icon-box icon="event_busy" />
-      <h2>Aun no tienes reservas</h2>
+      <h2>Aún no tienes reservas</h2>
       <p>
-        Cuando generes una solicitud, aparecera aqui con su estatus y detalle.
+        Cuando generes una solicitud, aparecerá aquí con su estatus y detalle.
       </p>
       <a mat-flat-button color="primary" routerLink="/laboratorios">
         Ver laboratorios

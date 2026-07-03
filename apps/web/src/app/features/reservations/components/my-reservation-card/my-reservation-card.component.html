@@ -25,7 +25,7 @@
       <dd>{{ timeLabel() }}</dd>
     </div>
     <div>
-      <dt>Tipo de practica</dt>
+      <dt>Tipo de práctica</dt>
       <dd>{{ reservation().practiceType }}</dd>
     </div>
     <div>
@@ -33,14 +33,14 @@
       <dd>{{ yesNo(reservation().protocolRequired) }}</dd>
     </div>
     <div>
-      <dt>Revision requerida</dt>
+      <dt>Revisión requerida</dt>
       <dd>{{ yesNo(reservation().requiresManualReview) }}</dd>
     </div>
   </dl>
 
   @if (reservation().status === 'PENDIENTE_VALIDACION') {
     <p class="reservation-card__notice">
-      Tu solicitud requiere revision del responsable antes de confirmarse en
+      Tu solicitud requiere revisión del responsable antes de confirmarse en
       calendario.
     </p>
   }

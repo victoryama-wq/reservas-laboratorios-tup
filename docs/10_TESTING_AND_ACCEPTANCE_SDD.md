@@ -659,6 +659,23 @@ Casos minimos:
 - probar 360, 390 y 414 px para confirmar que textos largos no generan
   overflow horizontal.
 
+## Pruebas Fase 17F.4: búsqueda y textos en Mis reservas
+
+Casos mínimos:
+
+- abrir `/mis-reservas` y confirmar que existe una sola barra de búsqueda;
+- buscar por folio y confirmar resultados;
+- buscar por laboratorio y confirmar resultados;
+- buscar por asignatura, incluyendo búsqueda sin acento, y confirmar resultados;
+- buscar por nombre de práctica y confirmar resultados;
+- buscar por grupo y tipo de práctica si existen en la reserva;
+- confirmar que la búsqueda respeta estatus, revisión, fechas, modo
+  `Recientes` / `Histórico` / `Todas` y ordenamiento;
+- limpiar búsqueda y confirmar que se restauran resultados;
+- revisar `/mis-reservas` y `/mis-reservas/:reservationId` para confirmar
+  textos con acentos y sin mojibake;
+- probar 360, 390 y 414 px sin overflow horizontal.
+
 ## Correccion Fase 17C.2C: QA de disponibilidad sanitizada
 
 Pruebas recomendadas:

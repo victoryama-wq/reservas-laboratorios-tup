@@ -317,3 +317,16 @@ como unica fuente visual del motivo principal.
 
 Este cambio no modifica creacion, aprobacion, rechazo, cancelacion, Calendar
 API, Gmail API, roles, estatus ni reglas de seguridad.
+
+## Actualización Fase 17F.4: búsqueda ampliada en Mis reservas
+
+La vista `/mis-reservas` debe conservar una sola búsqueda. El filtro existente
+se amplía para evaluar folio, laboratorio, asignatura, nombre de práctica,
+grupo y tipo de práctica.
+
+La búsqueda debe normalizar mayúsculas, minúsculas, acentos y espacios
+sobrantes. Debe respetar el modo actual (`Recientes`, `Histórico` o `Todas`),
+los filtros de estatus, revisión, fechas y el ordenamiento seleccionado.
+
+No se modifica el backend, no se agregan lecturas adicionales ni se cambia el
+modelo de datos.

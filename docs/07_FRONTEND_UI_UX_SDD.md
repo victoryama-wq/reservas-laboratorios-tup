@@ -1238,3 +1238,17 @@ duplicar toda la bitacora.
 No se deben mostrar UIDs, `calendarId`, `storagePath`, URLs firmadas, JSON,
 stack traces ni errores tecnicos crudos. Para reservas confirmadas o pendientes
 no debe aparecer este bloque.
+
+## Actualización Fase 17F.4: pulido de Mis reservas
+
+La vista `/mis-reservas` debe mantener una sola barra de búsqueda. El
+placeholder debe indicar que permite buscar por folio, laboratorio, asignatura
+o práctica.
+
+La búsqueda debe tolerar acentos para que, por ejemplo, `anatomia` encuentre
+`Anatomía`. No se deben duplicar filtros ni agregar controles redundantes.
+
+Los textos visibles de Mis reservas y del detalle personal deben usar acentos:
+`Histórico`, `validación`, `revisión`, `práctica`, `Sí`, `bitácora`,
+`cancelación`, `técnico`, `sincronización` y equivalentes. Los nombres internos
+de estatus no cambian.

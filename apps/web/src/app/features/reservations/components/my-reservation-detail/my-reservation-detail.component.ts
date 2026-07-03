@@ -75,19 +75,19 @@ export class MyReservationDetailComponent {
       { label: 'Horario', value: this.timeLabel() },
       { label: 'Asignatura', value: reservation.subject },
       { label: 'Grupo', value: reservation.group },
-      { label: 'Practica', value: reservation.practiceName },
+      { label: 'Práctica', value: reservation.practiceName },
       { label: 'Objetivo', value: reservation.objective },
       {
         label: 'Material requerido',
         value: reservation.materialRequired || 'Sin material especificado',
       },
-      { label: 'Tipo de practica', value: reservation.practiceType },
+      { label: 'Tipo de práctica', value: reservation.practiceType },
       {
         label: 'Material riesgoso',
         value: this.yesNo(reservation.risky),
       },
       {
-        label: 'Pacientes, usuarios simulados o poblacion externa',
+        label: 'Pacientes, usuarios simulados o población externa',
         value: this.yesNo(reservation.externalParticipants),
       },
       {
@@ -95,7 +95,7 @@ export class MyReservationDetailComponent {
         value: this.yesNo(reservation.protocolRequired),
       },
       {
-        label: 'Revision requerida',
+        label: 'Revisión requerida',
         value: this.yesNo(reservation.requiresManualReview),
       },
       {
@@ -112,7 +112,7 @@ export class MyReservationDetailComponent {
 
     if (reservation.practiceType === 'Otro') {
       items.splice(9, 0, {
-        label: 'Especificacion',
+        label: 'Especificación',
         value: reservation.practiceTypeOther || 'No especificada',
       });
     }
@@ -123,15 +123,15 @@ export class MyReservationDetailComponent {
   protected statusLabel(status: ReservationStatus): string {
     const labels: Record<ReservationStatus, string> = {
       RECIBIDA: 'Recibida',
-      PENDIENTE_VALIDACION: 'Pendiente de validacion',
+      PENDIENTE_VALIDACION: 'Pendiente de validación',
       CONFIRMADA: 'Confirmada',
-      CONFIRMADA_TRAS_VALIDACION: 'Confirmada tras validacion',
+      CONFIRMADA_TRAS_VALIDACION: 'Confirmada tras validación',
       RECHAZADA_CONFLICTO: 'Rechazada por conflicto',
       RECHAZADA_REGLA_HORARIO: 'Rechazada por horario',
-      RECHAZADA_MIN_ANTICIPACION: 'Rechazada por anticipacion',
+      RECHAZADA_MIN_ANTICIPACION: 'Rechazada por anticipación',
       RECHAZADA_POR_RESPONSABLE: 'Rechazada por responsable',
       CANCELADA: 'Cancelada',
-      ERROR_CALENDAR: 'Error Calendar',
+      ERROR_CALENDAR: 'Revisión técnica',
     };
 
     return labels[status];
@@ -213,7 +213,7 @@ export class MyReservationDetailComponent {
           title: 'Motivo del rechazo',
           message: this.firstAvailableText(
             reservation.statusReason,
-            'La solicitud no cumple con la anticipacion minima requerida para este laboratorio.',
+            'La solicitud no cumple con la anticipación mínima requerida para este laboratorio.',
           ),
           variant: 'warning',
           icon: 'schedule',
@@ -221,7 +221,7 @@ export class MyReservationDetailComponent {
 
       case 'CANCELADA':
         return {
-          title: 'Motivo de cancelacion',
+          title: 'Motivo de cancelación',
           message: this.firstAvailableText(
             reservation.cancellationReason,
             reservation.statusReason,
@@ -234,10 +234,10 @@ export class MyReservationDetailComponent {
 
       case 'ERROR_CALENDAR':
         return {
-          title: 'Revision tecnica requerida',
+          title: 'Revisión técnica requerida',
           message: this.firstAvailableText(
             reservation.statusReason,
-            'La reserva requiere revision tecnica por sincronizacion de calendario.',
+            'La reserva requiere revisión técnica por sincronización de calendario.',
           ),
           variant: 'danger',
           icon: 'sync_problem',
@@ -250,7 +250,7 @@ export class MyReservationDetailComponent {
 
   protected formatFileSize(sizeBytes: number): string {
     if (!sizeBytes) {
-      return 'Tamano no disponible';
+      return 'Tamaño no disponible';
     }
 
     return `${(sizeBytes / 1024 / 1024).toFixed(2)} MB`;
@@ -277,7 +277,7 @@ export class MyReservationDetailComponent {
   }
 
   protected yesNo(value: boolean): string {
-    return value ? 'Si' : 'No';
+    return value ? 'Sí' : 'No';
   }
 
   protected timelineItem(log: MyReservationTimelineItem): TimelineItem {

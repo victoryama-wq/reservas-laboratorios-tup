@@ -67,11 +67,11 @@ export class MyReservationsPageComponent implements OnInit {
     {
       value: 'recent',
       label: 'Recientes',
-      description: 'Futuras y ultimos 3 meses',
+      description: 'Futuras y últimos 3 meses',
     },
     {
       value: 'history',
-      label: 'Historico',
+      label: 'Histórico',
       description: 'Anteriores a 3 meses',
     },
     {
@@ -87,28 +87,28 @@ export class MyReservationsPageComponent implements OnInit {
   }> = [
     { value: 'all', label: 'Todos los estatus' },
     { value: 'RECIBIDA', label: 'Recibida' },
-    { value: 'PENDIENTE_VALIDACION', label: 'Pendiente de validacion' },
+    { value: 'PENDIENTE_VALIDACION', label: 'Pendiente de validación' },
     { value: 'CONFIRMADA', label: 'Confirmada' },
     {
       value: 'CONFIRMADA_TRAS_VALIDACION',
-      label: 'Confirmada tras validacion',
+      label: 'Confirmada tras validación',
     },
     { value: 'RECHAZADA_CONFLICTO', label: 'Rechazada por conflicto' },
     { value: 'RECHAZADA_REGLA_HORARIO', label: 'Rechazada por horario' },
     {
       value: 'RECHAZADA_MIN_ANTICIPACION',
-      label: 'Rechazada por anticipacion',
+      label: 'Rechazada por anticipación',
     },
     {
       value: 'RECHAZADA_POR_RESPONSABLE',
       label: 'Rechazada por responsable',
     },
     { value: 'CANCELADA', label: 'Cancelada' },
-    { value: 'ERROR_CALENDAR', label: 'Error Calendar' },
+    { value: 'ERROR_CALENDAR', label: 'Revisión técnica' },
   ];
 
   protected readonly filteredReservations = computed(() => {
-    const search = this.searchTerm().trim().toLowerCase();
+    const search = this.normalizeSearchText(this.searchTerm());
     const status = this.statusFilter();
     const review = this.reviewFilter();
     const startDate = this.parseFilterDate(this.startDateFilter());
@@ -118,8 +118,8 @@ export class MyReservationsPageComponent implements OnInit {
     return this.reservations()
       .filter((reservation) =>
         search
-          ? [reservation.folio, reservation.labName].some((value) =>
-              value.toLowerCase().includes(search),
+          ? this.searchableReservationFields(reservation).some((value) =>
+              this.normalizeSearchText(value).includes(search),
             )
           : true,
       )
@@ -179,7 +179,7 @@ export class MyReservationsPageComponent implements OnInit {
     }
 
     if (mode === 'history') {
-      return 'No hay reservas historicas';
+      return 'No hay reservas históricas';
     }
 
     return 'Sin resultados';
@@ -189,14 +189,14 @@ export class MyReservationsPageComponent implements OnInit {
     const mode = this.viewMode();
 
     if (mode === 'recent') {
-      return 'Las reservas futuras y de los ultimos 3 meses apareceran aqui.';
+      return 'Las reservas futuras y de los últimos 3 meses aparecerán aquí.';
     }
 
     if (mode === 'history') {
-      return 'Las reservas anteriores a 3 meses apareceran aqui sin eliminarse del sistema.';
+      return 'Las reservas anteriores a 3 meses aparecerán aquí sin eliminarse del sistema.';
     }
 
-    return 'Ajusta los filtros para ver mas reservas personales.';
+    return 'Ajusta los filtros para ver más reservas personales.';
   });
 
   ngOnInit(): void {
@@ -300,6 +300,28 @@ export class MyReservationsPageComponent implements OnInit {
       status === 'CONFIRMADA_TRAS_VALIDACION' ||
       status === 'ERROR_CALENDAR'
     );
+  }
+
+  private searchableReservationFields(
+    reservation: MyReservationView,
+  ): string[] {
+    return [
+      reservation.folio,
+      reservation.labName,
+      reservation.subject,
+      reservation.practiceName,
+      reservation.group,
+      reservation.practiceType,
+    ];
+  }
+
+  private normalizeSearchText(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ');
   }
 
   private recentCutoffDate(): Date {

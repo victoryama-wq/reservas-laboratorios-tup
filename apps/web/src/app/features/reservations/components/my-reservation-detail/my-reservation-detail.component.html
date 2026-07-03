@@ -1,7 +1,7 @@
 <div class="detail-layout">
   <app-section-card
     title="Datos de la reserva"
-    subtitle="Informacion principal de tu solicitud."
+    subtitle="Información principal de tu solicitud."
     icon="event_note"
   >
     <div class="status-row">
@@ -16,7 +16,7 @@
       <app-info-callout
         variant="warning"
         icon="schedule"
-        message="Tu solicitud requiere revision del responsable antes de confirmarse en calendario."
+        message="Tu solicitud requiere revisión del responsable antes de confirmarse en calendario."
       />
     }
 
@@ -86,7 +86,7 @@
     @if (canCancel()) {
       <app-section-card
         title="Cancelar reserva"
-        subtitle="Accion disponible solo para reservas futuras."
+        subtitle="Acción disponible solo para reservas futuras."
         icon="event_busy"
         iconVariant="danger"
       >
@@ -94,7 +94,7 @@
           <app-info-callout
             variant="warning"
             icon="warning"
-            message="Al cancelar se liberara el horario y se notificara a las personas involucradas."
+            message="Al cancelar se liberará el horario y se notificará a las personas involucradas."
           />
 
           <button
@@ -112,7 +112,7 @@
     }
 
     <app-section-card
-      title="Bitacora basica"
+      title="Bitácora básica"
       subtitle="Eventos registrados para esta reserva."
       icon="history"
     >
@@ -148,7 +148,7 @@
         <app-info-callout
           variant="info"
           icon="info"
-          message="No hay eventos de bitacora registrados para esta reserva."
+          message="No hay eventos de bitácora registrados para esta reserva."
         />
       }
     </app-section-card>

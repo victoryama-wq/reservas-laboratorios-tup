@@ -779,6 +779,27 @@ Correcciones:
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
 
+## 39. Seguimiento Fase 17F.4: búsqueda y textos de Mis reservas
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Causa atendida:
+
+- la búsqueda de `/mis-reservas` solo evaluaba folio y laboratorio;
+- varios textos visibles del módulo conservaban etiquetas sin acentos.
+
+Correcciones:
+
+- se reutiliza la búsqueda existente sin crear controles redundantes;
+- el filtro ahora evalúa folio, laboratorio, asignatura, nombre de práctica,
+  grupo y tipo de práctica;
+- la comparación normaliza mayúsculas, minúsculas, acentos y espacios;
+- se pulen etiquetas visibles de estatus, filtros, tarjetas y detalle personal.
+
+No se modifican backend funcional, Calendar API, Gmail API, reglas, roles,
+estatus internos ni contratos de datos.
+
 ## 38. Seguimiento Fase 17F.3: motivos destacados en Mis reservas
 
 Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el

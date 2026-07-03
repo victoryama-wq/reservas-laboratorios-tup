@@ -185,7 +185,7 @@ export class MyReservationDetailPageComponent implements OnInit {
               `Se cancelara la reserva ${reservation.folio}.`,
               'Esta accion liberara el horario y enviara notificaciones.',
             ].join(' '),
-            confirmLabel: 'Si, cancelar',
+            confirmLabel: 'Sí, cancelar',
             cancelLabel: 'Conservar reserva',
             variant: 'danger',
             icon: 'event_busy',
@@ -224,15 +224,15 @@ export class MyReservationDetailPageComponent implements OnInit {
   protected statusLabel(status: ReservationStatus): string {
     const labels: Record<ReservationStatus, string> = {
       RECIBIDA: 'Recibida',
-      PENDIENTE_VALIDACION: 'Pendiente de validacion',
+      PENDIENTE_VALIDACION: 'Pendiente de validación',
       CONFIRMADA: 'Confirmada',
-      CONFIRMADA_TRAS_VALIDACION: 'Confirmada tras validacion',
+      CONFIRMADA_TRAS_VALIDACION: 'Confirmada tras validación',
       RECHAZADA_CONFLICTO: 'Rechazada por conflicto',
       RECHAZADA_REGLA_HORARIO: 'Rechazada por horario',
-      RECHAZADA_MIN_ANTICIPACION: 'Rechazada por anticipacion',
+      RECHAZADA_MIN_ANTICIPACION: 'Rechazada por anticipación',
       RECHAZADA_POR_RESPONSABLE: 'Rechazada por responsable',
       CANCELADA: 'Cancelada',
-      ERROR_CALENDAR: 'Error Calendar',
+      ERROR_CALENDAR: 'Revisión técnica',
     };
 
     return labels[status];
@@ -281,7 +281,7 @@ export class MyReservationDetailPageComponent implements OnInit {
     const record = error as { message?: unknown };
     return typeof record.message === 'string' && record.message.trim()
       ? record.message
-      : 'No fue posible cargar la bitacora. Intenta nuevamente.';
+      : 'No fue posible cargar la bitácora. Intenta nuevamente.';
   }
 
   private toProtocolErrorMessage(error: unknown): string {
