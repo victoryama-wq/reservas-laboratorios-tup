@@ -144,6 +144,13 @@ Si falla el envío de correo, la reserva conserva su estatus de negocio. El erro
 
 Si falla la integración crítica con Google Calendar al confirmar, la reserva puede quedar en ERROR_CALENDAR y ese estatus bloquea el horario hasta resolución por Admin/Sistemas.
 
+Cuando una reserva queda confirmada por `createReservation` o por
+`approveReservation`, el evento creado en Google Calendar debe incluir como
+asistente al docente solicitante usando `teacherEmail` y `teacherName`. La
+operacion debe solicitar `sendUpdates: "all"` para que Calendar envie la
+invitacion o actualizacion al docente cuando el proveedor lo permita. No se
+deben agregar responsables, admins ni listas de notificacion como asistentes.
+
 Proveedor oficial de correo
 
 Actualizacion pre Fase 14:
@@ -254,6 +261,8 @@ ERROR_CALENDAR solo para responsable asignado o admin_sistemas.
 Fecha futura.
 Si existe calendarEventId, eliminacion del evento en Google Calendar antes de
 actualizar Firestore.
+La eliminacion debe solicitar actualizacion a asistentes para que el docente
+invitado reciba aviso de cancelacion desde Calendar cuando sea posible.
 
 Salida
 

@@ -19,6 +19,10 @@ Agregar pruebas para:
 - createReservation guarda protocolRequired = risky || externalParticipants.
 - approveReservation revalida protocolo con risky || externalParticipants.
 - Google Calendar no incluye enlaces publicos a Storage.
+- Google Calendar agrega al docente solicitante como invitado cuando una
+  reserva queda `CONFIRMADA` o `CONFIRMADA_TRAS_VALIDACION`.
+- La cancelacion de una reserva con `calendarEventId` solicita actualizacion de
+  Calendar para el docente invitado.
 - Gmail envia HTML institucional con fallback de texto plano y no adjunta
   protocolos.
 - Gmail incluye logotipo TUP como imagen inline por `cid`, no como URL publica.

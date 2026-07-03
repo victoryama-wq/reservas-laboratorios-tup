@@ -477,6 +477,9 @@ Comportamiento implementado:
 - Si la reserva no tiene material riesgoso ni participantes externos y no hay
   conflicto, se crea un evento en Google Calendar y se guarda
   `calendarEventId`.
+- Al crear el evento confirmado, Google Calendar agrega como invitado al
+  docente solicitante usando `teacherEmail` y `teacherName`, y se solicita a
+  Calendar enviar actualizaciones a los asistentes.
 - Si la reserva tiene material riesgoso o pacientes/usuarios simulados/poblacion
   externa, queda `PENDIENTE_VALIDACION` y no se crea evento hasta que sea
   aprobada mediante `approveReservation`.
@@ -490,6 +493,12 @@ de `Otro` si aplica, material riesgoso, pacientes/usuarios/poblacion externa,
 protocolo requerido, protocolo adjunto, nombres de archivos si aplica y aviso
 de que fue generado por el Sistema Web de Reservas. No incluye enlaces publicos
 a Storage.
+
+El docente tambien queda como asistente del evento de Calendar. Esta invitacion
+no sustituye los correos institucionales enviados por Gmail API; ambos canales
+son intencionales. En cancelaciones con `calendarEventId`, la eliminacion del
+evento usa actualizaciones de Calendar para notificar al asistente cuando el
+proveedor lo permita.
 
 Gmail API se integra en la seccion siguiente para procesar las notificaciones
 generadas por las reservas.

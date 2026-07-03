@@ -90,6 +90,7 @@ export class GoogleCalendarService {
     const response = await client.events.insert({
       calendarId: params.lab.calendarId,
       requestBody: this.buildReservationEvent(params.reservation),
+      sendUpdates: "all",
     });
 
     const eventId = response.data.id;
@@ -115,6 +116,7 @@ export class GoogleCalendarService {
     await client.events.delete({
       calendarId: params.calendarId,
       eventId: params.eventId,
+      sendUpdates: "all",
     });
   }
 
@@ -381,6 +383,12 @@ export class GoogleCalendarService {
         dateTime: reservation.endAt.toDate().toISOString(),
         timeZone: INSTITUTIONAL_TIME_ZONE,
       },
+      attendees: [
+        {
+          email: reservation.teacherEmail,
+          displayName: reservation.teacherName,
+        },
+      ],
     };
   }
 

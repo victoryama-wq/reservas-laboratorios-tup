@@ -779,6 +779,32 @@ Correcciones:
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
 
+## 41. Seguimiento Fase 17G: docente como invitado de Calendar
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Causa atendida:
+
+- las reservas confirmadas creaban evento institucional en Google Calendar,
+  pero el docente no quedaba como asistente del evento;
+- la cancelacion eliminaba el evento, pero no solicitaba a Calendar enviar
+  actualizaciones a asistentes.
+
+Correcciones:
+
+- `GoogleCalendarService.createReservationEvent` agrega al docente solicitante
+  como unico asistente del evento usando `teacherEmail` y `teacherName`;
+- la creacion del evento usa `sendUpdates: "all"` para que Calendar envie la
+  invitacion o actualizacion cuando el proveedor lo permita;
+- la eliminacion del evento en cancelaciones tambien usa `sendUpdates: "all"`;
+- Gmail API permanece como canal institucional de correo y no se reemplaza por
+  la invitacion de Calendar.
+
+No se adjuntan protocolos, no se agregan enlaces publicos a Storage, no se
+invita a responsables/admins/listas operativas y no se modifican roles,
+estatus, reglas Firestore/Storage ni flujos de aprobacion/rechazo.
+
 ## 40. Seguimiento Fase 17F.4A: filtros de fecha en Mis reservas
 
 Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el

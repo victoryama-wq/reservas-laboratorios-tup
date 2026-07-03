@@ -37,6 +37,7 @@ Docente escanea QR o entra al sistema
   -> Cloud Function valida traslape
   -> Cloud Function crea reserva CONFIRMADA
   -> Cloud Function crea evento en Google Calendar
+  -> Google Calendar agrega al docente como invitado del evento
   -> Cloud Function envía correos
   -> docente ve confirmación
 
@@ -66,6 +67,7 @@ si aprueba:
 
 Cloud Function revalida conflicto
   -> crea evento en Calendar
+  -> Google Calendar agrega al docente como invitado del evento
   -> cambia a CONFIRMADA_TRAS_VALIDACION
   -> notifica docente
   -> notifica responsable
@@ -116,6 +118,8 @@ Usuario solicita cancelar desde /mis-reservas/:reservationId
   -> backend valida reserva futura
   -> backend valida estatus cancelable
   -> si existe calendarEventId, elimina el evento de Google Calendar
+  -> Google Calendar envia actualizacion de cancelacion al docente invitado
+     cuando el proveedor lo permite
   -> si Calendar responde 404 Not Found o 410 Gone, continua como evento ya eliminado
   -> si Calendar falla, registra CALENDAR_ERROR y no cambia estatus
   -> si Calendar responde correctamente, status = CANCELADA

@@ -50,6 +50,8 @@ Crear evento tras aprobación.
 Cancelar evento si se cancela reserva.
 Guardar calendarEventId.
 Registrar ERROR_CALENDAR si falla una operación crítica de confirmación.
+Agregar al docente solicitante como invitado del evento confirmado.
+Solicitar envio de actualizaciones de Calendar al crear o cancelar eventos.
 
 Cuenta operativa de Google Calendar
 
@@ -87,6 +89,16 @@ material;
 objetivo;
 folio;
 nota de validación si aplica.
+
+El evento debe incluir como asistente unicamente al docente solicitante:
+
+teacherEmail;
+teacherName como displayName.
+
+No se deben agregar como asistentes a responsables, admins, defaultNotifyEmails
+ni listas operativas. Gmail API sigue siendo el canal institucional para
+notificaciones formales y Calendar se usa adicionalmente para invitacion o
+cancelacion del evento.
 
 Importante
 Google Calendar no será la fuente de verdad principal. Firestore controla estatus, permisos, protocolos y trazabilidad.
