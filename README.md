@@ -847,9 +847,54 @@ frontend envia a `createReservation` solo metadata operativa:
 que la ruta este dentro de `protocolUploads/{uid}/`, que el tipo sea permitido
 y que el tamano no exceda 20 MB.
 
-Si la carga del archivo ocurre pero `createReservation` falla, el archivo puede
-quedar huerfano temporalmente. La limpieza programada de archivos huerfanos
-queda pendiente para una fase posterior.
+Si la carga del archivo ocurre pero `createReservation` falla, se cancela el
+envio o se cierra el navegador, el archivo puede quedar huerfano
+temporalmente.
+
+## Limpieza segura de protocolos huerfanos
+
+La Fase 17I agrega una limpieza backend segura para archivos bajo:
+
+```text
+protocolUploads/{uid}/{uploadId}/{fileName}
+```
+
+Un archivo se considera huerfano solo si:
+
+- esta bajo `protocolUploads/`;
+- no aparece referenciado en ningun
+  `reservations/{reservationId}.protocolFiles[].storagePath`;
+- supera el umbral minimo de antiguedad.
+
+Reglas de seguridad:
+
+- nunca se borran protocolos referenciados por reservas, aunque la reserva este
+  cancelada, rechazada o sea historica;
+- no se borran documentos de `reservations`, `reservationLogs`,
+  `notifications` ni `auditEvents`;
+- no se generan URLs publicas ni URLs firmadas;
+- no se escanean ni borran `labImages/`, logos, QR u otros folders.
+
+Callable administrativa:
+
+```text
+adminCleanupOrphanProtocolUploads
+```
+
+Solo `admin_sistemas` puede ejecutarla. `dryRun` es `true` por defecto para
+previsualizar candidatos sin borrar. El umbral predeterminado es `72` horas.
+Si `dryRun === false`, no se permite limpieza destructiva con menos de `24`
+horas. `maxDelete` tiene limite absoluto de `200` archivos por ejecucion.
+
+Funcion programada:
+
+```text
+scheduledCleanupOrphanProtocolUploads
+```
+
+Se ejecuta diariamente con `minAgeHours = 72` y `maxDelete = 100`. Registra un
+resumen seguro en Cloud Logging y continua con los demas archivos si alguno
+falla.
 
 Para que funcione en el proyecto real deben estar desplegadas las reglas de
 Storage actualizadas:

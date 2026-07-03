@@ -783,6 +783,45 @@ Calendar y correo:
 - Gmail sigue enviando correo institucional independiente;
 - Calendar no muestra protocolos ni enlaces públicos.
 
+## Pruebas Fase 17I: limpieza segura de protocolos huerfanos
+
+Dry run administrativo:
+
+- entrar como `admin_sistemas`;
+- ejecutar `adminCleanupOrphanProtocolUploads` con `dryRun: true`;
+- confirmar que devuelve contadores de archivos escaneados, referenciados,
+  candidatos y omitidos;
+- confirmar que no borra ningun archivo en Storage.
+
+Archivo referenciado:
+
+- ubicar una reserva con `protocolFiles[].storagePath`;
+- ejecutar `dryRun`;
+- confirmar que ese archivo no aparece como candidato de borrado y se cuenta
+  como referenciado u omitido por referencia.
+
+Borrado controlado:
+
+- crear un archivo de prueba bajo `protocolUploads/`;
+- ejecutar `dryRun` con `minAgeHours: 0` para confirmar candidato;
+- ejecutar borrado real solo con archivo de prueba, `dryRun: false` y
+  `maxDelete: 1`;
+- confirmar que no se borran protocolos reales ni referencias de reservas.
+
+Scheduler:
+
+- confirmar que `scheduledCleanupOrphanProtocolUploads` existe tras deploy;
+- revisar Cloud Logging y confirmar resumen seguro sin URLs ni contenido de
+  archivos.
+
+Seguridad:
+
+- confirmar que `docente` y `responsable_laboratorio` reciben
+  `permission-denied`;
+- confirmar que no se modifican `reservations`, `reservationLogs`,
+  `notifications`, `auditEvents`, Calendar ni Gmail;
+- confirmar que no se generan URLs publicas ni URLs firmadas.
+
 Responsive complementario pendiente:
 
 - ejecutar QA autenticado real en 360 px, 390 px, 414 px, 768 px, 820 px,

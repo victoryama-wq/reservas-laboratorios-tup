@@ -862,3 +862,64 @@ agregan URLs publicas permanentes ni se modifican reglas de Storage.
 La respuesta no debe incluir metadata cruda, `calendarId`, `storagePath`, URLs
 firmadas, `protocolFiles`, UIDs, correos de actores, providerMessageId, errores
 tecnicos crudos, stack traces ni secretos.
+
+## Actualizacion Fase 17I: limpieza segura de protocolos huerfanos
+
+Se agregan dos Cloud Functions v2 para operar archivos de protocolo huerfanos
+sin cambiar el flujo de reservas:
+
+```text
+adminCleanupOrphanProtocolUploads
+scheduledCleanupOrphanProtocolUploads
+```
+
+`adminCleanupOrphanProtocolUploads` es callable administrativa y requiere:
+
+- sesion autenticada;
+- perfil `users/{uid}` activo;
+- rol `admin_sistemas`.
+
+Input:
+
+```ts
+{
+  dryRun?: boolean;
+  minAgeHours?: number;
+  maxDelete?: number;
+}
+```
+
+Reglas:
+
+- `dryRun` es `true` por defecto;
+- `minAgeHours` predeterminado es `72`;
+- si `dryRun === false`, no se permite borrado con menos de `24` horas;
+- `maxDelete` predeterminado es `50` y tiene limite absoluto de `200`;
+- solo se escanea `protocolUploads/`;
+- nunca se borran rutas presentes en
+  `reservations.protocolFiles[].storagePath`;
+- no devuelve URLs ni contenido de archivos.
+
+Output:
+
+```ts
+{
+  dryRun: boolean;
+  minAgeHours: number;
+  maxDelete: number;
+  scannedFiles: number;
+  referencedFiles: number;
+  orphanCandidates: number;
+  deletedFiles: number;
+  skippedRecentFiles: number;
+  skippedReferencedFiles: number;
+  errors: Array<{ storagePath: string; message: string }>;
+}
+```
+
+La callable registra un `auditEvents` con action
+`ADMIN_CLEANUP_ORPHAN_PROTOCOL_UPLOADS` y metadata resumida.
+
+`scheduledCleanupOrphanProtocolUploads` se ejecuta diariamente de madrugada con
+`minAgeHours = 72` y `maxDelete = 100`. No crea auditoria por archivo; registra
+un resumen seguro en Cloud Logging.

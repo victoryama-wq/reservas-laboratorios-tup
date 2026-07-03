@@ -202,7 +202,21 @@ Secuencia técnica oficial para protocolos:
 3. El frontend envía metadata a createReservation.
 4. createReservation verifica existencia, propiedad y validez del archivo.
 5. createReservation vincula protocolFiles a la reserva.
-6. Una función programada futura podrá limpiar archivos huérfanos.
+6. Una funcion programada limpia archivos huerfanos sin borrar archivos
+   referenciados por reservas.
+
+Limpieza segura de protocolos huerfanos:
+
+- ruta afectada: `protocolUploads/{uid}/{uploadId}/{fileName}`;
+- un archivo es candidato solo si no aparece en
+  `reservations.protocolFiles[].storagePath`;
+- se aplica antiguedad minima conservadora de `72` horas;
+- la callable `adminCleanupOrphanProtocolUploads` permite `dryRun` para revisar
+  candidatos antes de borrar;
+- la funcion `scheduledCleanupOrphanProtocolUploads` ejecuta limpieza diaria con
+  limite de borrado por ejecucion;
+- no se generan URLs publicas, no se adjuntan protocolos y no se escanean
+  carpetas ajenas como `labImages/`.
 ## Actualizacion Fase 16C: bloqueos y Google Calendar
 
 Los bloqueos extraordinarios configurados en `blockedPeriods` no crean eventos

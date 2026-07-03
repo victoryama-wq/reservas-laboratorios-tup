@@ -39,5 +39,9 @@ export {
   adminCreateBlockedPeriod,
   adminUpdateBlockedPeriod,
 } from "./modules/admin/admin-rules.function";
+export {
+  adminCleanupOrphanProtocolUploads,
+  scheduledCleanupOrphanProtocolUploads,
+} from "./modules/protocols/protocol-cleanup.function";
 export {ensureUserProfile} from
   "./modules/users/ensure-user-profile.function";

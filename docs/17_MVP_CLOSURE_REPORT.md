@@ -783,6 +783,50 @@ Correcciones:
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
 
+## 41. Seguimiento Fase 17I: limpieza segura de protocolos huerfanos
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Causa atendida:
+
+- si el frontend sube un protocolo a `protocolUploads/{uid}/{uploadId}` pero
+  `createReservation` no se completa, el archivo puede quedar sin referencia en
+  `reservations.protocolFiles`;
+- esos archivos no deben limpiarse manualmente sin controles porque podria
+  existir una reserva cancelada, rechazada o historica que aun los referencia.
+
+Implementacion:
+
+- se agrega servicio backend `ProtocolCleanupService`;
+- se agrega callable administrativa `adminCleanupOrphanProtocolUploads`;
+- se agrega funcion programada diaria `scheduledCleanupOrphanProtocolUploads`;
+- la callable usa `dryRun: true` por defecto;
+- el umbral predeterminado es `72` horas;
+- el borrado real no permite menos de `24` horas;
+- `maxDelete` queda limitado a `200` archivos por ejecucion;
+- el scheduler usa `minAgeHours = 72` y `maxDelete = 100`;
+- la callable registra `auditEvents.action =
+  ADMIN_CLEANUP_ORPHAN_PROTOCOL_UPLOADS`.
+
+Garantias:
+
+- nunca se borran archivos presentes en
+  `reservations.protocolFiles[].storagePath`;
+- no se borran reservas, bitacoras, notificaciones ni auditoria;
+- no se escanean `labImages/`, logos, QR ni otras carpetas;
+- no se generan URLs publicas ni URLs firmadas;
+- no se modifican frontend, Calendar API, Gmail API, Firestore Rules, Storage
+  Rules, roles ni estatus.
+
+Pruebas pendientes:
+
+- ejecutar `dryRun` con Admin/Sistemas;
+- validar archivo referenciado por una reserva real;
+- hacer borrado controlado con archivo de prueba;
+- confirmar permisos negativos para docente y responsable no admin;
+- revisar logs seguros del scheduler tras deploy.
+
 ## 41. Seguimiento Fase 17G: docente como invitado de Calendar
 
 Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el

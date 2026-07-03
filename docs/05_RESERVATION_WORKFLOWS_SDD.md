@@ -334,3 +334,25 @@ los filtros de estatus, revisión, fechas y el ordenamiento seleccionado.
 
 No se modifica el backend, no se agregan lecturas adicionales ni se cambia el
 modelo de datos.
+## Actualizacion Fase 17I: limpieza segura de protocolos huerfanos
+
+El flujo normal de reserva no cambia: el frontend sube el protocolo a
+`protocolUploads/{uid}/{uploadId}/{fileName}` y `createReservation` vincula la
+metadata en `reservations/{reservationId}.protocolFiles`.
+
+Si el docente sube el archivo pero no completa la reserva, el archivo puede
+quedar temporalmente huerfano. La limpieza segura se ejecuta fuera del flujo
+critico de reserva y debe cumplir:
+
+- nunca borrar archivos referenciados por cualquier reserva;
+- conservar protocolos de reservas canceladas, rechazadas, pendientes,
+  confirmadas o historicas;
+- borrar solo archivos bajo `protocolUploads/`;
+- aplicar umbral conservador de antiguedad antes de borrar;
+- no generar URLs publicas ni modificar reservas, bitacoras, notificaciones o
+  auditoria existente.
+
+La callable `adminCleanupOrphanProtocolUploads` permite a `admin_sistemas`
+ejecutar `dryRun` para revisar candidatos antes de borrar. La funcion
+programada `scheduledCleanupOrphanProtocolUploads` ejecuta limpieza diaria con
+72 horas de antiguedad minima.
