@@ -216,7 +216,7 @@ export class LoginComponent implements OnInit {
 
   private getDefaultRouteByRole(role: UserRole): string {
     if (role === 'admin_sistemas') {
-      return '/admin/dashboard';
+      return '/admin';
     }
 
     if (role === 'responsable_laboratorio') {

@@ -102,11 +102,16 @@ export const routes: Routes = [
   },
   {
     path: 'admin/dashboard',
+    redirectTo: 'admin',
+    pathMatch: 'full',
+  },
+  {
+    path: 'admin',
     loadComponent: () =>
-      import(
-        './features/admin/admin-dashboard-page/admin-dashboard-page.component'
-      ).then((component) => component.AdminDashboardPageComponent),
-    title: 'Dashboard',
+      import('./features/admin/admin-labs-page/admin-labs-page.component').then(
+        (component) => component.AdminLabsPageComponent,
+      ),
+    title: 'Administrar laboratorios',
     canActivate: [authGuard, profileGuard, roleGuard],
     data: { roles: ['admin_sistemas'] },
   },

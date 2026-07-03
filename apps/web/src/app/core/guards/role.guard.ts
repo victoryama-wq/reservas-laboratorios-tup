@@ -34,7 +34,7 @@ export const roleGuard: CanActivateFn = async (route) => {
 
 function getDefaultRouteByRole(role: UserRole): string {
   if (role === 'admin_sistemas') {
-    return '/admin/dashboard';
+    return '/admin';
   }
 
   if (role === 'responsable_laboratorio') {

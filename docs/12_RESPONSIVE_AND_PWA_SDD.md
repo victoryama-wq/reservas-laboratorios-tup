@@ -309,13 +309,17 @@ Actualizacion Fase 16A: responsive Admin/Sistemas
 El Panel Admin/Sistemas prioriza escritorio, pero debe conservar funcionalidad
 en movil:
 
-- dashboard en cards apiladas en movil y grid en tablet/escritorio;
+- `/admin` como entrada administrativa protegida con el modulo inicial de
+  Laboratorios admin;
 - usuarios en cards responsive, evitando tablas anchas en movil;
 - filtros de usuarios en una columna en movil y grid en escritorio;
 - dialog de edicion usable en pantallas pequenas;
 - laboratorios en cards de lectura;
 - bitacora en cards cronologicas;
 - navegacion admin visible solo para `admin_sistemas`.
+
+La pantalla visual redundante `/admin/dashboard` queda retirada. La URL se
+mantiene solo como redireccion tecnica hacia `/admin`.
 
 Los modulos admin nuevos deben reutilizar el sistema visual vigente:
 `AppPageHeaderComponent`, `AppSectionCardComponent`, `AppStatusChipComponent`,
@@ -324,7 +328,7 @@ paleta morada y superficies claras.
 
 Las vistas admin nuevas tambien deben estabilizar su primera carga visual:
 
-- al entrar a `/admin/dashboard`, `/admin/usuarios`, `/admin/laboratorios` o
+- al entrar a `/admin`, `/admin/usuarios`, `/admin/laboratorios` o
   `/admin/bitacora`, la informacion debe renderizar sin requerir volver a hacer
   clic en la misma ruta;
 - si una carga asincronica termina fuera del ciclo visual inmediato, la vista

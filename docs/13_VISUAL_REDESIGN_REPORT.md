@@ -835,7 +835,7 @@ Rutas funcionales conservadas:
 - `/responsable/solicitudes`
 - `/responsable/historial`
 - `/responsable/reserva/:reservationId`
-- `/admin/dashboard`
+- `/admin`
 - `/admin/laboratorios`
 - `/admin/usuarios`
 - `/admin/reglas`
@@ -1198,7 +1198,7 @@ institucional.
 
 Rutas completadas:
 
-- `/admin/dashboard`
+- `/admin`
 - `/admin/usuarios`
 - `/admin/laboratorios`
 - `/admin/bitacora`
@@ -1213,8 +1213,10 @@ Patrones aplicados:
 - layout mobile-first en cards y grids progresivos;
 - callouts institucionales para estados de lectura, carga, error y alcance.
 
-`/admin/dashboard` usa cards de estadisticas y accesos rapidos. `/admin/usuarios`
-usa tarjetas responsive y dialogo de edicion. `/admin/laboratorios` queda como
+`/admin` queda como entrada administrativa protegida y carga el modulo inicial
+de Laboratorios admin. La pantalla redundante `/admin/dashboard` fue retirada y
+se conserva solo como redireccion tecnica a `/admin`. `/admin/usuarios` usa
+tarjetas responsive y dialogo de edicion. `/admin/laboratorios` queda como
 lectura operativa sin mostrar `calendarId`. `/admin/bitacora` presenta
 `auditEvents` como eventos legibles.
 
@@ -1233,7 +1235,7 @@ renderizar datos despues de volver a hacer clic en la misma vista.
 
 El ajuste se aplico en:
 
-- `/admin/dashboard`
+- `/admin`
 - `/admin/usuarios`
 - `/admin/laboratorios`
 - `/admin/bitacora`

@@ -45,10 +45,6 @@
           }
 
           @if (canSeeAdminNav$ | async) {
-            <a mat-menu-item routerLink="/admin/dashboard">
-              <mat-icon aria-hidden="true">dashboard</mat-icon>
-              <span>Panel Admin</span>
-            </a>
             <a mat-menu-item routerLink="/admin/usuarios">
               <mat-icon aria-hidden="true">manage_accounts</mat-icon>
               <span>Usuarios</span>
@@ -112,13 +108,6 @@
           }
 
           @if (canSeeAdminNav$ | async) {
-            <a
-              mat-button
-              routerLink="/admin/dashboard"
-              routerLinkActive="active-link"
-            >
-              Panel Admin
-            </a>
             <a
               mat-button
               routerLink="/admin/usuarios"

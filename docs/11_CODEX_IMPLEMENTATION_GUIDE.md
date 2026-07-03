@@ -116,7 +116,7 @@ Requisitos:
 - Redirigir según rol:
   - docente -> /laboratorios
   - responsable_laboratorio -> /responsable/solicitudes
-  - admin_sistemas -> /admin/dashboard
+  - admin_sistemas -> /admin
 - Si el usuario venía desde /reservar/:labSlug, después del login debe regresar a esa ruta.
 - Si el usuario no tiene perfil activo, mostrar pantalla de acceso pendiente.
 

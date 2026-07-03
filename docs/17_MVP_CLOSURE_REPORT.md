@@ -158,7 +158,8 @@ No se ejecuto deploy ni dry-run de reglas en esta fase.
 | `/responsable/solicitudes` | PENDING | Protegida por rol `responsable_laboratorio` o `admin_sistemas`. |
 | `/responsable/historial` | PENDING | Protegida por rol `responsable_laboratorio` o `admin_sistemas`. |
 | `/responsable/reserva/:reservationId` | PENDING | Protegida por rol `responsable_laboratorio` o `admin_sistemas`. |
-| `/admin/dashboard` | PENDING | Protegida por rol `admin_sistemas`. |
+| `/admin` | PENDING | Entrada administrativa protegida por rol `admin_sistemas`. |
+| `/admin/dashboard` | REDIRECT | Ruta historica retirada; redirige a `/admin`. |
 | `/admin/laboratorios` | PENDING | Protegida por rol `admin_sistemas`. |
 | `/admin/usuarios` | PENDING | Protegida por rol `admin_sistemas`. |
 | `/admin/reglas` | PENDING | Protegida por rol `admin_sistemas`. |

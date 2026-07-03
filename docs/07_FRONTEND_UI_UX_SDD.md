@@ -94,7 +94,7 @@ Rutas principales
 /responsable/solicitudes
 /responsable/historial
 /responsable/reserva/:reservationId
-/admin/dashboard
+/admin
 /admin/laboratorios
 /admin/usuarios
 /admin/reglas
@@ -392,7 +392,7 @@ Panel Admin/Sistemas
 
 Pantallas
 
-/admin/dashboard
+/admin
 /admin/laboratorios
 /admin/usuarios
 /admin/reglas
@@ -650,7 +650,7 @@ Actualizacion Fase 16A: base Admin/Sistemas
 
 El panel Admin/Sistemas inicial completa estas rutas:
 
-- `/admin/dashboard`
+- `/admin`
 - `/admin/usuarios`
 - `/admin/laboratorios`
 - `/admin/bitacora`
@@ -658,9 +658,9 @@ El panel Admin/Sistemas inicial completa estas rutas:
 Todas deben reutilizar `authGuard`, `profileGuard` y `roleGuard` con
 `admin_sistemas`.
 
-`/admin/dashboard` muestra cards de resumen para usuarios activos, usuarios
-pendientes o inactivos, laboratorios activos, reservas
-`PENDIENTE_VALIDACION`, reservas `ERROR_CALENDAR` y notificaciones fallidas.
+`/admin` funciona como entrada administrativa protegida y muestra el modulo
+inicial de Laboratorios admin. La pantalla redundante `/admin/dashboard` queda
+retirada y solo debe conservarse como redireccion tecnica a `/admin`.
 
 `/admin/usuarios` es mobile-first con tarjetas y filtros por busqueda, rol,
 estado y laboratorio asignado. La edicion usa un dialogo con rol oficial,

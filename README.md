@@ -1067,8 +1067,8 @@ el correo indica que debe revisarse desde el sistema.
 
 La base operativa del Panel Admin/Sistemas incluye:
 
-- `/admin/dashboard`: resumen de usuarios, laboratorios, reservas pendientes,
-  reservas `ERROR_CALENDAR` y notificaciones fallidas.
+- `/admin`: entrada administrativa protegida que muestra el modulo inicial de
+  Laboratorios admin.
 - `/admin/usuarios`: gestion inicial de usuarios, roles oficiales,
   activacion/desactivacion y asignacion de laboratorios a responsables.
 - `/admin/laboratorios`: lectura operativa de laboratorios sin edicion completa.
@@ -1106,7 +1106,7 @@ misma ruta.
 
 Vistas estabilizadas:
 
-- `/admin/dashboard`
+- `/admin`
 - `/admin/usuarios`
 - `/admin/laboratorios`
 - `/admin/bitacora`
@@ -1512,8 +1512,12 @@ oficial para crear y editar reglas especiales.
 La Web App incorpora un menu hamburguesa para vista movil en el AppShell. En
 celulares se oculta la navegacion horizontal para evitar saturacion y el menu
 movil muestra solo las rutas permitidas segun el perfil confirmado del usuario:
-Laboratorios, Mis reservas, Responsable cuando aplica, Panel Admin cuando aplica
-y Cerrar sesion.
+Laboratorios, Mis reservas, Responsable cuando aplica y Cerrar sesion. Para
+Admin/Sistemas, el acceso redundante `Panel Admin` fue retirado; se conservan
+Usuarios, Laboratorios admin, Reglas y Bitacora.
+
+La URL historica `/admin/dashboard` se conserva como redireccion tecnica hacia
+`/admin` para evitar enlaces rotos, pero ya no carga una pantalla visual propia.
 
 En tablet y escritorio se conserva la navegacion horizontal institucional.
 

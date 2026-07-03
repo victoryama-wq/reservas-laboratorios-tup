@@ -123,7 +123,9 @@ Pruebas Fase 16A: Admin/Sistemas
 
 Agregar o ejecutar pruebas manuales para:
 
-- `/admin/dashboard` solo visible para `admin_sistemas`.
+- `/admin` solo visible para `admin_sistemas`.
+- `/admin/dashboard` redirige tecnicamente a `/admin` y no muestra pantalla
+  visual propia.
 - `/admin/usuarios` lista usuarios con datos reales cuando Firestore Rules lo
   permiten.
 - Un admin puede cambiar rol oficial mediante `adminUpdateUser`.
@@ -140,7 +142,7 @@ Agregar o ejecutar pruebas manuales para:
 - `/admin/bitacora` muestra eventos administrativos sin secretos ni stack
   traces.
 - Docente y responsable sin rol admin no deben ver rutas `/admin/*`.
-- Al entrar por primera vez a `/admin/dashboard`, `/admin/usuarios`,
+- Al entrar por primera vez a `/admin`, `/admin/usuarios`,
   `/admin/laboratorios` y `/admin/bitacora`, los datos deben mostrarse sin
   requerir un segundo clic en la misma ruta.
 - Si Firestore devuelve datos o una lista vacia, la vista debe salir del estado
