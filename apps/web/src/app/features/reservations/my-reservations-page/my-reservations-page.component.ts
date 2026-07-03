@@ -2,6 +2,14 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import {
+  MAT_DATE_LOCALE,
+  provideNativeDateAdapter,
+} from '@angular/material/core';
+import {
+  MatDatepickerInputEvent,
+  MatDatepickerModule,
+} from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -33,6 +41,7 @@ type ReservationsViewMode = 'recent' | 'history' | 'all';
     AppPageHeaderComponent,
     FormsModule,
     MatButtonModule,
+    MatDatepickerModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -40,6 +49,10 @@ type ReservationsViewMode = 'recent' | 'history' | 'all';
     MatSelectModule,
     MyReservationCardComponent,
     RouterLink,
+  ],
+  providers: [
+    provideNativeDateAdapter(),
+    { provide: MAT_DATE_LOCALE, useValue: 'es-MX' },
   ],
   templateUrl: './my-reservations-page.component.html',
   styleUrl: './my-reservations-page.component.scss',
@@ -58,6 +71,15 @@ export class MyReservationsPageComponent implements OnInit {
   protected readonly endDateFilter = signal('');
   protected readonly sortOrder = signal<SortOrder>('recent');
   protected readonly viewMode = signal<ReservationsViewMode>('recent');
+
+  protected readonly dateRangeError = computed(() => {
+    const startDate = this.parseFilterDate(this.startDateFilter());
+    const endDate = this.parseFilterDate(this.endDateFilter());
+
+    return startDate && endDate && startDate.getTime() > endDate.getTime()
+      ? 'La fecha inicial no puede ser posterior a la fecha final.'
+      : '';
+  });
 
   protected readonly viewOptions: Array<{
     value: ReservationsViewMode;
@@ -235,6 +257,18 @@ export class MyReservationsPageComponent implements OnInit {
     this.viewMode.set(mode);
   }
 
+  protected datepickerValue(value: string): Date | null {
+    return this.parseFilterDate(value);
+  }
+
+  protected setStartDateFilter(event: MatDatepickerInputEvent<Date>): void {
+    this.startDateFilter.set(this.toFilterDateValue(event.value));
+  }
+
+  protected setEndDateFilter(event: MatDatepickerInputEvent<Date>): void {
+    this.endDateFilter.set(this.toFilterDateValue(event.value));
+  }
+
   protected formatDate(reservation: MyReservationView): string {
     return this.reservationsService.formatDate(reservation.startDate);
   }
@@ -263,6 +297,18 @@ export class MyReservationsPageComponent implements OnInit {
     }
 
     return date;
+  }
+
+  private toFilterDateValue(value: Date | null): string {
+    if (!value || Number.isNaN(value.getTime())) {
+      return '';
+    }
+
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
   private isRecentReservation(reservation: MyReservationView): boolean {

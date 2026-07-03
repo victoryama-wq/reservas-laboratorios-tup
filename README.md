@@ -1625,3 +1625,24 @@ modo `Recientes` / `Histórico` / `Todas` y ordenamiento.
 También se corrigieron textos visibles de Mis reservas y su detalle para usar
 acentos y etiquetas más claras, sin cambiar nombres internos de estatus,
 contratos de datos, backend, Calendar, Gmail ni reglas de seguridad.
+
+## Fase 17F.4A: filtros de fecha en Mis reservas
+
+La vista `/mis-reservas` mantiene los filtros existentes `Desde` y `Hasta`, pero
+ahora usan Angular Material Datepicker en lugar de campos nativos de fecha. Al
+hacer clic sobre el campo o el icono se abre un calendario real para seleccionar
+la fecha.
+
+El valor interno del filtro se conserva como `YYYY-MM-DD`, por lo que no cambia
+el pipeline de filtrado, la búsqueda ampliada ni la forma en que se calculan las
+reservas recientes, históricas o todas.
+
+También se ajustó el layout del panel de filtros para que el botón `Limpiar`
+quede alineado con los demás controles en escritorio y mantenga un ancho cómodo
+en móvil.
+
+Si la fecha `Desde` es posterior a `Hasta`, la interfaz muestra una advertencia:
+`La fecha inicial no puede ser posterior a la fecha final.`
+
+Este ajuste es visual/frontend. No modifica Functions, Calendar API, Gmail API,
+reglas, roles, estatus, apertura de protocolos, bitácora ni datos de reservas.

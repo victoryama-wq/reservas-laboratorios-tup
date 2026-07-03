@@ -1252,3 +1252,20 @@ Los textos visibles de Mis reservas y del detalle personal deben usar acentos:
 `Histórico`, `validación`, `revisión`, `práctica`, `Sí`, `bitácora`,
 `cancelación`, `técnico`, `sincronización` y equivalentes. Los nombres internos
 de estatus no cambian.
+
+## Actualización Fase 17F.4A: filtros de fecha en Mis reservas
+
+La vista `/mis-reservas` debe conservar una sola barra de búsqueda y los filtros
+existentes. Los filtros `Desde` y `Hasta` deben usar Angular Material
+Datepicker para que el usuario pueda abrir un calendario al hacer clic en el
+campo o en el icono.
+
+El control visual puede convertir entre `Date` y el valor interno `YYYY-MM-DD`,
+pero no debe crear un segundo pipeline de filtrado ni modificar la lógica de
+consulta.
+
+Si `Desde` es posterior a `Hasta`, la UI debe mostrar una advertencia clara:
+`La fecha inicial no puede ser posterior a la fecha final.`
+
+El botón `Limpiar` debe mantenerse alineado con los demás filtros en escritorio
+y ocupar un área táctil cómoda en móvil.

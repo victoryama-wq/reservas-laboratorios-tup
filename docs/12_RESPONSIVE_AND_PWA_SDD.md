@@ -570,3 +570,14 @@ según el comportamiento de Angular Material sin provocar overflow horizontal.
 
 Los filtros existentes deben conservar su composición responsive y no deben
 duplicarse al ampliar campos internos de búsqueda.
+
+## Actualización Fase 17F.4A: filtros de fecha táctiles
+
+En `/mis-reservas`, los filtros `Desde` y `Hasta` deben abrir un calendario de
+Angular Material al tocar el campo o el icono. En móvil, cada campo debe mantener
+ancho completo dentro del grid responsive y no provocar scroll horizontal.
+
+El botón `Limpiar` debe alinearse con los filtros en escritorio y conservar un
+área táctil suficiente en 360, 390 y 414 px.
+
+No se deben duplicar filtros ni mover la búsqueda fuera del panel existente.

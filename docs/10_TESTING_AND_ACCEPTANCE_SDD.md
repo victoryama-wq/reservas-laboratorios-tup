@@ -711,3 +711,21 @@ Pruebas recomendadas:
   y editando datos completos;
 - confirmar que un usuario no admin ya no puede leer directamente `labs/{labId}`
   completo desde Firestore.
+
+## Pruebas Fase 17F.4A: datepicker y filtros de fecha
+
+Casos mínimos:
+
+- abrir `/mis-reservas`;
+- hacer clic en `Desde` y confirmar que aparece calendario;
+- seleccionar una fecha y confirmar que filtra resultados;
+- hacer clic en `Hasta` y confirmar que aparece calendario;
+- seleccionar una fecha y confirmar que filtra resultados;
+- seleccionar un rango inválido donde `Desde` sea posterior a `Hasta` y
+  confirmar la advertencia visual;
+- presionar `Limpiar` y confirmar que se limpian búsqueda, estatus, revisión,
+  fechas, orden y vista según el comportamiento existente;
+- confirmar que sigue existiendo una sola barra de búsqueda;
+- confirmar que la búsqueda por asignatura, práctica, grupo y tipo de práctica
+  sigue funcionando;
+- validar 360, 390, 414, 768, 1024 y 1366 px sin overflow horizontal.

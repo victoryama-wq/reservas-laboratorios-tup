@@ -82,20 +82,32 @@
       <mat-label>Desde</mat-label>
       <input
         matInput
-        type="date"
-        [ngModel]="startDateFilter()"
-        (ngModelChange)="startDateFilter.set($event)"
+        readonly
+        aria-label="Filtrar reservas desde una fecha"
+        [matDatepicker]="startPicker"
+        [ngModel]="datepickerValue(startDateFilter())"
+        (click)="startPicker.open()"
+        (focus)="startPicker.open()"
+        (dateChange)="setStartDateFilter($event)"
       />
+      <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+      <mat-datepicker #startPicker />
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Hasta</mat-label>
       <input
         matInput
-        type="date"
-        [ngModel]="endDateFilter()"
-        (ngModelChange)="endDateFilter.set($event)"
+        readonly
+        aria-label="Filtrar reservas hasta una fecha"
+        [matDatepicker]="endPicker"
+        [ngModel]="datepickerValue(endDateFilter())"
+        (click)="endPicker.open()"
+        (focus)="endPicker.open()"
+        (dateChange)="setEndDateFilter($event)"
       />
+      <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+      <mat-datepicker #endPicker />
     </mat-form-field>
 
     <mat-form-field appearance="outline">
@@ -109,10 +121,24 @@
       </mat-select>
     </mat-form-field>
 
-    <button mat-stroked-button type="button" (click)="resetFilters()">
+    <button
+      mat-stroked-button
+      type="button"
+      class="filters-panel__clear-button"
+      aria-label="Limpiar filtros de mis reservas"
+      (click)="resetFilters()"
+    >
       <mat-icon>refresh</mat-icon>
       Limpiar
     </button>
+
+    @if (dateRangeError()) {
+      <app-info-callout
+        variant="warning"
+        icon="warning"
+        [message]="dateRangeError()"
+      />
+    }
   </div>
 
   @if (loading()) {

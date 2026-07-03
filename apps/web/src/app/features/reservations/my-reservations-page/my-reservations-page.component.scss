@@ -34,7 +34,7 @@
 }
 
 .filters-panel {
-  align-items: center;
+  align-items: start;
   background: var(--surface);
   border: 1px solid var(--border-soft);
   border-radius: 1.5rem;
@@ -43,13 +43,23 @@
   gap: 0.75rem;
   padding: 1rem;
 
-  button {
-    min-height: 3.25rem;
+  mat-form-field {
+    width: 100%;
   }
 
   > app-info-callout,
   > .view-toggle {
     grid-column: 1 / -1;
+  }
+}
+
+.filters-panel__clear-button {
+  align-self: start;
+  min-height: 3.5rem;
+  width: 100%;
+
+  mat-icon {
+    margin-right: 0.35rem;
   }
 }
 
@@ -150,6 +160,11 @@
 @media (min-width: 1180px) {
   .filters-panel {
     grid-template-columns: 1.4fr 1fr 1fr 0.85fr 0.85fr 0.85fr auto;
+  }
+
+  .filters-panel__clear-button {
+    min-width: 8.5rem;
+    width: auto;
   }
 
   .reservations-grid {

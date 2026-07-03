@@ -779,6 +779,30 @@ Correcciones:
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
 
+## 40. Seguimiento Fase 17F.4A: filtros de fecha en Mis reservas
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Causa atendida:
+
+- los filtros `Desde` y `Hasta` usaban campos nativos de fecha y no siempre
+  abrían un calendario al hacer clic en el campo;
+- el botón `Limpiar` podía verse desalineado respecto al resto de filtros.
+
+Correcciones:
+
+- `Desde` y `Hasta` usan Angular Material Datepicker;
+- el usuario puede abrir el calendario desde el campo o desde el icono;
+- el valor interno se conserva como `YYYY-MM-DD`;
+- se agrega advertencia visual si `Desde` es posterior a `Hasta`;
+- el botón `Limpiar` queda alineado en escritorio y conserva ancho cómodo en
+  móvil;
+- se conserva una sola barra de búsqueda y no se duplican filtros.
+
+No se modifican backend funcional, Calendar API, Gmail API, reglas, roles,
+estatus internos, apertura de protocolos, bitácora ni contratos de datos.
+
 ## 39. Seguimiento Fase 17F.4: búsqueda y textos de Mis reservas
 
 Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
