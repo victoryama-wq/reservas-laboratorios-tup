@@ -256,3 +256,14 @@ El dashboard de uso no consulta Google Calendar ni Gmail API. Sus métricas se
 derivan exclusivamente de reservas confirmadas en Firestore. La salida tampoco
 incluye `calendarId`, IDs de eventos, destinatarios, protocolos ni rutas de
 Storage.
+
+## Fase 18B: contrato idempotente con Calendar
+
+Cada evento nuevo incluye propiedades privadas `reservationId`, `sourceSystem`
+e `idempotencyVersion`. Estas propiedades no son visibles como descripcion ni
+contienen datos personales. El ID determinista permite resolver concurrencia y
+respuestas perdidas; la busqueda por propiedades permite reconciliar eventos
+existentes cuando Firestore no conserva `calendarEventId`.
+
+Eventos heredados enlazados por `calendarEventId` siguen siendo validos aunque
+no tengan propiedades privadas. No se realiza migracion masiva.

@@ -10,7 +10,10 @@ import {
 } from "firebase-functions/v2/https";
 import {logger} from "firebase-functions";
 
-import {GoogleCalendarService} from "../calendar/google-calendar.service";
+import {
+  CalendarDeleteResult,
+  GoogleCalendarService,
+} from "../calendar/google-calendar.service";
 import {GOOGLE_WORKSPACE_SECRETS} from
   "../google-workspace/google-workspace-auth.service";
 import {ReservationLogRepository} from "../logs/reservation-log.repository";
@@ -97,9 +100,7 @@ export const cancelReservation = onCall(
         );
       }
 
-      if (context.reservation.calendarEventId) {
-        await deleteCalendarEventOrFail(context);
-      }
+      const calendarDeleteResult = await deleteCalendarEventOrFail(context);
 
       const now = Timestamp.now();
       const cancelledReservation: ReservationDoc = {
@@ -135,7 +136,7 @@ export const cancelReservation = onCall(
               note: input.reason ?? "Reserva cancelada.",
             });
 
-            if (context.reservation.calendarEventId) {
+            if (calendarDeleteResult.outcome === "DELETED") {
               context.logRepository.createLog(transaction, {
                 reservationId: context.reservation.id,
                 action: "CALENDAR_EVENT_CANCELLED",
@@ -144,7 +145,7 @@ export const cancelReservation = onCall(
                 previousStatus,
                 newStatus: "CANCELADA",
                 metadata: {
-                  calendarEventId: context.reservation.calendarEventId,
+                  calendarEventId: calendarDeleteResult.eventId,
                 },
               });
             }
@@ -365,11 +366,11 @@ function isCancelableStatus(status: ReservationStatus): status is
  */
 async function deleteCalendarEventOrFail(
     context: CancelContext,
-): Promise<void> {
+): Promise<CalendarDeleteResult> {
   try {
-    await context.calendarService.deleteReservationEvent({
-      calendarId: context.lab.calendarId,
-      eventId: context.reservation.calendarEventId ?? "",
+    return await context.calendarService.deleteReservationEvent({
+      lab: context.lab,
+      reservation: context.reservation,
     });
   } catch (error) {
     if (isCalendarEventAlreadyDeleted(error)) {
@@ -379,7 +380,10 @@ async function deleteCalendarEventOrFail(
         calendarEventId: context.reservation.calendarEventId,
         ...toSafeErrorMetadata(error),
       });
-      return;
+      return {
+        eventId: context.reservation.calendarEventId ?? null,
+        outcome: "ABSENT",
+      };
     }
 
     logger.error("Reservation cancellation Calendar delete failed", {

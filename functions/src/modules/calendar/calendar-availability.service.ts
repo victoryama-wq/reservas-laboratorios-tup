@@ -12,6 +12,7 @@ export interface ExternalCalendarConflictResult {
  * @param {string} params.calendarId Google Calendar id.
  * @param {Date} params.startAt Start date.
  * @param {Date} params.endAt End date.
+ * @param {string | undefined} params.excludeReservationId Reservation to skip.
  * @return {Promise<ExternalCalendarConflictResult>} Conflict result.
  */
 export async function checkExternalCalendarConflicts(
@@ -19,6 +20,7 @@ export async function checkExternalCalendarConflicts(
       calendarId: string;
       startAt: Date;
       endAt: Date;
+      excludeReservationId?: string;
     },
 ): Promise<ExternalCalendarConflictResult> {
   const service = new GoogleCalendarService();

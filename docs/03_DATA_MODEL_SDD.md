@@ -757,3 +757,10 @@ agregada con `scope`, `summary`, `monthlyUsage`, `usageByLab` y
 `authorizedLabs`. Solo participan `CONFIRMADA` y
 `CONFIRMADA_TRAS_VALIDACION`; no se devuelven datos personales, protocolos,
 `calendarId`, rutas Storage ni metadata interna.
+
+## Fase 18B: identidad externa idempotente
+
+El modelo persistente de `reservations` no cambia. `calendarEventId` sigue
+siendo el unico identificador externo guardado. El ID determinista y las
+propiedades privadas de Google Calendar se derivan de `reservationId`; no se
+crean campos, colecciones ni migraciones nuevas.

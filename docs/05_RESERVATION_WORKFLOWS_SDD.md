@@ -366,3 +366,14 @@ reserva. Para uso efectivo se consideran únicamente `CONFIRMADA` y
 
 La consulta se limita por periodo y laboratorio autorizado; sus agregados se
 calculan con la zona institucional `America/Cancun`.
+
+## Fase 18B: creacion y cancelacion idempotentes
+
+Antes de insertar un evento, creacion y aprobacion intentan reutilizar el
+`calendarEventId` guardado, el ID determinista y una coincidencia por propiedad
+privada. Un `409` o una respuesta ambigua se reconcilia consultando Calendar.
+Solo cuando no existe coincidencia se inserta el evento.
+
+La cancelacion busca en el mismo orden y elimina una sola coincidencia. Un
+evento ausente (`404`/`410`) permite continuar; multiples coincidencias o un
+evento incompatible detienen el flujo como inconsistencia controlada.

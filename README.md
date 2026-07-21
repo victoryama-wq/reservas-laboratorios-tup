@@ -1,4 +1,4 @@
-﻿# Sistema Web de Reservas de Laboratorios
+# Sistema Web de Reservas de Laboratorios
 
 Web app institucional para gestionar reservas de laboratorios acadÃ©micos del TecnolÃ³gico universitario Playacar.
 
@@ -503,11 +503,9 @@ proveedor lo permita.
 Gmail API se integra en la seccion siguiente para procesar las notificaciones
 generadas por las reservas.
 
-Riesgo pendiente: esta fase todavia no implementa una clave idempotente para
-evitar duplicados ante reintentos inesperados. Si el proceso crea un evento y
-despues falla antes de guardar `calendarEventId`, Admin/Sistemas debera revisar
-el calendario y Firestore. La idempotencia completa queda para una fase
-posterior.
+La integracion usa un ID determinista por `reservationId`, propiedades privadas
+de Calendar y reconciliacion posterior a respuestas ambiguas. Un reintento de
+la misma reserva reutiliza el evento existente y no crea un duplicado.
 
 ## Gmail API y notificaciones reales
 
@@ -1745,3 +1743,17 @@ El dashboard usa Chart.js instalado como dependencia local y cargado de forma
 lazy. Incluye indicadores, gráficas y tablas accesibles. La respuesta no incluye
 docentes, correos, protocolos, `calendarId`, rutas de Storage ni metadata de
 reservas. Esta fase es de solo lectura y no invoca Calendar API ni Gmail API.
+
+## Idempotencia completa de Google Calendar
+
+`createReservation` y `approveReservation` usan una operacion compartida que
+asegura un unico evento por `reservationId`. El ID externo se deriva con SHA-256
+de un namespace tecnico y se complementa con propiedades privadas
+`reservationId`, `sourceSystem` e `idempotencyVersion`; no contiene datos
+personales.
+
+La operacion reutiliza `calendarEventId` heredados, busca el ID determinista,
+reconcilia por propiedades privadas y maneja `409` o timeouts consultando el
+evento antes de declarar un error. La cancelacion aplica la misma resolucion y
+mantiene `sendUpdates: "all"`. No se agregaron colecciones ni campos
+persistentes: Firestore conserva solamente `calendarEventId`.

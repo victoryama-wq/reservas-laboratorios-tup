@@ -846,3 +846,18 @@ Validar como mínimo:
 - tablas y gráficas conservan el mismo agregado;
 - móvil no presenta overflow horizontal;
 - `/admin/reportes` redirige a `/reportes`.
+
+## Pruebas Fase 18B: idempotencia Calendar
+
+- el helper produce el mismo ID para la misma `reservationId`;
+- `get` con `404` seguido de insercion crea el ID determinista;
+- un evento determinista existente se reutiliza;
+- `409` se reconcilia sin una segunda insercion;
+- timeout con evento creado devuelve `RECONCILED`;
+- timeout sin evento conserva el error de Calendar;
+- propiedades privadas incorrectas, evento cancelado o multiples coincidencias
+  producen inconsistencia controlada;
+- cero y una coincidencia por propiedad privada producen insercion o
+  reconciliacion, respectivamente;
+- cancelacion localiza el evento sin depender exclusivamente de
+  `calendarEventId` y usa `sendUpdates: "all"`.

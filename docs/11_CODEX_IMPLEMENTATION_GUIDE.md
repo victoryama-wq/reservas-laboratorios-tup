@@ -234,3 +234,12 @@ La implementación base es `getLabUsageReport` + `/reportes`, con Chart.js local
 y lazy-loaded. No agregar nuevas visualizaciones mediante CDN.
 
 Priorizar experiencia escritorio, pero mantener diseño responsive.
+
+## Patron de idempotencia para Google Calendar
+
+Toda creacion de evento de reserva debe pasar por
+`GoogleCalendarService.ensureReservationEvent`. No llamar `events.insert`
+directamente desde Functions de negocio. Mantener el ID determinista, las
+propiedades privadas, la validacion de identidad y la reconciliacion posterior
+a `409` o fallos ambiguos. La cancelacion debe resolver el mismo evento antes de
+eliminarlo y nunca elegir arbitrariamente entre multiples coincidencias.

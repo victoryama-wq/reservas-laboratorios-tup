@@ -1,3 +1,6 @@
+import {createHash} from "node:crypto";
+
+import {logger} from "firebase-functions";
 import {calendar_v3 as calendarApi, google} from "googleapis";
 
 import {
@@ -9,6 +12,8 @@ import {createWorkspaceJwt} from
 import {INSTITUTIONAL_TIME_ZONE} from "../reservations/reservation.utils";
 
 const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
+const CALENDAR_SOURCE_SYSTEM = "reservas-laboratorios-tup";
+const CALENDAR_IDEMPOTENCY_VERSION = "1";
 
 export interface CalendarConflict {
   eventCount: number;
@@ -17,6 +22,46 @@ export interface CalendarConflict {
 export interface CreateCalendarEventParams {
   lab: LabDoc;
   reservation: ReservationDoc;
+}
+
+export type CalendarEnsureOutcome = "CREATED" | "REUSED" | "RECONCILED";
+
+export interface CalendarEnsureResult {
+  eventId: string;
+  outcome: CalendarEnsureOutcome;
+}
+
+export interface CalendarDeleteResult {
+  eventId: string | null;
+  outcome: "DELETED" | "ABSENT";
+}
+
+/**
+ * Builds a stable, Calendar-compatible event id without personal data.
+ *
+ * @param {string} reservationId Firestore reservation id.
+ * @return {string} Deterministic Google Calendar event id.
+ */
+export function buildReservationCalendarEventId(
+    reservationId: string,
+): string {
+  const digest = createHash("sha256")
+      .update(`${CALENDAR_SOURCE_SYSTEM}:${reservationId}`, "utf8")
+      .digest("hex");
+  return `tup${digest}`;
+}
+
+/** Controlled inconsistency between Firestore and Google Calendar. */
+export class CalendarEventConsistencyError extends Error {
+  /**
+   * Creates a consistency error.
+   *
+   * @param {string} message Safe technical message.
+   */
+  constructor(message: string) {
+    super(message);
+    this.name = "CalendarEventConsistencyError";
+  }
 }
 
 export type CalendarValidationReason =
@@ -44,6 +89,16 @@ export class GoogleCalendarService {
   private calendarClient?: calendarApi.Calendar;
 
   /**
+   * Creates the service, optionally with an injected Calendar client for tests.
+   *
+   * @param {function(): Promise<calendarApi.Calendar> | undefined}
+   * clientFactory Calendar client factory.
+   */
+  constructor(
+    private readonly clientFactory?: () => Promise<calendarApi.Calendar>,
+  ) {}
+
+  /**
    * Checks Google Calendar events that overlap the requested range.
    *
    * @param {object} params Calendar check params.
@@ -56,6 +111,7 @@ export class GoogleCalendarService {
     calendarId: string;
     startAt: Date;
     endAt: Date;
+    excludeReservationId?: string;
   }): Promise<CalendarConflict> {
     const client = await this.getCalendarClient();
     const response = await client.events.list({
@@ -67,10 +123,16 @@ export class GoogleCalendarService {
     });
 
     const events = response.data.items ?? [];
-    const overlappingEvents = events.filter((event) =>
-      event.status !== "cancelled" &&
-      this.eventOverlapsRange(event, params.startAt, params.endAt),
-    );
+    const overlappingEvents = events.filter((event) => {
+      if (
+        params.excludeReservationId &&
+        this.eventBelongsToReservation(event, params.excludeReservationId)
+      ) {
+        return false;
+      }
+      return event.status !== "cancelled" &&
+        this.eventOverlapsRange(event, params.startAt, params.endAt);
+    });
 
     return {
       eventCount: overlappingEvents.length,
@@ -83,41 +145,353 @@ export class GoogleCalendarService {
    * @param {CreateCalendarEventParams} params Event params.
    * @return {Promise<string>} Google Calendar event id.
    */
-  async createReservationEvent(
+  async ensureReservationEvent(
       params: CreateCalendarEventParams,
-  ): Promise<string> {
+  ): Promise<CalendarEnsureResult> {
     const client = await this.getCalendarClient();
-    const response = await client.events.insert({
-      calendarId: params.lab.calendarId,
-      requestBody: this.buildReservationEvent(params.reservation),
-      sendUpdates: "all",
-    });
+    const calendarId = params.lab.calendarId;
+    const reservation = params.reservation;
+    const deterministicId = buildReservationCalendarEventId(reservation.id);
 
-    const eventId = response.data.id;
-    if (!eventId) {
-      throw new Error("Google Calendar no devolvio eventId.");
+    if (reservation.calendarEventId) {
+      const linkedEvent = await this.getEventIfPresent(
+          client,
+          calendarId,
+          reservation.calendarEventId,
+      );
+      if (linkedEvent) {
+        this.validateReservationEvent(linkedEvent, reservation, {
+          expectedEventId: reservation.calendarEventId,
+          allowLegacyProperties: true,
+        });
+        return this.logEnsureResult(params, {
+          eventId: reservation.calendarEventId,
+          outcome: "REUSED",
+        });
+      }
     }
 
-    return eventId;
+    const deterministicEvent = await this.getEventIfPresent(
+        client,
+        calendarId,
+        deterministicId,
+    );
+    if (deterministicEvent) {
+      this.validateReservationEvent(deterministicEvent, reservation, {
+        expectedEventId: deterministicId,
+        allowLegacyProperties: false,
+      });
+      return this.logEnsureResult(params, {
+        eventId: deterministicId,
+        outcome: "REUSED",
+      });
+    }
+
+    const matchingEvents = await this.findReservationEvents(
+        client,
+        calendarId,
+        reservation.id,
+    );
+    if (matchingEvents.length > 1) {
+      throw new CalendarEventConsistencyError(
+          "Google Calendar contiene multiples eventos para la reserva.",
+      );
+    }
+    if (matchingEvents.length === 1) {
+      const matchingEvent = matchingEvents[0];
+      this.validateReservationEvent(matchingEvent, reservation, {
+        expectedEventId: matchingEvent.id ?? "",
+        allowLegacyProperties: false,
+      });
+      return this.logEnsureResult(params, {
+        eventId: matchingEvent.id ?? "",
+        outcome: "RECONCILED",
+      });
+    }
+
+    const requestBody = this.buildReservationEvent(reservation);
+    requestBody.id = deterministicId;
+
+    try {
+      const response = await client.events.insert({
+        calendarId,
+        requestBody,
+        sendUpdates: "all",
+      });
+
+      const eventId = response.data.id;
+      if (!eventId) {
+        throw new Error("Google Calendar no devolvio eventId.");
+      }
+
+      return this.logEnsureResult(params, {
+        eventId,
+        outcome: "CREATED",
+      });
+    } catch (error) {
+      const eventAfterFailure = await this.getEventIfPresent(
+          client,
+          calendarId,
+          deterministicId,
+      );
+      if (eventAfterFailure) {
+        this.validateReservationEvent(eventAfterFailure, reservation, {
+          expectedEventId: deterministicId,
+          allowLegacyProperties: false,
+        });
+        return this.logEnsureResult(params, {
+          eventId: deterministicId,
+          outcome: this.getErrorStatus(error) === 409 ?
+            "REUSED" : "RECONCILED",
+        });
+      }
+
+      throw error;
+    }
   }
 
   /**
    * Deletes the Calendar event associated with a cancelled reservation.
    *
-   * @param {object} params Delete params.
-   * @param {string} params.calendarId Calendar id.
-   * @param {string} params.eventId Calendar event id.
+   * @param {CreateCalendarEventParams} params Reservation and laboratory.
+   * @return {Promise<CalendarDeleteResult>} Deletion outcome.
    */
-  async deleteReservationEvent(params: {
-    calendarId: string;
-    eventId: string;
-  }): Promise<void> {
+  async deleteReservationEvent(params: CreateCalendarEventParams):
+    Promise<CalendarDeleteResult> {
     const client = await this.getCalendarClient();
-    await client.events.delete({
-      calendarId: params.calendarId,
-      eventId: params.eventId,
-      sendUpdates: "all",
+    const calendarId = params.lab.calendarId;
+    const reservation = params.reservation;
+    const deterministicId = buildReservationCalendarEventId(reservation.id);
+
+    let event: calendarApi.Schema$Event | null = null;
+    if (reservation.calendarEventId) {
+      event = await this.getEventIfPresent(
+          client,
+          calendarId,
+          reservation.calendarEventId,
+      );
+      if (event) {
+        this.validateReservationEvent(event, reservation, {
+          expectedEventId: reservation.calendarEventId,
+          allowLegacyProperties: true,
+          allowCancelled: true,
+        });
+      }
+    }
+
+    if (!event) {
+      event = await this.getEventIfPresent(client, calendarId, deterministicId);
+      if (event) {
+        this.validateReservationEvent(event, reservation, {
+          expectedEventId: deterministicId,
+          allowLegacyProperties: false,
+          allowCancelled: true,
+        });
+      }
+    }
+
+    if (!event) {
+      const matchingEvents = await this.findReservationEvents(
+          client,
+          calendarId,
+          reservation.id,
+      );
+      if (matchingEvents.length > 1) {
+        throw new CalendarEventConsistencyError(
+            "Google Calendar contiene multiples eventos para la reserva.",
+        );
+      }
+      event = matchingEvents[0] ?? null;
+      if (event) {
+        this.validateReservationEvent(event, reservation, {
+          expectedEventId: event.id ?? "",
+          allowLegacyProperties: false,
+          allowCancelled: true,
+        });
+      }
+    }
+
+    if (!event || event.status === "cancelled" || !event.id) {
+      return {eventId: event?.id ?? null, outcome: "ABSENT"};
+    }
+
+    try {
+      await client.events.delete({
+        calendarId,
+        eventId: event.id,
+        sendUpdates: "all",
+      });
+    } catch (error) {
+      if (this.isMissingEventError(error)) {
+        return {eventId: event.id, outcome: "ABSENT"};
+      }
+      throw error;
+    }
+
+    logger.info("Reservation Calendar event deleted", {
+      reservationId: reservation.id,
+      folio: reservation.folio,
+      labId: params.lab.id,
+      eventId: event.id,
+      outcome: "DELETED",
+      deterministicIdUsed: event.id === deterministicId,
     });
+    return {eventId: event.id, outcome: "DELETED"};
+  }
+
+  /**
+   * Reads an event and maps Calendar's missing responses to null.
+   *
+   * @param {calendarApi.Calendar} client Calendar client.
+   * @param {string} calendarId Calendar id.
+   * @param {string} eventId Event id.
+   * @return {Promise<calendarApi.Schema$Event | null>} Event or null.
+   */
+  private async getEventIfPresent(
+      client: calendarApi.Calendar,
+      calendarId: string,
+      eventId: string,
+  ): Promise<calendarApi.Schema$Event | null> {
+    try {
+      const response = await client.events.get({calendarId, eventId});
+      return response.data;
+    } catch (error) {
+      if (this.isMissingEventError(error)) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Finds events tagged with the reservation's private idempotency metadata.
+   *
+   * @param {calendarApi.Calendar} client Calendar client.
+   * @param {string} calendarId Calendar id.
+   * @param {string} reservationId Reservation id.
+   * @return {Promise<calendarApi.Schema$Event[]>} Matching events.
+   */
+  private async findReservationEvents(
+      client: calendarApi.Calendar,
+      calendarId: string,
+      reservationId: string,
+  ): Promise<calendarApi.Schema$Event[]> {
+    const response = await client.events.list({
+      calendarId,
+      privateExtendedProperty: [
+        `reservationId=${reservationId}`,
+        `sourceSystem=${CALENDAR_SOURCE_SYSTEM}`,
+      ],
+      showDeleted: true,
+      singleEvents: true,
+    });
+    return response.data.items ?? [];
+  }
+
+  /**
+   * Validates that a Calendar event belongs to the expected reservation.
+   *
+   * @param {calendarApi.Schema$Event} event Calendar event.
+   * @param {ReservationDoc} reservation Reservation.
+   * @param {object} options Validation options.
+   * @param {string} options.expectedEventId Expected event id.
+   * @param {boolean} options.allowLegacyProperties Accept linked legacy event.
+   * @param {boolean | undefined} options.allowCancelled Accept cancelled event.
+   */
+  private validateReservationEvent(
+      event: calendarApi.Schema$Event,
+      reservation: ReservationDoc,
+      options: {
+        expectedEventId: string;
+        allowLegacyProperties: boolean;
+        allowCancelled?: boolean;
+      },
+  ): void {
+    if (!event.id || event.id !== options.expectedEventId) {
+      throw new CalendarEventConsistencyError(
+          "Google Calendar devolvio un identificador de evento inesperado.",
+      );
+    }
+
+    if (event.status === "cancelled") {
+      if (options.allowCancelled) {
+        return;
+      }
+      throw new CalendarEventConsistencyError(
+          "El evento asociado a la reserva esta cancelado en Google Calendar.",
+      );
+    }
+    if (event.status && event.status !== "confirmed") {
+      throw new CalendarEventConsistencyError(
+          "El evento asociado no esta confirmado en Google Calendar.",
+      );
+    }
+
+    const privateProperties = event.extendedProperties?.private ?? {};
+    const hasIdempotencyProperties = Boolean(
+        privateProperties.reservationId ||
+        privateProperties.sourceSystem ||
+        privateProperties.idempotencyVersion,
+    );
+    if (!options.allowLegacyProperties || hasIdempotencyProperties) {
+      if (
+        privateProperties.reservationId !== reservation.id ||
+        privateProperties.sourceSystem !== CALENDAR_SOURCE_SYSTEM ||
+        privateProperties.idempotencyVersion !== CALENDAR_IDEMPOTENCY_VERSION
+      ) {
+        throw new CalendarEventConsistencyError(
+            "El evento de Calendar no pertenece a la reserva esperada.",
+        );
+      }
+    }
+
+    const eventStart = this.parseEventDate(event.start);
+    const eventEnd = this.parseEventDate(event.end);
+    if (
+      (eventStart && eventStart.getTime() !==
+        reservation.startAt.toDate().getTime()) ||
+      (eventEnd && eventEnd.getTime() !== reservation.endAt.toDate().getTime())
+    ) {
+      throw new CalendarEventConsistencyError(
+          "El horario del evento de Calendar no coincide con la reserva.",
+      );
+    }
+  }
+
+  /**
+   * Emits safe observability metadata for an idempotent Calendar operation.
+   *
+   * @param {CreateCalendarEventParams} params Event params.
+   * @param {CalendarEnsureResult} result Ensure result.
+   * @return {CalendarEnsureResult} Unchanged result.
+   */
+  private logEnsureResult(
+      params: CreateCalendarEventParams,
+      result: CalendarEnsureResult,
+  ): CalendarEnsureResult {
+    logger.info("Reservation Calendar event ensured", {
+      reservationId: params.reservation.id,
+      folio: params.reservation.folio,
+      labId: params.lab.id,
+      eventId: result.eventId,
+      outcome: result.outcome,
+      deterministicIdUsed: result.eventId ===
+        buildReservationCalendarEventId(params.reservation.id),
+    });
+    return result;
+  }
+
+  /**
+   * Checks Calendar responses that mean an event no longer exists.
+   *
+   * @param {unknown} error Calendar API error.
+   * @return {boolean} Whether the event is absent.
+   */
+  private isMissingEventError(error: unknown): boolean {
+    const status = this.getErrorStatus(error);
+    const reason = this.getErrorReason(error);
+    return status === 404 || status === 410 ||
+      reason === "notFound" || reason === "deleted";
   }
 
   /**
@@ -184,6 +558,11 @@ export class GoogleCalendarService {
    */
   private async getCalendarClient(): Promise<calendarApi.Calendar> {
     if (this.calendarClient) {
+      return this.calendarClient;
+    }
+
+    if (this.clientFactory) {
+      this.calendarClient = await this.clientFactory();
       return this.calendarClient;
     }
 
@@ -389,6 +768,13 @@ export class GoogleCalendarService {
           displayName: reservation.teacherName,
         },
       ],
+      extendedProperties: {
+        private: {
+          reservationId: reservation.id,
+          sourceSystem: CALENDAR_SOURCE_SYSTEM,
+          idempotencyVersion: CALENDAR_IDEMPOTENCY_VERSION,
+        },
+      },
     };
   }
 
@@ -413,6 +799,25 @@ export class GoogleCalendarService {
     }
 
     return startAt < eventEnd && eventStart < endAt;
+  }
+
+  /**
+   * Checks whether an event is the idempotent event of a reservation.
+   *
+   * @param {calendarApi.Schema$Event} event Calendar event.
+   * @param {string} reservationId Reservation id.
+   * @return {boolean} Whether the event belongs to the reservation.
+   */
+  private eventBelongsToReservation(
+      event: calendarApi.Schema$Event,
+      reservationId: string,
+  ): boolean {
+    if (event.id === buildReservationCalendarEventId(reservationId)) {
+      return true;
+    }
+    const privateProperties = event.extendedProperties?.private;
+    return privateProperties?.reservationId === reservationId &&
+      privateProperties?.sourceSystem === CALENDAR_SOURCE_SYSTEM;
   }
 
   /**

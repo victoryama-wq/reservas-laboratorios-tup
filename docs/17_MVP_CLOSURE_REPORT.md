@@ -670,6 +670,20 @@ Correcciones:
 No se modifican reservas, aprobaciones, rechazos, cancelaciones, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
 
+## Fase 18B: idempotencia completa de Google Calendar
+
+Se cerro el riesgo de eventos duplicados para una misma `reservationId`:
+
+- creacion automatica y aprobacion reutilizan una operacion compartida;
+- el evento usa ID determinista y propiedades privadas sin PII;
+- `409`, timeouts y respuestas ambiguas se reconcilian mediante lectura;
+- cancelacion encuentra eventos aunque falte `calendarEventId` en Firestore;
+- eventos heredados enlazados siguen siendo compatibles;
+- no se agregaron campos, colecciones, dependencias, roles ni estatus.
+
+La suite automatizada cubre 18 escenarios de creacion, reutilizacion,
+reconciliacion, inconsistencias y cancelacion.
+
 ### 34.2 Diagnostico Fase 17C.2B
 
 Folio revisado: `RES-20260701-B785`.
@@ -852,7 +866,7 @@ Causa atendida:
 
 Correcciones:
 
-- `GoogleCalendarService.createReservationEvent` agrega al docente solicitante
+- `GoogleCalendarService.ensureReservationEvent` agrega al docente solicitante
   como unico asistente del evento usando `teacherEmail` y `teacherName`;
 - la creacion del evento usa `sendUpdates: "all"` para que Calendar envie la
   invitacion o actualizacion cuando el proveedor lo permita;

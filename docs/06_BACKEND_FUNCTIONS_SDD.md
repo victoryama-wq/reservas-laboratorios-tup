@@ -939,3 +939,15 @@ La Function consulta `reservations` por rango `startAt`, filtra los dos estatus
 confirmados y agrega meses, reservas y horas con `America/Cancun`. La salida es
 agregada y no expone datos personales ni técnicos. No escribe Firestore, no crea
 eventos, no envía correo y no requiere un índice compuesto nuevo.
+
+## Fase 18B: ensureReservationEvent
+
+`GoogleCalendarService.ensureReservationEvent` es la operacion compartida por
+`createReservation` y `approveReservation`. Devuelve `eventId` y uno de los
+resultados `CREATED`, `REUSED` o `RECONCILED`. Usa un ID `tup` + SHA-256 de
+`reservas-laboratorios-tup:{reservationId}` y valida estado, identidad privada
+y horario antes de reutilizar un evento.
+
+`cancelReservation` usa la resolucion idempotente del mismo servicio. Conserva
+la notificacion al invitado mediante `sendUpdates: "all"` y no escribe estatus
+nuevos ni campos adicionales.

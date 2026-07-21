@@ -13,7 +13,10 @@ import {logger} from "firebase-functions";
 import {
   checkExternalCalendarConflicts,
 } from "../calendar/calendar-availability.service";
-import {GoogleCalendarService} from "../calendar/google-calendar.service";
+import {
+  CalendarEnsureOutcome,
+  GoogleCalendarService,
+} from "../calendar/google-calendar.service";
 import {GOOGLE_WORKSPACE_SECRETS} from
   "../google-workspace/google-workspace-auth.service";
 import {ReservationLogRepository} from "../logs/reservation-log.repository";
@@ -116,6 +119,8 @@ export const createReservation = onCall(
 
       let rejectionDecision = timingRejection;
       let calendarErrorReason: string | undefined;
+      const reservationRef = reservationRepository.createReservationRef();
+      const folio = generateReservationFolio(new Date());
 
       if (!rejectionDecision) {
         const blockedPeriods = await reservationRepository
@@ -156,6 +161,7 @@ export const createReservation = onCall(
             calendarId: lab.calendarId,
             startAt,
             endAt,
+            excludeReservationId: reservationRef.id,
           });
 
           if (externalConflict.hasConflict) {
@@ -176,9 +182,8 @@ export const createReservation = onCall(
         }
       }
 
-      const reservationRef = reservationRepository.createReservationRef();
-      const folio = generateReservationFolio(new Date());
       let calendarEventId: string | null = null;
+      let calendarEnsureOutcome: CalendarEnsureOutcome | null = null;
 
       if (
         !rejectionDecision &&
@@ -203,10 +208,12 @@ export const createReservation = onCall(
               undefined,
               null,
           );
-          calendarEventId = await calendarService.createReservationEvent({
+          const calendarResult = await calendarService.ensureReservationEvent({
             lab,
             reservation: draftReservation,
           });
+          calendarEventId = calendarResult.eventId;
+          calendarEnsureOutcome = calendarResult.outcome;
         } catch (error) {
           logCalendarError("create_calendar_event", error, lab);
           calendarErrorReason = [
@@ -254,6 +261,7 @@ export const createReservation = onCall(
                 profile.email,
                 rejectionDecision,
                 calendarErrorReason,
+                calendarEnsureOutcome,
             );
             createdNotification.value = createNotification(
                 notificationRepository,
@@ -412,6 +420,7 @@ function toProtocolFiles(files: ProtocolFileInput[]): ProtocolFile[] {
  * @param {string} actorEmail Actor email.
  * @param {RejectionDecision | null} rejection Rejection decision.
  * @param {string | undefined} calendarErrorReason Calendar error reason.
+ * @param {CalendarEnsureOutcome | null} calendarEnsureOutcome Ensure result.
  */
 function createLogs(
     repository: ReservationLogRepository,
@@ -420,6 +429,7 @@ function createLogs(
     actorEmail: string,
     rejection: RejectionDecision | null,
     calendarErrorReason: string | undefined,
+    calendarEnsureOutcome: CalendarEnsureOutcome | null,
 ): void {
   repository.createLog(transaction, {
     reservationId: reservation.id,
@@ -445,7 +455,10 @@ function createLogs(
       newStatus: reservation.status,
       metadata: {
         calendarEventId: reservation.calendarEventId ?? null,
+        calendarOutcome: calendarEnsureOutcome,
       },
+      note: calendarEnsureOutcome === "RECONCILED" ?
+        "Evento de Calendar reconciliado de forma idempotente." : undefined,
     });
     return;
   }

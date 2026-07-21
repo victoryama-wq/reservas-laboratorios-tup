@@ -150,7 +150,12 @@ export const approveReservation = onCall(
       await assertNoInternalConflict(context, startAt, endAt);
 
       try {
-        await assertNoExternalConflict(context.lab, startAt, endAt);
+        await assertNoExternalConflict(
+            context.lab,
+            startAt,
+            endAt,
+            context.reservation.id,
+        );
       } catch (error) {
         if (error instanceof HttpsError) {
           throw error;
@@ -168,13 +173,16 @@ export const approveReservation = onCall(
         statusReason: input.note,
       };
       let calendarEventId: string;
+      let calendarOutcome: "CREATED" | "REUSED" | "RECONCILED";
 
       try {
-        calendarEventId = await context.calendarService
-            .createReservationEvent({
+        const calendarResult = await context.calendarService
+            .ensureReservationEvent({
               lab: context.lab,
               reservation: approvedReservation,
             });
+        calendarEventId = calendarResult.eventId;
+        calendarOutcome = calendarResult.outcome;
       } catch (error) {
         logReviewError("create_calendar_event", error, context);
         return markCalendarError(context, input.note);
@@ -210,7 +218,10 @@ export const approveReservation = onCall(
               actorUid: context.profile.uid,
               actorEmail: context.profile.email,
               newStatus: "CONFIRMADA_TRAS_VALIDACION",
-              metadata: {calendarEventId},
+              metadata: {calendarEventId, calendarOutcome},
+              note: calendarOutcome === "RECONCILED" ?
+                "Evento de Calendar reconciliado de forma idempotente." :
+                undefined,
             });
 
             return createReviewNotification(context, transaction, {
@@ -1488,6 +1499,7 @@ async function assertProtocolFilesExist(
  * @param {ReviewContext} context Review context.
  * @param {Date} startAt Start date.
  * @param {Date} endAt End date.
+ * @param {string} reservationId Reservation to exclude.
  */
 async function assertNoInternalConflict(
     context: ReviewContext,
@@ -1547,16 +1559,19 @@ async function assertNoBlockedPeriodConflict(
  * @param {LabDoc} lab Laboratory.
  * @param {Date} startAt Start date.
  * @param {Date} endAt End date.
+ * @param {string} reservationId Reservation to exclude.
  */
 async function assertNoExternalConflict(
     lab: LabDoc,
     startAt: Date,
     endAt: Date,
+    reservationId: string,
 ): Promise<void> {
   const externalConflict = await checkExternalCalendarConflicts({
     calendarId: lab.calendarId,
     startAt,
     endAt,
+    excludeReservationId: reservationId,
   });
 
   if (externalConflict.hasConflict) {
