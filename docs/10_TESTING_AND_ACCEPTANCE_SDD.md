@@ -830,3 +830,19 @@ Responsive complementario pendiente:
   1024 px, 1366 px y 1440 px;
 - confirmar que no hay overflow horizontal, botones fuera de pantalla,
   cards comprimidas ni filtros duplicados.
+
+## Fase 18A.3: aceptación de reportes
+
+Validar como mínimo:
+
+- `docente` no accede a `/reportes` ni ve el enlace;
+- `responsable_laboratorio` solo recibe laboratorios de `labsAssigned`;
+- un laboratorio ajeno produce `permission-denied`;
+- `admin_sistemas` puede consultar todos los laboratorios;
+- solo cuentan `CONFIRMADA` y `CONFIRMADA_TRAS_VALIDACION`;
+- meses sin actividad aparecen con cero;
+- horas y conteos respetan `America/Cancun`;
+- carga, error, vacío y ausencia de asignaciones tienen mensajes claros;
+- tablas y gráficas conservan el mismo agregado;
+- móvil no presenta overflow horizontal;
+- `/admin/reportes` redirige a `/reportes`.

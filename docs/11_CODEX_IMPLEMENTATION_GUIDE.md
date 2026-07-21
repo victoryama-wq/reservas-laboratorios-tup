@@ -223,4 +223,14 @@ Debe permitir:
 - Consultar bitácora.
 - Consultar reportes.
 
+## Patrón de reportes agregados
+
+Los reportes operativos deben pasar por callables protegidas y devolver solo
+agregados. No deben exponer documentos completos ni permitir que Angular lea
+reservas globales directamente. Toda nueva métrica debe declarar estatus
+incluidos, zona horaria, alcance por rol y alternativa accesible a la gráfica.
+
+La implementación base es `getLabUsageReport` + `/reportes`, con Chart.js local
+y lazy-loaded. No agregar nuevas visualizaciones mediante CDN.
+
 Priorizar experiencia escritorio, pero mantener diseño responsive.

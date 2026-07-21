@@ -1722,5 +1722,26 @@ Calendar. Gmail API se mantiene como canal institucional independiente.
 
 No se marcan como resueltos los pendientes no bloqueantes: limpieza programada
 de protocolos huérfanos, idempotencia completa de Calendar ante reintentos,
-QA móvil autenticado real complementario, reportes avanzados de Admin y revisión
-futura de textos Gmail si aplica.
+QA móvil autenticado real complementario y revisión futura de textos Gmail si
+aplica.
+
+## Fase 18A.3: reportes de uso de laboratorios
+
+La ruta canónica `/reportes` ofrece a `admin_sistemas` y
+`responsable_laboratorio` un tablero agregado de uso. `/admin/reportes` se
+conserva como redirección técnica a `/reportes`. El menú muestra `Reportes`
+solo para esos dos roles.
+
+Los filtros permiten seleccionar año, rango de meses y laboratorio autorizado.
+El backend callable `getLabUsageReport` cuenta exclusivamente reservas con
+estatus `CONFIRMADA` o `CONFIRMADA_TRAS_VALIDACION`, calcula horas reservadas y
+agrupa los resultados por mes y laboratorio usando `America/Cancun`.
+
+Admin/Sistemas puede consultar todos los laboratorios. Un responsable solo
+puede consultar los IDs presentes en `users/{uid}.labsAssigned`; solicitar un
+laboratorio fuera de ese alcance devuelve `permission-denied`.
+
+El dashboard usa Chart.js instalado como dependencia local y cargado de forma
+lazy. Incluye indicadores, gráficas y tablas accesibles. La respuesta no incluye
+docentes, correos, protocolos, `calendarId`, rutas de Storage ni metadata de
+reservas. Esta fase es de solo lectura y no invoca Calendar API ni Gmail API.

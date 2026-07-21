@@ -3,7 +3,6 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { profileGuard } from './core/guards/profile.guard';
 import { roleGuard } from './core/guards/role.guard';
-import { AdminReportsPageComponent } from './features/admin/admin-reports-page/admin-reports-page.component';
 import { AdminRulesPageComponent } from './features/admin/admin-rules-page/admin-rules-page.component';
 import { AccessPendingComponent } from './features/auth/access-pending/access-pending.component';
 import { LoginComponent } from './features/auth/login/login.component';
@@ -143,11 +142,19 @@ export const routes: Routes = [
     data: { roles: ['admin_sistemas'] },
   },
   {
-    path: 'admin/reportes',
-    component: AdminReportsPageComponent,
+    path: 'reportes',
+    loadComponent: () =>
+      import('./features/reports/reports-page/reports-page.component').then(
+        (component) => component.ReportsPageComponent,
+      ),
     title: 'Reportes',
     canActivate: [authGuard, profileGuard, roleGuard],
-    data: { roles: ['admin_sistemas'] },
+    data: { roles: ['responsable_laboratorio', 'admin_sistemas'] },
+  },
+  {
+    path: 'admin/reportes',
+    redirectTo: 'reportes',
+    pathMatch: 'full',
   },
   {
     path: 'admin/bitacora',

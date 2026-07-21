@@ -45,3 +45,5 @@ export {
 } from "./modules/protocols/protocol-cleanup.function";
 export {ensureUserProfile} from
   "./modules/users/ensure-user-profile.function";
+export {getLabUsageReport} from
+  "./modules/reports/get-lab-usage-report.function";

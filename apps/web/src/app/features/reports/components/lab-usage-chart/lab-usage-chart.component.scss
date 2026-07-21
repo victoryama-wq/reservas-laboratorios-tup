@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.chart-frame {
+  position: relative;
+  width: 100%;
+  min-height: 280px;
+}
+
+@media (min-width: 768px) {
+  .chart-frame {
+    min-height: 340px;
+  }
+}

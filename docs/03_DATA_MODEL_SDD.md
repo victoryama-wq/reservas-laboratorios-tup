@@ -748,3 +748,12 @@ La vista `/admin/laboratorios` puede calcular en cliente:
 
 El detalle completo de cada regla, su edicion y activacion/desactivacion siguen
 correspondiendo al modulo `/admin/reglas`.
+
+## Fase 18A.3: proyección agregada de reportes
+
+`getLabUsageReport` no crea colecciones ni modifica documentos. Lee
+`reservations`, `labs` y el perfil `users/{uid}` para devolver una proyección
+agregada con `scope`, `summary`, `monthlyUsage`, `usageByLab` y
+`authorizedLabs`. Solo participan `CONFIRMADA` y
+`CONFIRMADA_TRAS_VALIDACION`; no se devuelven datos personales, protocolos,
+`calendarId`, rutas Storage ni metadata interna.

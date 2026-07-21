@@ -94,11 +94,12 @@ Rutas principales
 /responsable/solicitudes
 /responsable/historial
 /responsable/reserva/:reservationId
+/reportes
 /admin
 /admin/laboratorios
 /admin/usuarios
 /admin/reglas
-/admin/reportes
+/admin/reportes (redirección compatible a /reportes)
 /admin/bitacora
 
 Pantalla: Login
@@ -396,7 +397,8 @@ Pantallas
 /admin/laboratorios
 /admin/usuarios
 /admin/reglas
-/admin/reportes
+/reportes
+/admin/reportes (redirección)
 /admin/bitacora
 
 Funciones
@@ -409,6 +411,21 @@ Configurar calendarios.
 Ver todas las reservas.
 Ver reportes.
 Consultar bitácora.
+
+### Fase 18A.3: dashboard de reportes
+
+`/reportes` es una vista compartida por `responsable_laboratorio` y
+`admin_sistemas`; no está disponible para `docente`. `/admin/reportes` redirige
+a la ruta canónica.
+
+La pantalla presenta filtros de año, mes inicial, mes final y laboratorio
+autorizado; indicadores de reservas, horas, promedio y laboratorio más
+utilizado; gráficas mensuales y por laboratorio; y tablas equivalentes para
+lectura accesible.
+
+La interfaz cubre carga, error, periodo sin uso y responsable sin laboratorios.
+Angular no consulta `reservations` directamente: consume la callable
+`getLabUsageReport`.
 
 Móvil
 

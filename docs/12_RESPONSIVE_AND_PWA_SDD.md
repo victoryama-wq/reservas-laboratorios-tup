@@ -596,3 +596,14 @@ El botón `Limpiar` debe alinearse con los filtros en escritorio y conservar un
 área táctil suficiente en 360, 390 y 414 px.
 
 No se deben duplicar filtros ni mover la búsqueda fuera del panel existente.
+
+## Fase 18A.3: responsive de reportes
+
+En 360/390/414 px los filtros y acciones se apilan, los KPI usan una o dos
+columnas según espacio y los datos tabulares se muestran como tarjetas. En
+768/820 px se habilita una composición compacta de dos columnas. En
+1024/1366/1440 px el gráfico principal ocupa todo el ancho y los gráficos
+secundarios se distribuyen en dos columnas.
+
+Las gráficas incluyen `aria-label`, respetan `prefers-reduced-motion` y siempre
+tienen una alternativa textual/tabular. No se permite overflow horizontal.

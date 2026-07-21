@@ -923,3 +923,19 @@ La callable registra un `auditEvents` con action
 `scheduledCleanupOrphanProtocolUploads` se ejecuta diariamente de madrugada con
 `minAgeHours = 72` y `maxDelete = 100`. No crea auditoria por archivo; registra
 un resumen seguro en Cloud Logging.
+
+## Fase 18A.3: `getLabUsageReport`
+
+Callable HTTPS v2, región `us-central1`, para `admin_sistemas` y
+`responsable_laboratorio` activos. Recibe `year`, `monthFrom`, `monthTo` y
+`labIds` opcional.
+
+Admin/Sistemas consulta todos los laboratorios o un subconjunto existente. El
+responsable queda restringido a `users/{uid}.labsAssigned`; un ID fuera del
+alcance produce `permission-denied`. Sin laboratorios asignados se devuelve un
+resultado vacío controlado.
+
+La Function consulta `reservations` por rango `startAt`, filtra los dos estatus
+confirmados y agrega meses, reservas y horas con `America/Cancun`. La salida es
+agregada y no expone datos personales ni técnicos. No escribe Firestore, no crea
+eventos, no envía correo y no requiere un índice compuesto nuevo.

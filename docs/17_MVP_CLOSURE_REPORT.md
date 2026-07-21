@@ -163,7 +163,8 @@ No se ejecuto deploy ni dry-run de reglas en esta fase.
 | `/admin/laboratorios` | PENDING | Protegida por rol `admin_sistemas`. |
 | `/admin/usuarios` | PENDING | Protegida por rol `admin_sistemas`. |
 | `/admin/reglas` | PENDING | Protegida por rol `admin_sistemas`. |
-| `/admin/reportes` | DEFERRED | Vista de reportes avanzados diferida/post-MVP si no se completa funcionalmente. |
+| `/reportes` | IMPLEMENTED | Dashboard agregado para responsable y Admin/Sistemas, protegido por rol y alcance de laboratorios. |
+| `/admin/reportes` | REDIRECT | Compatibilidad histórica; redirige a `/reportes`. |
 | `/admin/bitacora` | PENDING | Protegida por rol `admin_sistemas`. |
 
 ## 11. Matriz de roles
@@ -783,6 +784,15 @@ Correcciones:
 
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
+
+## Fase 18A.3: cierre del reporte operativo base
+
+Se sustituye el placeholder de reportes por `/reportes`, con la callable
+`getLabUsageReport`, filtros por periodo/laboratorio, indicadores, gráficas y
+tablas accesibles. La métrica usa solo reservas confirmadas y no expone datos
+personales. `/admin/reportes` se conserva como redirección compatible. Los
+reportes analíticos avanzados pueden ampliarse después, pero el reporte
+operativo base deja de estar diferido.
 
 ## 41. Seguimiento Fase 17I: limpieza segura de protocolos huerfanos
 

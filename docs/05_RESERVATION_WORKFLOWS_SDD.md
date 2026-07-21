@@ -356,3 +356,13 @@ La callable `adminCleanupOrphanProtocolUploads` permite a `admin_sistemas`
 ejecutar `dryRun` para revisar candidatos antes de borrar. La funcion
 programada `scheduledCleanupOrphanProtocolUploads` ejecuta limpieza diaria con
 72 horas de antiguedad minima.
+
+## Fase 18A.3: consulta de uso confirmado
+
+El flujo de reportes es de solo lectura y no altera el ciclo de vida de una
+reserva. Para uso efectivo se consideran únicamente `CONFIRMADA` y
+`CONFIRMADA_TRAS_VALIDACION`. Los estados pendientes, rechazados, cancelados y
+`ERROR_CALENDAR` quedan fuera de conteos y horas.
+
+La consulta se limita por periodo y laboratorio autorizado; sus agregados se
+calculan con la zona institucional `America/Cancun`.

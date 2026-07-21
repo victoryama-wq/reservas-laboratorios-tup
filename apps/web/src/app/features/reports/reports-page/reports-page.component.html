@@ -1,0 +1,272 @@
+<section class="app-container grid gap-8">
+  <app-page-header
+    kicker="Operación institucional"
+    title="Reportes de uso de laboratorios"
+    subtitle="Consulta reservas confirmadas y horas de uso dentro del alcance autorizado."
+  />
+
+  <app-info-callout
+    variant="info"
+    icon="verified_user"
+    message="Los indicadores incluyen únicamente reservas confirmadas. No muestran datos personales, protocolos ni información técnica de Calendar."
+  />
+
+  <app-section-card
+    title="Filtros del reporte"
+    subtitle="Selecciona el periodo y, si aplica, un laboratorio autorizado."
+    icon="filter_alt"
+  >
+    <form
+      class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+      [formGroup]="filterForm"
+      (ngSubmit)="applyFilters()"
+    >
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Año</mat-label>
+        <mat-select formControlName="year">
+          @for (year of years; track year) {
+            <mat-option [value]="year">{{ year }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Mes inicial</mat-label>
+        <mat-select formControlName="monthFrom">
+          @for (month of months; track month.value) {
+            <mat-option [value]="month.value">{{ month.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Mes final</mat-label>
+        <mat-select formControlName="monthTo">
+          @for (month of months; track month.value) {
+            <mat-option [value]="month.value">{{ month.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Laboratorio</mat-label>
+        <mat-select formControlName="labId">
+          <mat-option value="all">Todos los autorizados</mat-option>
+          @for (lab of report?.authorizedLabs ?? []; track lab.id) {
+            <mat-option [value]="lab.id">{{ lab.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <div class="flex flex-col gap-3 md:col-span-2 md:flex-row xl:col-span-4 xl:justify-end">
+        <button
+          mat-stroked-button
+          type="button"
+          [disabled]="loading"
+          (click)="clearFilters()"
+        >
+          <mat-icon aria-hidden="true">refresh</mat-icon>
+          Restablecer
+        </button>
+        <button mat-flat-button type="submit" [disabled]="loading">
+          <mat-icon aria-hidden="true">analytics</mat-icon>
+          Generar reporte
+        </button>
+      </div>
+    </form>
+  </app-section-card>
+
+  @if (errorMessage) {
+    <app-info-callout
+      variant="danger"
+      icon="error"
+      [message]="errorMessage"
+    />
+  }
+
+  @if (loading) {
+    <div class="app-state-panel" role="status" aria-live="polite">
+      <mat-spinner diameter="36" />
+      <p class="m-0 font-semibold text-slate-700">Generando reporte...</p>
+    </div>
+  } @else if (report) {
+    @if (isResponsibleWithoutLabs()) {
+      <app-info-callout
+        variant="warning"
+        icon="assignment_late"
+        message="No tiene laboratorios asignados. Solicite a Admin/Sistemas que revise su perfil."
+      />
+    }
+
+    <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores del reporte">
+      <article class="report-kpi">
+        <span class="report-kpi__icon"><mat-icon aria-hidden="true">event_available</mat-icon></span>
+        <div>
+          <p class="report-kpi__label">Reservas confirmadas</p>
+          <p class="report-kpi__value">
+            {{ formatNumber(report.summary.confirmedReservations) }}
+          </p>
+        </div>
+      </article>
+      <article class="report-kpi">
+        <span class="report-kpi__icon"><mat-icon aria-hidden="true">schedule</mat-icon></span>
+        <div>
+          <p class="report-kpi__label">Horas reservadas</p>
+          <p class="report-kpi__value">
+            {{ formatNumber(report.summary.totalReservedHours, 2) }} h
+          </p>
+        </div>
+      </article>
+      <article class="report-kpi">
+        <span class="report-kpi__icon"><mat-icon aria-hidden="true">timer</mat-icon></span>
+        <div>
+          <p class="report-kpi__label">Promedio por reserva</p>
+          <p class="report-kpi__value">
+            {{ formatNumber(report.summary.averageReservationHours, 2) }} h
+          </p>
+        </div>
+      </article>
+      <article class="report-kpi">
+        <span class="report-kpi__icon"><mat-icon aria-hidden="true">science</mat-icon></span>
+        <div class="min-w-0">
+          <p class="report-kpi__label">Laboratorio más utilizado</p>
+          <p class="report-kpi__value report-kpi__value--text">
+            {{ report.summary.mostUsedLabName || 'Sin datos' }}
+          </p>
+        </div>
+      </article>
+    </section>
+
+    @if (!hasUsage() && !isResponsibleWithoutLabs()) {
+      <app-info-callout
+        variant="info"
+        icon="event_busy"
+        message="No hay reservas confirmadas dentro del periodo seleccionado."
+      />
+    }
+
+    @if (hasUsage()) {
+      <app-section-card
+        title="Reservas confirmadas por mes"
+        subtitle="Comparativo mensual del periodo seleccionado."
+        icon="bar_chart"
+      >
+        <div class="mt-6">
+          <app-lab-usage-chart
+            kind="monthly-reservations"
+            [report]="report"
+            ariaLabel="Gráfica de barras con reservas confirmadas por mes"
+          />
+        </div>
+      </app-section-card>
+
+      <div class="grid gap-6 xl:grid-cols-2">
+        <app-section-card
+          title="Horas reservadas por mes"
+          subtitle="Duración acumulada de las reservas confirmadas."
+          icon="query_stats"
+        >
+          <div class="mt-6">
+            <app-lab-usage-chart
+              kind="monthly-hours"
+              [report]="report"
+              ariaLabel="Gráfica de línea con horas reservadas por mes"
+            />
+          </div>
+        </app-section-card>
+
+        <app-section-card
+          title="Uso por laboratorio"
+          subtitle="Reservas confirmadas dentro del alcance autorizado."
+          icon="leaderboard"
+        >
+          <div class="mt-6">
+            <app-lab-usage-chart
+              kind="lab-usage"
+              [report]="report"
+              ariaLabel="Gráfica horizontal de reservas confirmadas por laboratorio"
+            />
+          </div>
+        </app-section-card>
+      </div>
+    }
+
+    <app-section-card
+      title="Detalle mensual accesible"
+      subtitle="Los mismos agregados de las gráficas en formato de lectura."
+      icon="table_chart"
+    >
+      <div class="mt-6 grid gap-3 md:hidden">
+        @for (item of report.monthlyUsage; track item.month) {
+          <article class="report-row-card">
+            <strong>{{ monthUsageLabel(item) }}</strong>
+            <span>{{ item.reservations }} reservas</span>
+            <span>{{ formatNumber(item.reservedHours, 2) }} horas</span>
+          </article>
+        }
+      </div>
+
+      <div class="mt-6 hidden md:block">
+        <table class="report-table">
+          <caption class="sr-only">Uso mensual de laboratorios</caption>
+          <thead>
+            <tr><th>Mes</th><th>Reservas confirmadas</th><th>Horas reservadas</th></tr>
+          </thead>
+          <tbody>
+            @for (item of report.monthlyUsage; track item.month) {
+              <tr>
+                <td>{{ monthUsageLabel(item) }}</td>
+                <td>{{ item.reservations }}</td>
+                <td>{{ formatNumber(item.reservedHours, 2) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </app-section-card>
+
+    <app-section-card
+      title="Resumen por laboratorio"
+      subtitle="Incluye laboratorios sin uso para hacer visible el alcance consultado."
+      icon="domain"
+    >
+      @if (report.usageByLab.length === 0) {
+        <div class="mt-6">
+          <app-info-callout
+            variant="info"
+            icon="inventory_2"
+            message="No hay laboratorios disponibles dentro del alcance actual."
+          />
+        </div>
+      } @else {
+        <div class="mt-6 grid gap-3 md:hidden">
+          @for (lab of report.usageByLab; track lab.labId) {
+            <article class="report-row-card">
+              <strong>{{ lab.labName }}</strong>
+              <span>{{ lab.reservations }} reservas</span>
+              <span>{{ formatNumber(lab.reservedHours, 2) }} horas</span>
+            </article>
+          }
+        </div>
+
+        <div class="mt-6 hidden md:block">
+          <table class="report-table">
+            <caption class="sr-only">Uso por laboratorio</caption>
+            <thead>
+              <tr><th>Laboratorio</th><th>Reservas confirmadas</th><th>Horas reservadas</th></tr>
+            </thead>
+            <tbody>
+              @for (lab of report.usageByLab; track lab.labId) {
+                <tr>
+                  <td>{{ lab.labName }}</td>
+                  <td>{{ lab.reservations }}</td>
+                  <td>{{ formatNumber(lab.reservedHours, 2) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </app-section-card>
+  }
+</section>

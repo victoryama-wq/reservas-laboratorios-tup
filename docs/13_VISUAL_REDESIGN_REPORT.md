@@ -1602,3 +1602,14 @@ sistema visual. `Reservar` permanece como accion primaria.
 La fase mantiene la tipografia Inter/system-ui, la paleta operativa morada,
 cards blancas con bordes suaves y accesibilidad basica mediante Angular
 Material. No se alteraron flujos funcionales ni backend.
+
+## Fase 18A.3: visualización operativa de uso
+
+El dashboard `/reportes` reutiliza encabezados, callouts, section cards, tokens,
+Inter, iconografía Material y paleta institucional. Los KPI son cards blancas
+compactas; la jerarquía principal es el gráfico mensual de reservas, seguido de
+horas mensuales y uso por laboratorio.
+
+Chart.js usa morado y azul institucional sin introducir una paleta alterna. En
+móvil las tablas se sustituyen visualmente por tarjetas, pero permanecen como
+contenido equivalente accesible.

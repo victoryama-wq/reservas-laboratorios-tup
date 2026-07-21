@@ -42,6 +42,10 @@
               <mat-icon aria-hidden="true">fact_check</mat-icon>
               <span>Responsable</span>
             </a>
+            <a mat-menu-item routerLink="/reportes">
+              <mat-icon aria-hidden="true">analytics</mat-icon>
+              <span>Reportes</span>
+            </a>
           }
 
           @if (canSeeAdminNav$ | async) {
@@ -104,6 +108,13 @@
               routerLinkActive="active-link"
             >
               Responsable
+            </a>
+            <a
+              mat-button
+              routerLink="/reportes"
+              routerLinkActive="active-link"
+            >
+              Reportes
             </a>
           }
 

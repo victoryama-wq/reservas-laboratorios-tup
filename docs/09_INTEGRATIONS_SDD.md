@@ -249,3 +249,10 @@ Si la validacion falla, el sistema debe impedir crear o actualizar el
 laboratorio con ese `calendarId`. Esta validacion no reemplaza las validaciones
 de disponibilidad de `createReservation` y `approveReservation`; solo evita
 guardar configuraciones operativas incorrectas.
+
+## Fase 18A.3: aislamiento de integraciones en reportes
+
+El dashboard de uso no consulta Google Calendar ni Gmail API. Sus métricas se
+derivan exclusivamente de reservas confirmadas en Firestore. La salida tampoco
+incluye `calendarId`, IDs de eventos, destinatarios, protocolos ni rutas de
+Storage.
