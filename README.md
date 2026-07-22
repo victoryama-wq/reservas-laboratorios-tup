@@ -1719,9 +1719,8 @@ cancelaciones con `calendarEventId` solicitan actualización al invitado mediant
 Calendar. Gmail API se mantiene como canal institucional independiente.
 
 No se marcan como resueltos los pendientes no bloqueantes: limpieza programada
-de protocolos huérfanos, idempotencia completa de Calendar ante reintentos,
-QA móvil autenticado real complementario y revisión futura de textos Gmail si
-aplica.
+de protocolos huérfanos, QA móvil autenticado real complementario y revisión
+futura de textos Gmail si aplica.
 
 ## Fase 18A.3: reportes de uso de laboratorios
 
@@ -1757,3 +1756,27 @@ reconcilia por propiedades privadas y maneja `409` o timeouts consultando el
 evento antes de declarar un error. La cancelacion aplica la misma resolucion y
 mantiene `sendUpdates: "all"`. No se agregaron colecciones ni campos
 persistentes: Firestore conserva solamente `calendarEventId`.
+
+Estado: **Fase 18B validada y cerrada**. La suite automatizada aprobó 18 de 18
+escenarios y el smoke postdeploy confirmó que la idempotencia no genera eventos
+duplicados, autoconflictos ni creaciones prematuras.
+
+### Política institucional de disponibilidad externa
+
+Google Calendar funciona como fuente operativa adicional de ocupación. Todo
+evento existente y no cancelado que se traslape con una solicitud bloquea el
+horario, incluso cuando Calendar lo marque como `Disponible` o use
+`transparency = transparent`. Esta política conservadora es deliberada; una
+distinción futura entre eventos informativos y bloqueantes requiere autorización
+institucional y una fase específica.
+
+El orden operativo es: validaciones internas; horario, anticipación, reglas y
+bloqueos; conflictos Firestore; conflictos Google Calendar; y solo entonces
+`ensureReservationEvent`, persistencia de `calendarEventId` y confirmación. Un
+conflicto externo produce `RECHAZADA_CONFLICTO` y evita crear el evento.
+
+El diagnóstico postdeploy verificó que `RES-20260721-AF00` fue rechazada por
+horario sin consultar ni crear eventos Calendar. `RES-20260721-D96E` encontró un
+evento externo real, confirmado manualmente, de 10:00 a 13:00; la solicitud de
+11:00 a 13:30 tenía un traslape legítimo. No hubo duplicado, autoconflicto ni
+evento huérfano generado por 18B.

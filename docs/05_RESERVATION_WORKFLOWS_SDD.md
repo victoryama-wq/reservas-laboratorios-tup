@@ -377,3 +377,18 @@ Solo cuando no existe coincidencia se inserta el evento.
 La cancelacion busca en el mismo orden y elimina una sola coincidencia. Un
 evento ausente (`404`/`410`) permite continuar; multiples coincidencias o un
 evento incompatible detienen el flujo como inconsistencia controlada.
+
+La confirmacion conserva este orden obligatorio:
+
+1. validaciones internas;
+2. horario semanal, anticipacion, reglas y bloqueos;
+3. conflictos internos en Firestore;
+4. conflictos externos en Google Calendar;
+5. `ensureReservationEvent` solo cuando no existe conflicto;
+6. persistencia de `calendarEventId`;
+7. confirmacion de la reserva.
+
+Un conflicto externo produce `RECHAZADA_CONFLICTO` y evita por completo la
+creacion del evento. Google Calendar se considera una fuente operativa adicional
+de ocupacion: todo evento no cancelado y traslapado bloquea, incluso si esta
+marcado como `Disponible` o usa `transparency = transparent`.

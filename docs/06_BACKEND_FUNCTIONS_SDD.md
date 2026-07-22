@@ -951,3 +951,14 @@ y horario antes de reutilizar un evento.
 `cancelReservation` usa la resolucion idempotente del mismo servicio. Conserva
 la notificacion al invitado mediante `sendUpdates: "all"` y no escribe estatus
 nuevos ni campos adicionales.
+
+`createReservation` y `approveReservation` deben validar primero horario,
+anticipacion, reglas, bloqueos, conflictos Firestore y conflictos Calendar.
+Solo despues pueden invocar `ensureReservationEvent`, guardar
+`calendarEventId` y confirmar. Si existe un conflicto externo, el resultado es
+`RECHAZADA_CONFLICTO` y no se llama la operacion de creacion.
+
+Para disponibilidad externa, cualquier evento no cancelado se trata como
+bloqueante cuando se traslapa. La regla incluye eventos con
+`transparency = transparent`; su apariencia `Disponible` en Google Calendar no
+elimina el bloqueo institucional.

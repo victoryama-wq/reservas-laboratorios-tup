@@ -267,3 +267,20 @@ existentes cuando Firestore no conserva `calendarEventId`.
 
 Eventos heredados enlazados por `calendarEventId` siguen siendo validos aunque
 no tengan propiedades privadas. No se realiza migracion masiva.
+
+### Politica institucional de disponibilidad externa
+
+Google Calendar es una fuente operativa adicional de ocupacion para cada
+laboratorio. Cualquier evento existente y no cancelado que se traslape con el
+horario solicitado bloquea la reserva. La regla aplica tanto a eventos marcados
+como `Ocupado` como a eventos marcados `Disponible` o con
+`transparency = transparent`.
+
+Esta es una politica conservadora deliberada. Separar en el futuro eventos
+informativos de eventos bloqueantes requiere autorizacion institucional y una
+fase especifica; no debe reinterpretarse el manejo actual de `transparency`
+como un defecto de integracion.
+
+La consulta de conflictos externos ocurre antes de `ensureReservationEvent`.
+Por ello, un conflicto devuelve `RECHAZADA_CONFLICTO` sin insertar un evento
+nuevo, mientras que un evento cancelado no bloquea.

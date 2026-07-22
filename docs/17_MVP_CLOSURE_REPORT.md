@@ -246,7 +246,6 @@ No se identificaron pendientes bloqueantes con la evidencia tecnica disponible.
 - Migrar `@import "tailwindcss"` cuando el stack Tailwind/Angular lo permita sin romper build.
 - Reducir bundle inicial o ajustar presupuesto si se acepta el tamano actual.
 - Reducir SCSS del calendario o ajustar budget por componente si se acepta la complejidad visual.
-- Implementar idempotencia completa de Calendar ante reintentos.
 - Implementar limpieza programada de protocolos huérfanos.
 - Ejecutar QA móvil autenticado real complementario en 360 px, 390 px, 414 px,
   768 px, 820 px, 1024 px, 1366 px y 1440 px.
@@ -672,6 +671,8 @@ Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
 
 ## Fase 18B: idempotencia completa de Google Calendar
 
+Estado: **VALIDADA Y CERRADA**.
+
 Se cerro el riesgo de eventos duplicados para una misma `reservationId`:
 
 - creacion automatica y aprobacion reutilizan una operacion compartida;
@@ -683,6 +684,23 @@ Se cerro el riesgo de eventos duplicados para una misma `reservationId`:
 
 La suite automatizada cubre 18 escenarios de creacion, reutilizacion,
 reconciliacion, inconsistencias y cancelacion.
+
+El smoke y diagnostico postdeploy confirmaron:
+
+- `RES-20260721-AF00` fue rechazada por horario antes de consultar
+  disponibilidad externa y no creo evento Calendar;
+- `RES-20260721-D96E` encontro un evento externo real de 10:00 a 13:00, por lo
+  que su rango de 11:00 a 13:30 tenia un traslape legitimo;
+- el evento externo habia sido confirmado manualmente en el calendario
+  operativo;
+- no hubo evento duplicado, autoconflicto, creacion prematura ni evento
+  huerfano generado por 18B;
+- la idempotencia no causo falsos conflictos y el incidente queda cerrado.
+
+Politica institucional validada: todo evento no cancelado y traslapado bloquea,
+incluidos eventos marcados como `Disponible` o con
+`transparency = transparent`. Distinguir eventos informativos requerira una
+autorizacion institucional y una fase posterior especifica.
 
 ### 34.2 Diagnostico Fase 17C.2B
 
@@ -902,7 +920,6 @@ Cierre aplicado:
 Pendientes no bloqueantes mantenidos:
 
 - limpieza programada de protocolos huérfanos;
-- idempotencia completa Calendar ante reintentos inesperados;
 - QA móvil autenticado real complementario;
 - reportes avanzados de Admin si siguen diferidos;
 - revisión futura de textos Gmail si aplica.

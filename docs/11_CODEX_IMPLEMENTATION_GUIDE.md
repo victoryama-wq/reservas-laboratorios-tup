@@ -243,3 +243,9 @@ directamente desde Functions de negocio. Mantener el ID determinista, las
 propiedades privadas, la validacion de identidad y la reconciliacion posterior
 a `409` o fallos ambiguos. La cancelacion debe resolver el mismo evento antes de
 eliminarlo y nunca elegir arbitrariamente entre multiples coincidencias.
+
+Antes de asegurar el evento se deben completar las validaciones internas, las
+reglas horarias y bloqueos, los conflictos Firestore y la disponibilidad
+externa. Todo evento Calendar no cancelado y traslapado bloquea, incluso si esta
+marcado como `Disponible` o usa `transparency = transparent`. No cambiar esta
+politica sin autorizacion institucional expresa.

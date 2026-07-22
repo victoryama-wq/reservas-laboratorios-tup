@@ -861,3 +861,15 @@ Validar como mínimo:
   reconciliacion, respectivamente;
 - cancelacion localiza el evento sin depender exclusivamente de
   `calendarEventId` y usa `sendUpdates: "all"`.
+- un evento externo no cancelado y traslapado produce
+  `RECHAZADA_CONFLICTO`;
+- un evento marcado como `Disponible` o `transparency = transparent` tambien
+  bloquea por politica institucional;
+- un evento cancelado no bloquea;
+- el conflicto externo evita llamar `ensureReservationEvent`;
+- una reserva rechazada por horario no consulta ni crea eventos Calendar;
+- la misma `reservationId` no crea eventos duplicados.
+
+Estado de cierre: **VALIDADA Y CERRADA**. La suite automatizada aprobo 18 de 18
+escenarios y el smoke postdeploy confirmo un conflicto externo real sin
+duplicado, autoconflicto ni creacion prematura.
