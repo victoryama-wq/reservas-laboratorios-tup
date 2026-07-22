@@ -384,6 +384,45 @@ a {
   max-width: 100%;
 }
 
+@media (max-width: 640px) {
+  .reservation-form-dialog-panel app-reservation-form,
+  .reservation-form-dialog-panel app-reservation-stepper-form,
+  .reservation-form-dialog-panel .reservation-stepper-card,
+  .reservation-form-dialog-panel .mat-stepper-vertical,
+  .reservation-form-dialog-panel .mat-vertical-stepper-wrapper,
+  .reservation-form-dialog-panel .mat-vertical-content-container,
+  .reservation-form-dialog-panel .mat-vertical-content {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .reservation-form-dialog-panel .reservation-stepper-card > .app-section-card {
+    padding: 1rem 0.75rem;
+  }
+
+  .reservation-form-dialog-panel .mat-vertical-content-container {
+    margin-left: 20px;
+  }
+
+  .reservation-form-dialog-panel .mat-vertical-content {
+    padding: 0 0 20px 10px !important;
+  }
+
+  .reservation-form-dialog-panel .mat-mdc-floating-label {
+    font-size: 0.75rem !important;
+  }
+
+  .reservation-form-dialog-panel .mat-mdc-select-arrow-wrapper {
+    width: 18px;
+    flex: 0 0 18px;
+  }
+
+  .reservation-form-dialog-panel .mat-datepicker-toggle .mat-mdc-icon-button {
+    width: 44px;
+    flex: 0 0 44px;
+  }
+}
+
 .app-reservation-date-field {
   cursor: pointer;
 }

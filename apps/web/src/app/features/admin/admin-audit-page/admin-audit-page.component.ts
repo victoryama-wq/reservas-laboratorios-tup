@@ -32,8 +32,9 @@ interface AuditEventView extends AuditEventDoc {
     AppStatusChipComponent,
   ],
   template: `
-    <section class="app-container grid gap-8">
+    <section class="app-container grid min-w-0 gap-8">
       <app-page-header
+        class="block min-w-0 max-w-full"
         kicker="Admin/Sistemas"
         title="Bitácora administrativa"
         subtitle="Eventos administrativos y cambios sensibles registrados por backend."
@@ -60,14 +61,14 @@ interface AuditEventView extends AuditEventDoc {
           message="Aún no hay eventos administrativos registrados."
         />
       } @else {
-        <div class="grid gap-4">
+        <div class="grid min-w-0 gap-4">
           @for (event of events; track event.id) {
-            <app-section-card>
-              <article class="grid gap-4">
-                <header class="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p class="app-page-kicker">{{ event.action }}</p>
-                    <h2 class="m-0 mt-1 text-lg font-extrabold text-slate-950">
+            <app-section-card class="block min-w-0 max-w-full">
+              <article class="grid min-w-0 gap-4">
+                <header class="flex min-w-0 flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0 max-w-full">
+                    <p class="app-page-kicker [overflow-wrap:anywhere]">{{ event.action }}</p>
+                    <h2 class="m-0 mt-1 max-w-full text-lg font-extrabold text-slate-950 [overflow-wrap:anywhere]">
                       {{ event.description }}
                     </h2>
                   </div>
@@ -79,26 +80,26 @@ interface AuditEventView extends AuditEventDoc {
                   />
                 </header>
 
-                <div class="grid gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700 md:grid-cols-4">
-                  <div>
+                <div class="grid min-w-0 gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700 md:grid-cols-4">
+                  <div class="min-w-0">
                     <span class="font-bold text-violet-700">Fecha</span>
-                    <p class="m-0 mt-1">{{ formatDate(event.createdDate) }}</p>
+                    <p class="m-0 mt-1 [overflow-wrap:anywhere]">{{ formatDate(event.createdDate) }}</p>
                   </div>
-                  <div>
+                  <div class="min-w-0">
                     <span class="font-bold text-violet-700">Actor</span>
-                    <p class="m-0 mt-1 break-words">
+                    <p class="m-0 mt-1 [overflow-wrap:anywhere]">
                       {{ event.actorEmail || event.actorUid || 'Sistema' }}
                     </p>
                   </div>
-                  <div>
+                  <div class="min-w-0">
                     <span class="font-bold text-violet-700">Target</span>
-                    <p class="m-0 mt-1 break-words">
+                    <p class="m-0 mt-1 [overflow-wrap:anywhere]">
                       {{ targetLabel(event) }}
                     </p>
                   </div>
-                  <div>
+                  <div class="min-w-0">
                     <span class="font-bold text-violet-700">Evento</span>
-                    <p class="m-0 mt-1">{{ event.id }}</p>
+                    <p class="m-0 mt-1 [overflow-wrap:anywhere]">{{ event.id }}</p>
                   </div>
                 </div>
               </article>

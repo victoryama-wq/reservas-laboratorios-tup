@@ -1,4 +1,5 @@
 <app-section-card
+  class="reservation-stepper-card"
   title="Solicitud de reserva"
   subtitle="Complete la informacion para crear la solicitud."
   icon="description"
@@ -230,32 +231,41 @@
           </div>
         </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>
+        <div class="question-field">
+          <p id="risky-question" class="question-field__label">
             ¿Se utilizaran sustancias, muestras biologicas o material
             potencialmente riesgoso?
-          </mat-label>
-          <mat-select formControlName="risky">
-            @for (option of riskOptions(); track option.label) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
-            }
-          </mat-select>
-          <mat-error>Indique si la practica es riesgosa.</mat-error>
-        </mat-form-field>
+          </p>
+          <mat-form-field appearance="outline">
+            <mat-label>Seleccione una opcion</mat-label>
+            <mat-select formControlName="risky" aria-labelledby="risky-question">
+              @for (option of riskOptions(); track option.label) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+            <mat-error>Indique si la practica es riesgosa.</mat-error>
+          </mat-form-field>
+        </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>
+        <div class="question-field">
+          <p id="external-participants-question" class="question-field__label">
             ¿Participan pacientes, usuarios simulados o poblacion externa?
-          </mat-label>
-          <mat-select formControlName="externalParticipants">
-            @for (option of riskOptions(); track option.label) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
-            }
-          </mat-select>
-          <mat-error>
-            Indique si participan pacientes, usuarios simulados o poblacion externa.
-          </mat-error>
-        </mat-form-field>
+          </p>
+          <mat-form-field appearance="outline">
+            <mat-label>Seleccione una opcion</mat-label>
+            <mat-select
+              formControlName="externalParticipants"
+              aria-labelledby="external-participants-question"
+            >
+              @for (option of riskOptions(); track option.label) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+            <mat-error>
+              Indique si participan pacientes, usuarios simulados o poblacion externa.
+            </mat-error>
+          </mat-form-field>
+        </div>
 
         @if (protocolIsRequired()) {
           <app-info-callout

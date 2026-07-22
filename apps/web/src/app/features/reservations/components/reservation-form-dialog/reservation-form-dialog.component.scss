@@ -1,5 +1,6 @@
 :host {
   display: block;
+  min-width: 0;
   max-width: 100%;
 }
 
@@ -27,6 +28,7 @@
 }
 
 .reservation-form-dialog__content {
+  min-width: 0;
   max-height: calc(100vh - 150px);
   padding: 24px !important;
   overflow: auto;
@@ -39,6 +41,6 @@
 
   .reservation-form-dialog__content {
     max-height: calc(100vh - 132px);
-    padding: 16px !important;
+    padding: 12px !important;
   }
 }
