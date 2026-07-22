@@ -1796,3 +1796,27 @@ horario sin consultar ni crear eventos Calendar. `RES-20260721-D96E` encontró u
 evento externo real, confirmado manualmente, de 10:00 a 13:00; la solicitud de
 11:00 a 13:30 tenía un traslape legítimo. No hubo duplicado, autoconflicto ni
 evento huérfano generado por 18B.
+
+## Fase 18D.1: operación productiva y preparación de liberación
+
+La operación de producción se documenta en:
+
+- `docs/18_PRODUCTION_OPERATIONS_RUNBOOK.md`;
+- `docs/19_MVP_RELEASE_CHECKLIST.md`;
+- `CHANGELOG.md`.
+
+La auditoría del 22 de julio de 2026 confirmó 25 Functions v2 activas, Hosting
+con rutas SPA operativas, reglas locales validadas en emulador, secrets
+vinculados sin consultar sus valores y el scheduler diario de protocolos
+huérfanos ejecutándose sin errores ni borrados en el periodo revisado.
+
+Las fases 17F, 17G, 17H, 17I, 18A, 18B y 18C se consideran cerradas con la
+evidencia técnica y manual registrada. Las etiquetas anteriores
+`IMPLEMENTADO LOCALMENTE` o `pendiente de deploy` se conservan en los reportes
+como fotografías históricas y no representan el estado productivo actual.
+
+El dictamen es **apto condicionado para liberación controlada**. Antes de crear
+el tag/release `v1.0.0` falta adjuntar evidencia vigente de IAM, alertas,
+índices remotos, backups/PITR, protección de Storage y scopes exactos de
+delegación Workspace. La Fase 18D.1 no despliega, no cambia infraestructura y
+no accede al contenido de secretos.

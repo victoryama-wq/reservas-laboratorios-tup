@@ -7,7 +7,13 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:functions": "npm --prefix functions test",
+    "test:web": "npm --prefix apps/web test -- --watch=false",
+    "build:functions": "npm --prefix functions run build",
+    "build:web": "npm --prefix apps/web run build",
+    "lint:functions": "npm --prefix functions run lint",
+    "validate": "npm run test:functions && npm run test:web && npm run lint:functions && npm run build:functions && npm run build:web",
+    "test": "npm run test:functions && npm run test:web"
   },
   "keywords": [],
   "author": "",

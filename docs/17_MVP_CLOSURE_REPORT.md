@@ -1050,3 +1050,48 @@ Correcciones:
 
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
+
+## 44. Estado actual de cierre para Fase 18D.1
+
+Fecha de corte: `2026-07-22`.
+
+Las secciones anteriores conservan el estado que tenía cada subfase al momento
+de redactarse. Por ello aparecen expresiones históricas como
+`IMPLEMENTADO LOCALMENTE`, `pendiente de deploy` o `pendiente de smoke`. El
+estado vigente que las supersede es:
+
+| Fase | Estado actual | Evidencia principal |
+| --- | --- | --- |
+| 17F | CERRADA | Mis reservas y detalle personal validados |
+| 17G | CERRADA | Invitación Calendar y cancelación verificadas |
+| 17H | CERRADA | Documentación y QA post 17F/17G consolidados |
+| 17I | CERRADA | Limpieza segura desplegada y scheduler saludable |
+| 18A | CERRADA | Módulos Admin y reportes operativos |
+| 18B | CERRADA | Idempotencia Calendar: 18/18 pruebas y smoke |
+| 18C | CERRADA | QA real con docente y responsable |
+| 18D.1 | EN PROCESO | Auditoría operativa y preparación de release |
+
+La auditoría confirmó:
+
+- 25 Functions locales y desplegadas, todas activas en Node.js 22 y
+  `us-central1`;
+- Hosting y `/reportes` con HTTP 200 y rewrite SPA;
+- sintaxis local de Firestore y Storage Rules validada en emuladores;
+- secrets vinculados y versiones habilitadas sin consultar valores;
+- scheduler diario de protocolos huérfanos sin errores ni borrados en los logs
+  del periodo revisado;
+- ausencia de CI remota en el repositorio.
+
+Quedan bloqueados por falta de evidencia autenticada directa:
+
+- revisión de IAM y menor privilegio;
+- políticas de alertamiento;
+- índices remotos;
+- backups/PITR de Firestore;
+- versionado, retención o lifecycle de Storage;
+- scopes exactos en la delegación de Google Workspace.
+
+El dictamen de `docs/19_MVP_RELEASE_CHECKLIST.md` es **APTO CONDICIONADO PARA
+LIBERACIÓN CONTROLADA**. No se debe crear tag/release `v1.0.0` hasta cerrar
+esos controles. El procedimiento operativo, incidentes y rollback se encuentra
+en `docs/18_PRODUCTION_OPERATIONS_RUNBOOK.md`.

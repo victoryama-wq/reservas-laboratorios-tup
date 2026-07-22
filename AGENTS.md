@@ -1,7 +1,3 @@
-Tienes razón. Debí entregarlo en español desde el inicio. A partir de ahora, todo lo que te entregue irá en español, incluyendo AGENTS.md, SDD, prompts para Codex y documentación técnica. Solo mantendré en inglés lo estrictamente necesario: nombres de tecnologías, rutas, funciones, colecciones o código.
-
-Aquí tienes el AGENTS.md corregido completamente en español para reemplazar el anterior:
-
 # AGENTS.md
 
 ## Nombre del proyecto

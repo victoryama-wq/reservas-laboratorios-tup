@@ -892,3 +892,42 @@ Validar como mínimo:
 Estado de cierre: **VALIDADA Y CERRADA**. La suite automatizada aprobo 18 de 18
 escenarios y el smoke postdeploy confirmo un conflicto externo real sin
 duplicado, autoconflicto ni creacion prematura.
+
+## Fase 18D.1: validación de liberación MVP
+
+La validación local de cierre debe ejecutarse desde la raíz:
+
+```powershell
+npm test
+npm run validate
+npm --prefix functions test
+npm --prefix functions run lint
+npm --prefix functions run build
+npm --prefix apps/web test -- --watch=false
+npm --prefix apps/web run build
+git diff --check
+git status --short
+```
+
+Angular 21 no acepta el argumento `--run` del prompt histórico; la ejecución
+no interactiva equivalente y vigente es `--watch=false`.
+
+La aceptación productiva combina:
+
+- pruebas automatizadas de Functions y Angular;
+- lint y builds;
+- validación de sintaxis de Firestore/Storage Rules en emuladores;
+- inventario local/remoto de Functions;
+- HTTP 200 del Hosting y rutas SPA;
+- QA manual real por rol de la Fase 18C;
+- revisión de logs de Functions y scheduler;
+- checklist `docs/19_MVP_RELEASE_CHECKLIST.md`.
+
+Se consideran cerradas 17F, 17G, 17H, 17I, 18A, 18B y 18C. El QA responsive
+autenticado ya no es un pendiente general: fue ejecutado en 18C. El scheduler
+de limpieza ya está desplegado y sus logs recientes son saludables.
+
+La liberación definitiva `v1.0.0` queda condicionada a evidencia vigente de
+IAM, alertas, índices remotos, backups/PITR, protección de Storage y scopes de
+delegación Workspace. Ningún control bloqueado debe marcarse `PASS` por
+inferencia.

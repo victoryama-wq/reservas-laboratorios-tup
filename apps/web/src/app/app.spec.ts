@@ -1,10 +1,32 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+
 import { App } from './app';
+import { AuthService } from './core/services/auth.service';
+import { UserProfileService } from './core/services/user-profile.service';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [
+        provideRouter([]),
+        {
+          provide: AuthService,
+          useValue: {
+            authState$: of(null),
+            signOut: () => Promise.resolve(),
+          },
+        },
+        {
+          provide: UserProfileService,
+          useValue: {
+            getProfile: () =>
+              Promise.resolve({ status: 'missing', profile: null }),
+          },
+        },
+      ],
     }).compileComponents();
   });
 
