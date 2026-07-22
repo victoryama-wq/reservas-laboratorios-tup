@@ -316,11 +316,31 @@ La regla de presentacion es:
   o `PENDIENTE_VALIDACION`.
 
 El motivo se toma de `rejectionReason`, `cancellationReason` o `statusReason`
-segun el estatus. La bitacora continua abajo como linea de tiempo y no se usa
-como unica fuente visual del motivo principal.
+segun el estatus. Para `CANCELADA`, se usa exclusivamente
+`cancellationReason`; si no existe, se muestra
+`La reserva fue cancelada sin motivo especificado.`. No se usa `statusReason`
+como fallback de cancelacion. La bitacora continua abajo como linea de tiempo
+y no se usa como unica fuente visual del motivo principal.
 
 Este cambio no modifica creacion, aprobacion, rechazo, cancelacion, Calendar
 API, Gmail API, roles, estatus ni reglas de seguridad.
+
+## Correccion Fase 18C.3: trazabilidad de aprobacion y cancelacion
+
+En la aprobacion, la nota opcional permanece en el log `APPROVED` y en la
+notificacion `RESERVATION_APPROVED`. La transicion a
+`CONFIRMADA_TRAS_VALIDACION` elimina cualquier `statusReason` previo y no usa
+ese campo para la nota humana del responsable.
+
+En la cancelacion, el motivo opcional se persiste solo como
+`cancellationReason`. La transicion a `CANCELADA` elimina `statusReason`; si no
+se proporciono motivo, elimina tambien cualquier `cancellationReason` previo.
+Los logs, la notificacion, la cancelacion en Calendar y la liberacion del rango
+se conservan sin cambios funcionales.
+
+No se ejecuta migracion sobre reservas historicas. Su presentacion se corrige
+en frontend para impedir que una nota de aprobacion antigua aparezca como
+motivo de cancelacion.
 
 ## Actualización Fase 17F.4: búsqueda ampliada en Mis reservas
 

@@ -817,6 +817,35 @@ Correcciones:
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
 
+## 43. Correccion Fase 18C.3: trazabilidad de aprobacion y cancelacion
+
+Estado: `IMPLEMENTADO LOCALMENTE`, pendiente de smoke manual y deploy cuando el
+propietario lo autorice.
+
+Hallazgo real de QA:
+
+- una nota opcional de aprobacion se persistia en `statusReason`;
+- una cancelacion posterior sin motivo no borraba ese campo porque los valores
+  `undefined` se omiten en el update de Firestore;
+- Mis reservas reutilizaba `statusReason` como fallback de cancelacion y podia
+  presentar la nota de aprobacion como motivo de cancelacion.
+
+Correccion:
+
+- aprobacion conserva la nota en log `APPROVED` y notificacion, no en
+  `statusReason`;
+- aprobacion y cancelacion eliminan de forma explicita el `statusReason`
+  heredado;
+- cancelacion guarda solo `cancellationReason` cuando existe;
+- cancelacion sin motivo deja el campo ausente;
+- la UI cancelada ignora `statusReason` en documentos historicos y muestra un
+  fallback neutro;
+- rechazos automaticos, rechazo responsable y `ERROR_CALENDAR` conservan sus
+  fuentes de motivo correspondientes.
+
+No se migran reservas historicas ni se modifican Calendar API, Gmail API,
+roles, rutas, reglas Firebase o datos reales durante esta fase.
+
 ## Fase 18A.3: cierre del reporte operativo base
 
 Se sustituye el placeholder de reportes por `/reportes`, con la callable

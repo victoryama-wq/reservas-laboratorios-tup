@@ -657,6 +657,9 @@ Casos minimos:
 - abrir una reserva `RECHAZADA_MIN_ANTICIPACION` y confirmar explicacion de
   anticipacion minima;
 - abrir una reserva `CANCELADA` y confirmar `Motivo de cancelacion`;
+- confirmar que `CANCELADA` con `cancellationReason` muestra ese motivo;
+- confirmar que `CANCELADA` sin `cancellationReason`, incluso si conserva un
+  `statusReason` historico, muestra el fallback neutro y no la nota antigua;
 - abrir una reserva `ERROR_CALENDAR` y confirmar `Revision tecnica requerida`;
 - abrir reservas `CONFIRMADA` y `PENDIENTE_VALIDACION` y confirmar que no
   aparece bloque de motivo;
@@ -664,6 +667,22 @@ Casos minimos:
   JSON crudo, stack traces ni metadata tecnica;
 - probar 360, 390 y 414 px para confirmar que textos largos no generan
   overflow horizontal.
+
+## Pruebas Fase 18C.3: separacion de motivos
+
+Casos minimos automatizados y manuales:
+
+- aprobar con nota y confirmar que aparece en el log `APPROVED`;
+- confirmar que la nota de aprobacion no queda en `statusReason`;
+- cancelar con motivo y confirmar `cancellationReason`;
+- cancelar sin motivo y confirmar que no reutiliza una nota de aprobacion;
+- confirmar el texto `La reserva fue cancelada sin motivo especificado.`;
+- confirmar que rechazos automaticos conservan `statusReason`;
+- confirmar que rechazo responsable conserva `rejectionReason`;
+- confirmar que `ERROR_CALENDAR` conserva `statusReason`;
+- confirmar que cancelacion mantiene Calendar, Gmail, logs y liberacion del
+  horario;
+- confirmar que no se modifican documentos historicos mediante migracion.
 
 ## Pruebas Fase 17F.4: búsqueda y textos en Mis reservas
 

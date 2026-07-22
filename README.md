@@ -1653,12 +1653,28 @@ prioridad:
 
 - rechazo por responsable: `rejectionReason`, `statusReason`, fallback claro;
 - otros rechazos: `statusReason`, fallback claro segun el tipo de rechazo;
-- cancelacion: `cancellationReason`, `statusReason`, fallback claro;
+- cancelacion: `cancellationReason` o fallback neutro; nunca `statusReason`;
 - error de calendario: `statusReason`, fallback de revision tecnica.
 
 La bitacora basica se mantiene como linea de tiempo, pero el docente no depende
 de ella para entender el motivo principal. La UI no muestra UIDs, `calendarId`,
 `storagePath`, URLs firmadas, metadata tecnica, JSON crudo ni stack traces.
+
+### Correccion Fase 18C.3: motivos de aprobacion y cancelacion
+
+La nota opcional de aprobacion se conserva en la bitacora `APPROVED` y en la
+notificacion de aprobacion. No se guarda en `reservations.statusReason`.
+
+La cancelacion usa exclusivamente `cancellationReason` cuando el usuario
+captura un motivo. Si se cancela sin motivo, el campo queda ausente y la vista
+muestra `La reserva fue cancelada sin motivo especificado.`. Al aprobar o
+cancelar, el backend elimina de forma explicita cualquier `statusReason`
+heredado que pudiera confundir la presentacion posterior.
+
+Los documentos historicos no se migran. La vista personal los presenta de
+forma segura: una reserva `CANCELADA` nunca reutiliza `statusReason` como motivo
+de cancelacion. `statusReason` se mantiene para rechazos automaticos y errores
+tecnicos de calendario.
 
 ## Fase 17F.4: búsqueda y textos de Mis reservas
 

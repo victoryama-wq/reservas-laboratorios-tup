@@ -36,6 +36,8 @@ import {
   SystemSettingsDoc,
 } from "../../shared/models";
 import {ReservationRepository} from "./reservation.repository";
+import {buildApprovalReasonTransition} from
+  "./reservation-transition-reasons.utils";
 import {validateLab, validateReservationReviewTiming} from
   "./reservation.validators";
 
@@ -165,12 +167,13 @@ export const approveReservation = onCall(
         return markCalendarError(context, input.note);
       }
 
+      const approvalReason = buildApprovalReasonTransition(input.note);
       const approvedReservation = {
         ...context.reservation,
         startAt: Timestamp.fromDate(startAt),
         endAt: Timestamp.fromDate(endAt),
         status: "CONFIRMADA_TRAS_VALIDACION" as const,
-        statusReason: input.note,
+        statusReason: undefined,
       };
       let calendarEventId: string;
       let calendarOutcome: "CREATED" | "REUSED" | "RECONCILED";
@@ -196,12 +199,12 @@ export const approveReservation = onCall(
                 input.reservationId,
                 {
                   status: "CONFIRMADA_TRAS_VALIDACION",
-                  statusReason: input.note,
                   calendarEventId,
                   approvedBy: context.profile.uid,
                   approvedAt: now,
                   updatedAt: now,
                 },
+                approvalReason.fieldsToDelete,
             );
             context.logRepository.createLog(transaction, {
               reservationId: context.reservation.id,
@@ -210,7 +213,7 @@ export const approveReservation = onCall(
               actorEmail: context.profile.email,
               previousStatus: "PENDIENTE_VALIDACION",
               newStatus: "CONFIRMADA_TRAS_VALIDACION",
-              note: input.note,
+              note: approvalReason.note,
             });
             context.logRepository.createLog(transaction, {
               reservationId: context.reservation.id,
@@ -227,7 +230,7 @@ export const approveReservation = onCall(
             return createReviewNotification(context, transaction, {
               ...approvedReservation,
               calendarEventId,
-            }, "RESERVATION_APPROVED", input.note);
+            }, "RESERVATION_APPROVED", approvalReason.note);
           },
       );
       await sendNotificationSafely(context, createdNotification);

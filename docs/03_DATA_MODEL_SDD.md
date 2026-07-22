@@ -161,12 +161,24 @@ destacados usando campos propios de `ReservationDoc`, sin depender de
 - `RECHAZADA_POR_RESPONSABLE`: `rejectionReason`, luego `statusReason`;
 - `RECHAZADA_CONFLICTO`, `RECHAZADA_REGLA_HORARIO` y
   `RECHAZADA_MIN_ANTICIPACION`: `statusReason`;
-- `CANCELADA`: `cancellationReason`, luego `statusReason`;
+- `CANCELADA`: `cancellationReason`; si no existe, fallback neutro de
+  cancelacion. Nunca debe reutilizar `statusReason`;
 - `ERROR_CALENDAR`: `statusReason`.
 
 Si el campo no existe, la interfaz debe usar un texto fallback de negocio. No se
 deben mostrar UIDs, `calendarId`, rutas Storage, URLs firmadas, errores crudos
 ni metadata tecnica al docente.
+
+Separacion semantica de motivos:
+
+- la nota opcional de aprobacion se registra en `reservationLogs.note` para la
+  accion `APPROVED` y en la notificacion correspondiente;
+- la nota de aprobacion no se persiste en `ReservationDoc.statusReason`;
+- `cancellationReason` es el unico motivo explicito de una cancelacion;
+- una cancelacion sin motivo deja `cancellationReason` ausente;
+- `statusReason` se reserva para rechazos automaticos y errores tecnicos como
+  `ERROR_CALENDAR`;
+- no se migran documentos historicos; la UI aplica una presentacion segura.
 
 Tipos oficiales de practica
 

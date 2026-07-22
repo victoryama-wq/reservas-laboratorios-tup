@@ -207,6 +207,14 @@ Revalidar horario.
 Revalidar Google Calendar.
 Revalidar protocolo si aplica.
 
+Persistencia de la nota:
+
+- `note` es opcional;
+- se registra en `reservationLogs.note` con accion `APPROVED`;
+- se incluye en la notificacion `RESERVATION_APPROVED` cuando existe;
+- no se guarda en `reservations.statusReason`;
+- al aprobar se elimina cualquier `statusReason` heredado.
+
 Salida
 
 interface ApproveReservationOutput {
@@ -279,6 +287,12 @@ Si la cancelacion procede, la funcion actualiza la reserva con status
 CANCELADA, cancelledBy, cancelledAt, cancellationReason si aplica y updatedAt.
 Tambien registra bitacoras CANCELLED y CALENDAR_EVENT_CANCELLED cuando existia
 calendarEventId.
+
+`cancellationReason` es el campo exclusivo para el motivo opcional de
+cancelacion. La funcion elimina `statusReason` al cancelar. Si no se proporciona
+motivo, `cancellationReason` queda ausente y tambien se elimina cualquier valor
+anterior. Esta limpieza forma parte de la transicion actual y no es una
+migracion de documentos historicos.
 
 Debe crear una notificacion RESERVATION_CANCELLED y enviarla mediante Gmail API.
 Un error de correo no debe revertir la cancelacion.

@@ -1,6 +1,7 @@
 import {
   CollectionReference,
   DocumentReference,
+  FieldValue,
   Firestore,
   QueryDocumentSnapshot,
   Timestamp,
@@ -221,17 +222,24 @@ export class ReservationRepository {
    * @param {Transaction} transaction Firestore transaction.
    * @param {string} reservationId Reservation id.
    * @param {Partial<ReservationDoc>} data Reservation patch.
+   * @param {string[]} fieldsToDelete Reservation fields to delete.
    */
   updateReservation(
       transaction: Transaction,
       reservationId: string,
       data: Partial<ReservationDoc>,
+      fieldsToDelete: Array<keyof ReservationDoc> = [],
   ): void {
+    const updateData = removeUndefinedValues(data) as
+      FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData>;
+
+    for (const field of fieldsToDelete) {
+      updateData[field] = FieldValue.delete();
+    }
+
     transaction.update(
         this.db.collection("reservations").doc(reservationId),
-        removeUndefinedValues(data) as FirebaseFirestore.UpdateData<
-          FirebaseFirestore.DocumentData
-        >,
+        updateData,
     );
   }
 

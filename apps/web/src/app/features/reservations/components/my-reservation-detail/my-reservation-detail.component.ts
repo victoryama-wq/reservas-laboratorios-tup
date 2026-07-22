@@ -18,6 +18,7 @@ import {
   MyReservationTimelineItem,
   MyReservationView,
 } from '../../services/my-reservations.service';
+import { buildReservationStatusReasonNotice } from './reservation-status-reason.utils';
 
 interface DetailItem {
   label: string;
@@ -171,81 +172,22 @@ export class MyReservationDetailComponent {
 
   protected statusReasonNotice(): StatusReasonNotice | null {
     const reservation = this.reservation();
+    const notice = buildReservationStatusReasonNotice(reservation);
 
-    switch (reservation.status) {
-      case 'RECHAZADA_POR_RESPONSABLE':
-        return {
-          title: 'Motivo del rechazo',
-          message: this.firstAvailableText(
-            reservation.rejectionReason,
-            reservation.statusReason,
-            'La solicitud fue rechazada por el responsable del laboratorio.',
-          ),
-          variant: 'danger',
-          icon: 'cancel',
-          dateLabel: this.formatOptionalDate(reservation.rejectedAt),
-        };
-
-      case 'RECHAZADA_CONFLICTO':
-        return {
-          title: 'Motivo del rechazo',
-          message: this.firstAvailableText(
-            reservation.statusReason,
-            'La solicitud no pudo confirmarse porque existe un traslape de horario para este laboratorio.',
-          ),
-          variant: 'warning',
-          icon: 'event_busy',
-        };
-
-      case 'RECHAZADA_REGLA_HORARIO':
-        return {
-          title: 'Motivo del rechazo',
-          message: this.firstAvailableText(
-            reservation.statusReason,
-            'La solicitud no cumple con las reglas de disponibilidad del laboratorio.',
-          ),
-          variant: 'warning',
-          icon: 'rule',
-        };
-
-      case 'RECHAZADA_MIN_ANTICIPACION':
-        return {
-          title: 'Motivo del rechazo',
-          message: this.firstAvailableText(
-            reservation.statusReason,
-            'La solicitud no cumple con la anticipación mínima requerida para este laboratorio.',
-          ),
-          variant: 'warning',
-          icon: 'schedule',
-        };
-
-      case 'CANCELADA':
-        return {
-          title: 'Motivo de cancelación',
-          message: this.firstAvailableText(
-            reservation.cancellationReason,
-            reservation.statusReason,
-            'La reserva fue cancelada.',
-          ),
-          variant: 'info',
-          icon: 'event_busy',
-          dateLabel: this.formatOptionalDate(reservation.cancelledAt),
-        };
-
-      case 'ERROR_CALENDAR':
-        return {
-          title: 'Revisión técnica requerida',
-          message: this.firstAvailableText(
-            reservation.statusReason,
-            'La reserva requiere revisión técnica por sincronización de calendario.',
-          ),
-          variant: 'danger',
-          icon: 'sync_problem',
-        };
-
-      default:
-        return null;
+    if (!notice) {
+      return null;
     }
+
+    const eventDate = reservation.status === 'RECHAZADA_POR_RESPONSABLE'
+      ? reservation.rejectedAt
+      : reservation.status === 'CANCELADA'
+        ? reservation.cancelledAt
+        : undefined;
+
+    return {
+      ...notice,
+      dateLabel: this.formatOptionalDate(eventDate),
+    };
   }
 
   protected formatFileSize(sizeBytes: number): string {
@@ -286,10 +228,6 @@ export class MyReservationDetailComponent {
       description: log.description,
       variant: log.severity,
     };
-  }
-
-  private firstAvailableText(...values: Array<string | undefined>): string {
-    return values.find((value) => value?.trim())?.trim() ?? '';
   }
 
   private formatOptionalDate(value: unknown): string | undefined {

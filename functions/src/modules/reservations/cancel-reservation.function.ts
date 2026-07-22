@@ -33,6 +33,8 @@ import {
   SystemSettingsDoc,
 } from "../../shared/models";
 import {ReservationRepository} from "./reservation.repository";
+import {buildCancellationReasonTransition} from
+  "./reservation-transition-reasons.utils";
 
 const REGION = "us-central1";
 
@@ -103,13 +105,16 @@ export const cancelReservation = onCall(
       const calendarDeleteResult = await deleteCalendarEventOrFail(context);
 
       const now = Timestamp.now();
+      const cancellationReason = buildCancellationReasonTransition(
+          input.reason,
+      );
       const cancelledReservation: ReservationDoc = {
         ...context.reservation,
         status: "CANCELADA",
-        statusReason: input.reason,
+        statusReason: undefined,
         cancelledBy: context.profile.uid,
         cancelledAt: now,
-        cancellationReason: input.reason,
+        cancellationReason: cancellationReason.cancellationReason,
         updatedAt: now,
       };
       const createdNotification = await context.repository.runTransaction(
@@ -119,12 +124,13 @@ export const cancelReservation = onCall(
                 input.reservationId,
                 {
                   status: "CANCELADA",
-                  statusReason: input.reason,
                   cancelledBy: context.profile.uid,
                   cancelledAt: now,
-                  cancellationReason: input.reason,
+                  cancellationReason:
+                    cancellationReason.cancellationReason,
                   updatedAt: now,
                 },
+                cancellationReason.fieldsToDelete,
             );
             context.logRepository.createLog(transaction, {
               reservationId: context.reservation.id,
@@ -133,7 +139,7 @@ export const cancelReservation = onCall(
               actorEmail: context.profile.email,
               previousStatus,
               newStatus: "CANCELADA",
-              note: input.reason ?? "Reserva cancelada.",
+              note: cancellationReason.logNote,
             });
 
             if (calendarDeleteResult.outcome === "DELETED") {
@@ -154,7 +160,7 @@ export const cancelReservation = onCall(
                 context,
                 transaction,
                 cancelledReservation,
-                input.reason,
+                cancellationReason.notificationReason,
             );
           },
       );
