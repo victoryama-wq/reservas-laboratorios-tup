@@ -1051,9 +1051,9 @@ Correcciones:
 No se modifican creacion, aprobacion, rechazo, cancelacion, Calendar API,
 Gmail API, roles, estatus, Firestore Rules ni Storage Rules.
 
-## 44. Estado actual de cierre para Fase 18D.1
+## 44. Estado actual de cierre para Fases 18D.1 y 18D.2
 
-Fecha de corte: `2026-07-22`.
+Fecha de corte: `2026-07-27`.
 
 Las secciones anteriores conservan el estado que tenía cada subfase al momento
 de redactarse. Por ello aparecen expresiones históricas como
@@ -1069,7 +1069,8 @@ estado vigente que las supersede es:
 | 18A | CERRADA | Módulos Admin y reportes operativos |
 | 18B | CERRADA | Idempotencia Calendar: 18/18 pruebas y smoke |
 | 18C | CERRADA | QA real con docente y responsable |
-| 18D.1 | EN PROCESO | Auditoría operativa y preparación de release |
+| 18D.1 | CERRADA | Auditoría operativa y preparación de release |
+| 18D.2 | CERRADA | Controles operativos configurados y riesgos de continuidad aceptados |
 
 La auditoría confirmó:
 
@@ -1082,16 +1083,28 @@ La auditoría confirmó:
   del periodo revisado;
 - ausencia de CI remota en el repositorio.
 
-Quedan bloqueados por falta de evidencia autenticada directa:
+La Fase 18D.2 confirmó o configuró:
 
-- revisión de IAM y menor privilegio;
-- políticas de alertamiento;
-- índices remotos;
-- backups/PITR de Firestore;
-- versionado, retención o lifecycle de Storage;
-- scopes exactos en la delegación de Google Workspace.
+- delegación Workspace y cliente OAuth verificados manualmente, con los scopes
+  exclusivos `calendar` y `gmail.send`;
+- capacidad `signBlob` y acceso a secrets en estado `PASS`;
+- canal de correo operativo, notificaciones de Error Reporting y uptime check
+  público de Hosting con alerta tras dos fallos consecutivos;
+- presupuesto mensual de 500 MXN limitado al proyecto y umbrales aprobados;
+- índices remotos de Firestore vacíos, coherentes con la declaración en Git.
 
-El dictamen de `docs/19_MVP_RELEASE_CHECKLIST.md` es **APTO CONDICIONADO PARA
-LIBERACIÓN CONTROLADA**. No se debe crear tag/release `v1.0.0` hasta cerrar
-esos controles. El procedimiento operativo, incidentes y rollback se encuentra
-en `docs/18_PRODUCTION_OPERATIONS_RUNBOOK.md`.
+Se aceptan para el MVP los siguientes riesgos:
+
+- Firestore sin PITR, backups programados ni exportaciones automáticas; RPO y
+  RTO no garantizados y prueba de restauración no aplicable al MVP;
+- Storage con soft delete de 7 días, sin versionado, retention policy ni
+  lifecycle; recuperación posterior no garantizada;
+- `roles/editor` en la cuenta de ejecución, con endurecimiento IAM posterior al
+  MVP;
+- presupuesto heredado de 300 MXN detectado y no modificado.
+
+El control compensatorio es una revisión manual mensual de Error Reporting,
+Cloud Functions, Cloud Scheduler, notificaciones `FAILED`, consumo y
+facturación. El dictamen de `docs/19_MVP_RELEASE_CHECKLIST.md` es **APTO PARA
+LIBERACIÓN CONTROLADA CON RIESGOS ACEPTADOS**. Esta fase no desplegó aplicación
+ni reglas y no creó tag o GitHub Release `v1.0.0`.

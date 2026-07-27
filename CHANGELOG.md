@@ -81,6 +81,16 @@ Los cambios relevantes del proyecto se documentan en este archivo.
 - Inventario productivo de Functions, Hosting, reglas y scheduler.
 - Runbook de incidentes, despliegue, smoke, rollback y revisiones periodicas.
 - Checklist de liberacion con evidencia y estados estrictos.
+- Delegacion Workspace verificada manualmente con scopes exclusivos de Calendar
+  y Gmail Send para la cuenta operativa institucional.
+- Canal de correo, notificaciones de Error Reporting y uptime check publico de
+  Hosting configurados en `reservas-laboratorios-tup`.
+- Alerta de disponibilidad tras dos comprobaciones fallidas consecutivas de
+  cinco minutos.
+- Presupuesto mensual de 500 MXN limitado al proyecto, con umbrales 50 %, 80 %,
+  100 % real y 100 % previsto, sin notificaciones programaticas.
+- Revision manual mensual de Error Reporting, Functions, Scheduler,
+  notificaciones `FAILED` y facturacion como control compensatorio.
 
 ### QA
 
@@ -91,9 +101,14 @@ Los cambios relevantes del proyecto se documentan en este archivo.
 
 ### Limitaciones conocidas
 
-- La evidencia directa de IAM, alertas, indices remotos, backups/PITR,
-  proteccion de Storage y scopes exactos de Workspace requiere reautenticacion
-  o revision manual en consola.
+- Firestore no tiene PITR, backups programados ni exportaciones automaticas;
+  RPO y RTO no estan garantizados para el MVP.
+- Storage conserva soft delete de 7 dias, sin versionado, retention policy ni
+  lifecycle; la recuperacion posterior a ese plazo no esta garantizada.
+- La cuenta de ejecucion conserva `roles/editor`; el endurecimiento IAM queda
+  como actividad posterior al MVP.
+- Existe un presupuesto heredado de 300 MXN para el mismo proyecto, detectado y
+  no modificado durante la Fase 18D.2.
 - CI remota no esta configurada.
-- El tag/release `v1.0.0` debe esperar el cierre de los controles operativos
-  anteriores.
+- El tag y la GitHub Release `v1.0.0` no se crean en esta fase y requieren
+  autorizacion expresa.

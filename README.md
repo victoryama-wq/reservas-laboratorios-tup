@@ -1797,7 +1797,7 @@ evento externo real, confirmado manualmente, de 10:00 a 13:00; la solicitud de
 11:00 a 13:30 tenía un traslape legítimo. No hubo duplicado, autoconflicto ni
 evento huérfano generado por 18B.
 
-## Fase 18D.1: operación productiva y preparación de liberación
+## Fases 18D.1 y 18D.2: operación productiva y controles de liberación
 
 La operación de producción se documenta en:
 
@@ -1815,8 +1815,35 @@ evidencia técnica y manual registrada. Las etiquetas anteriores
 `IMPLEMENTADO LOCALMENTE` o `pendiente de deploy` se conservan en los reportes
 como fotografías históricas y no representan el estado productivo actual.
 
-El dictamen es **apto condicionado para liberación controlada**. Antes de crear
-el tag/release `v1.0.0` falta adjuntar evidencia vigente de IAM, alertas,
-índices remotos, backups/PITR, protección de Storage y scopes exactos de
-delegación Workspace. La Fase 18D.1 no despliega, no cambia infraestructura y
-no accede al contenido de secretos.
+La Fase 18D.2 cerró los controles operativos seleccionados el 27 de julio de
+2026:
+
+- delegación de dominio Workspace verificada manualmente para la cuenta
+  `escenarios.tup@tecplayacar.edu.mx`, con únicamente los scopes `calendar` y
+  `gmail.send`;
+- canal de notificación por correo para
+  `victor.yama@tecplayacar.edu.mx`;
+- notificaciones de Error Reporting para grupos nuevos y errores resueltos que
+  reaparezcan;
+- uptime check público de Hosting cada 5 minutos, con timeout de 10 segundos,
+  tres regiones y alerta tras dos comprobaciones consecutivas fallidas;
+- presupuesto mensual de 500 MXN limitado al proyecto, con umbrales reales de
+  50 %, 80 % y 100 %, más 100 % previsto, sin Pub/Sub ni automatización de
+  suspensión;
+- índices remotos de Firestore inventariados sin índices compuestos ni
+  excepciones de campo.
+
+Se detectó además un presupuesto heredado de 300 MXN para el mismo proyecto.
+No se modificó ni eliminó porque no formaba parte de la autorización; debe
+revisarse posteriormente para evitar avisos duplicados.
+
+La continuidad del MVP conserva riesgos aceptados: Firestore no tiene PITR,
+backups programados ni exportaciones automáticas, por lo que RPO y RTO no están
+garantizados; Storage mantiene soft delete de 7 días, sin versionado, retención
+ni lifecycle. IAM conserva `roles/editor` como riesgo conocido que se endurecerá
+después del MVP. Existe una revisión manual mensual compensatoria de Error
+Reporting, Functions, Scheduler, notificaciones `FAILED` y facturación.
+
+El dictamen vigente es **apto para liberación controlada con riesgos
+aceptados**. Esta fase no desplegó Hosting, Functions ni reglas, no leyó valores
+de secretos y no creó el tag ni la GitHub Release `v1.0.0`.

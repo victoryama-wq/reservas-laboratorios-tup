@@ -6,7 +6,7 @@ Este documento define la operacion de produccion del Sistema Web de Reservas
 de Laboratorios. Cubre despliegue, monitoreo, incidentes, respaldo, recuperacion
 y rollback. No sustituye los SDD ni autoriza cambios de infraestructura.
 
-Estado de la auditoria: `2026-07-22`. Proyecto Firebase:
+Estado de la auditoria: `2026-07-27`. Proyecto Firebase:
 `reservas-laboratorios-tup`. Zona horaria operativa: `America/Cancun`.
 
 ## 2. Arquitectura operativa
@@ -21,6 +21,12 @@ Estado de la auditoria: `2026-07-22`. Proyecto Firebase:
 - Cloud Scheduler para limpieza conservadora de protocolos huerfanos.
 
 URL principal: `https://reservas-laboratorios-tup.web.app`.
+
+La cuenta de Google Cloud administra varios proyectos y la configuracion global
+de `gcloud` puede apuntar a otro proyecto. Toda consulta o mutacion operativa
+debe incluir explicitamente `--project=reservas-laboratorios-tup`; los comandos
+de Billing deben usar ademas `--billing-project=reservas-laboratorios-tup`.
+Nunca confiar en el proyecto predeterminado de la CLI.
 
 ## 3. Responsables y cuentas operativas
 
@@ -85,33 +91,32 @@ Scopes autorizados esperados:
 - `https://www.googleapis.com/auth/calendar`
 - `https://www.googleapis.com/auth/gmail.send`
 
-Checklist manual de Google Workspace Admin:
+Resultado `VERIFIED_MANUAL`:
 
-1. Confirmar delegacion de dominio para el client ID de la cuenta de servicio.
-2. Confirmar exactamente los dos scopes anteriores.
-3. Confirmar que la cuenta operativa puede escribir en cada calendario.
-4. Confirmar que no existen scopes adicionales innecesarios.
+1. Delegacion de dominio activa para el client ID OAuth coincidente.
+2. Scopes autorizados exactamente `calendar` y `gmail.send`, sin scopes
+   adicionales.
+3. Cuenta delegada confirmada:
+   `escenarios.tup@tecplayacar.edu.mx`.
+4. Calendar y Gmail verificados funcionalmente en QA real de la Fase 18C.
 
-La auditoria no accedio a valores de Secret Manager. Calendar y Gmail quedaron
-verificados funcionalmente en QA real de la Fase 18C; la configuracion exacta
-de la consola Workspace requiere revision manual.
+La auditoria no accedio al contenido de los secretos.
 
 ## 6. IAM de ejecucion
 
 Cuenta de ejecucion observada:
 `261669564296-compute@developer.gserviceaccount.com`.
 
-Capacidades que deben revisarse con menor privilegio:
+Controles verificados:
 
-- acceso a los secretos vinculados;
-- Firestore y Storage mediante Admin SDK;
-- firma de blobs para URLs temporales de protocolos;
-- ejecucion del job programado.
+- acceso a los secretos vinculados: `PASS`;
+- firma de blobs para URLs temporales de protocolos: `PASS`;
+- Firestore y Storage operativos mediante Admin SDK;
+- job programado activo.
 
-Existe evidencia historica de errores `iam.serviceAccounts.signBlob` en
-`getReservationProtocolAccess` hasta `2026-06-30`. La apertura de protocolos se
-valido posteriormente en QA real. La politica IAM actual no pudo inspeccionarse
-directamente porque la sesion `gcloud` requeria reautenticacion no interactiva.
+La cuenta conserva `roles/editor`. El propietario acepta este riesgo conocido
+para el MVP y difiere el endurecimiento de menor privilegio a una actividad
+posterior. No se redujeron roles en esta fase.
 
 ## 7. Hosting y rutas SPA
 
@@ -184,29 +189,74 @@ Revisar diariamente o ante incidente:
 - resumen del scheduler de limpieza;
 - respuestas 5xx y latencia de callables criticas.
 
-Alertas recomendadas:
+Controles configurados en el proyecto `reservas-laboratorios-tup`:
 
-- cualquier fallo consecutivo del scheduler;
-- incremento de 5xx en Functions criticas;
-- presencia sostenida de `ERROR_CALENDAR`;
-- notificaciones `FAILED` sin reproceso;
-- errores de acceso a secretos o `signBlob`.
+- canal de notificacion por correo `Operaciones Reservas Laboratorios TUP`,
+  dirigido a `victor.yama@tecplayacar.edu.mx`;
+- Error Reporting notifica grupos de errores nuevos y errores resueltos que
+  reaparezcan;
+- uptime check publico HTTPS `GET /` sobre
+  `reservas-laboratorios-tup.web.app`, cada 5 minutos, timeout de 10 segundos y
+  validacion desde tres regiones;
+- politica `Hosting Reservas Laboratorios TUP - Dos fallos consecutivos`, que
+  notifica por correo cuando dos comprobaciones consecutivas fallan.
 
-Las politicas de alerta existentes no pudieron inventariarse durante esta
-auditoria; quedan como verificacion manual obligatoria.
+Por decision del propietario no se crearon alertas metricas adicionales para
+Functions, 5xx, Scheduler, `ERROR_CALENDAR` o notificaciones `FAILED`.
+
+Control compensatorio mensual:
+
+1. Revisar Error Reporting.
+2. Revisar errores y latencia de Cloud Functions.
+3. Revisar ejecuciones de Cloud Scheduler.
+4. Revisar documentos de `notifications` con `status = FAILED`.
+5. Revisar consumo y facturacion.
+
+### Presupuesto y facturacion
+
+La cuenta de facturacion fue verificada en moneda MXN. Se creo el presupuesto
+`Reservas Laboratorios TUP - Presupuesto mensual`, limitado exclusivamente al
+proyecto, por 500 MXN mensuales:
+
+- 50 % de gasto real: 250 MXN;
+- 80 % de gasto real: 400 MXN;
+- 100 % de gasto real: 500 MXN;
+- 100 % de gasto previsto: 500 MXN.
+
+Usa el tratamiento predeterminado de creditos y notifica a administradores y
+usuarios autorizados de facturacion. No usa Pub/Sub, notificaciones
+programaticas ni suspension automatica.
+
+Existe un presupuesto heredado de 300 MXN para el mismo proyecto. No fue
+modificado ni eliminado; el propietario debe decidir posteriormente si lo
+conserva para evitar avisos duplicados.
 
 ## 12. Respaldos y recuperacion
 
-No se confirmo una politica activa de backups o PITR de Firestore ni versionado
-del bucket. Antes de declarar liberacion final se debe registrar evidencia de:
+Estado aceptado para el MVP:
 
-1. PITR o exportaciones programadas de Firestore.
-2. Ubicacion, retencion, cifrado y responsables del respaldo.
-3. Versionado o estrategia equivalente para Storage.
-4. Prueba de restauracion en un proyecto aislado.
-5. RPO y RTO institucionales aprobados.
+**Firestore**
 
-Nunca probar restauracion sobre produccion.
+- PITR: deshabilitado;
+- backups programados: no configurados;
+- exportaciones automaticas: no configuradas;
+- estado: `NOT_CONFIGURED`, riesgo aceptado por el propietario;
+- RPO: no garantizado;
+- RTO: no garantizado;
+- prueba de restauracion: `NOT_APPLICABLE` para el MVP.
+
+**Storage**
+
+- soft delete: 7 dias;
+- versionado: deshabilitado;
+- retention policy: no configurada;
+- lifecycle: no configurado;
+- recuperacion posterior a 7 dias: no garantizada;
+- riesgo aceptado por el propietario.
+
+Nunca probar restauracion sobre produccion. La adopcion posterior de PITR,
+backups o versionado requiere una fase controlada con prueba en proyecto
+aislado.
 
 ## 13. Procedimientos de incidente
 
@@ -320,23 +370,23 @@ seguir un procedimiento aprobado de recuperacion.
 - validar calendarios activos y cuentas suspendidas;
 - revisar accesos Admin y responsables asignados;
 - confirmar vigencia de secretos sin leer valores;
-- confirmar estado de backups y alertas.
+- revisar los riesgos aceptados de continuidad y el estado de las alertas.
 
 ## 18. Lista operativa trimestral
 
 - revisar minimo privilegio IAM;
 - revisar delegacion y scopes Workspace;
-- ejecutar prueba de restauracion aislada;
+- reevaluar PITR, backups y una futura prueba de restauracion aislada;
 - revisar retencion/versionado de Storage;
 - auditar reglas, indices y consultas;
 - revisar dependencias y runtime en una fase separada;
 - ejecutar QA completa por rol y breakpoints.
 
-## 19. Pendientes operativos de liberacion
+## 19. Pendientes posteriores al MVP
 
-- reautenticar `gcloud` y capturar evidencia de IAM, alertas, indices remotos,
-  backups/PITR y proteccion de Storage;
-- aprobar RPO/RTO y responsables de restauracion;
-- confirmar en Workspace Admin la delegacion y scopes exactos;
-- decidir y configurar alertas minimas;
-- crear tag o release `v1.0.0` solo despues de cerrar la checklist.
+- endurecer IAM y retirar `roles/editor` con una migracion de menor privilegio;
+- evaluar PITR, backups programados y RPO/RTO institucionales;
+- evaluar versionado o retencion adicional de Storage;
+- decidir si se conserva el presupuesto heredado de 300 MXN;
+- mantener la revision manual mensual documentada;
+- crear tag o release `v1.0.0` solo con autorizacion expresa.

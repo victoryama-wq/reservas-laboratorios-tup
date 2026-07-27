@@ -1,6 +1,6 @@
 # Checklist de Liberacion MVP
 
-Fecha de auditoria: `2026-07-22`
+Fecha de auditoria: `2026-07-27`
 Proyecto: `reservas-laboratorios-tup`
 Version candidata: `v1.0.0`
 Responsable funcional: `victor.yama@tecplayacar.edu.mx`
@@ -10,6 +10,8 @@ Responsable funcional: `victor.yama@tecplayacar.edu.mx`
 - `PASS`: evidencia tecnica directa y vigente.
 - `VERIFIED_MANUAL`: validacion manual registrada.
 - `NOT_CONFIGURED`: capacidad confirmada como no configurada.
+- `ACCEPTED_RISK`: limitacion confirmada y aceptada expresamente por el
+  propietario para el MVP.
 - `BLOCKED`: no fue posible obtener evidencia o existe una precondicion.
 - `NOT_APPLICABLE`: no corresponde al alcance.
 
@@ -30,20 +32,25 @@ No usar `PASS` por inferencia.
 | Storage Rules locales | PASS | Acceso privado + validacion de sintaxis en emulador | 2026-07-22 | Codex | Sin deploy durante auditoria |
 | Privacidad de protocolos | PASS | Reglas privadas y acceso temporal mediante callable | 2026-07-22 | Codex | Sin URLs publicas ni `storagePath` en UI |
 | Indices declarados en Git | PASS | `firebase/firestore.indexes.json` vacio y valido | 2026-07-22 | Codex | Barrido local sin necesidad compuesta inequivoca |
-| Indices remotos | BLOCKED | `gcloud` requiere reautenticacion | 2026-07-22 | Sistemas | Verificar en consola antes de release |
+| Indices remotos | PASS | Firebase CLI: sin indices compuestos ni excepciones de campo | 2026-07-27 | Codex | Coincide con declaracion vacia en Git |
 | Secrets: nombres y versiones | PASS | Firebase CLI: JSON v1/v2 y subject v1 habilitados | 2026-07-22 | Codex | Valores no consultados |
-| Delegacion Workspace | VERIFIED_MANUAL | Calendar y Gmail operaron en QA Fase 18C | 2026-07-22 | Propietario | Revisar scopes exactos en Admin Console |
-| Scopes minimos Calendar/Gmail | BLOCKED | Configuracion de Admin Console no accesible | 2026-07-22 | Sistemas Workspace | Confirmar solo `calendar` y `gmail.send` |
+| Delegacion Workspace | VERIFIED_MANUAL | Delegacion activa, client ID OAuth coincidente y cuenta delegada confirmada | 2026-07-27 | Propietario | `escenarios.tup@tecplayacar.edu.mx` |
+| Scopes minimos Calendar/Gmail | VERIFIED_MANUAL | Admin Console: solo `calendar` y `gmail.send` | 2026-07-27 | Propietario | Sin scopes adicionales |
 | Cuenta de ejecucion de Functions | PASS | Firebase Functions list | 2026-07-22 | Codex | `261669564296-compute@developer.gserviceaccount.com` |
-| Politica IAM de menor privilegio | BLOCKED | `gcloud` requiere reautenticacion | 2026-07-22 | Sistemas GCP | Auditar roles directos y heredados |
-| Capacidad `signBlob` | VERIFIED_MANUAL | Protocolos abiertos en QA posterior al incidente | 2026-07-22 | Propietario | Logs historicos fallaron hasta 2026-06-30 |
+| Politica IAM de menor privilegio | ACCEPTED_RISK | Cuenta de ejecucion conserva `roles/editor` | 2026-07-27 | Propietario | Endurecimiento posterior al MVP |
+| Capacidad `signBlob` | PASS | IAM y apertura de protocolos verificados | 2026-07-27 | Codex | Capacidad operativa vigente |
+| Acceso de Functions a secrets | PASS | Secrets vinculados y ejecucion Calendar/Gmail verificada | 2026-07-27 | Codex | Valores no consultados |
 | Scheduler desplegado | PASS | Function programada `ACTIVE` | 2026-07-22 | Codex | 03:00 America/Cancun |
 | Scheduler saludable | PASS | Logs 15-22 julio: 0 errores y 0 borrados | 2026-07-22 | Codex | 13 escaneados/referenciados |
 | Dry run manual de limpieza | VERIFIED_MANUAL | Cierre documental 17I | 2026-07-22 | Propietario | No se ejecuto borrado en esta auditoria |
 | Logs de Functions criticas | PASS | Muestra de 500 entradas revisada | 2026-07-22 | Codex | Sin `ERROR_CALENDAR` ni `FAILED` en muestra |
-| Alertas de Functions/Scheduler | BLOCKED | Politicas no inventariables sin reautenticacion | 2026-07-22 | Sistemas GCP | Configurar o documentar alertas minimas |
-| Firestore backup/PITR | BLOCKED | Sin evidencia accesible | 2026-07-22 | Sistemas GCP | Definir RPO/RTO y probar restauracion aislada |
-| Storage versionado/retencion | BLOCKED | Sin evidencia accesible | 2026-07-22 | Sistemas GCP | Revisar lifecycle y recuperacion |
+| Canal de notificacion operativo | PASS | Canal de correo en el proyecto objetivo | 2026-07-27 | Codex | `victor.yama@tecplayacar.edu.mx` |
+| Error Reporting | VERIFIED_MANUAL | Grupos nuevos y errores resueltos que reaparezcan | 2026-07-27 | Propietario | Canal operativo seleccionado |
+| Uptime de Hosting | PASS | GET cada 5 min, timeout 10 s, tres regiones | 2026-07-27 | Codex | Alerta tras dos fallos consecutivos |
+| Alertas metricas adicionales | NOT_CONFIGURED | Decision expresa del propietario | 2026-07-27 | Propietario | Revision manual mensual compensatoria |
+| Presupuesto mensual | PASS | 500 MXN, proyecto unico, umbrales 50/80/100 real y 100 previsto | 2026-07-27 | Codex | Sin Pub/Sub ni suspension; existe presupuesto heredado de 300 MXN sin cambios |
+| Firestore backup/PITR | ACCEPTED_RISK | PITR, backups y exports automaticos no configurados | 2026-07-27 | Propietario | RPO/RTO no garantizados; restore N/A MVP |
+| Storage versionado/retencion | ACCEPTED_RISK | Soft delete 7 dias; sin versionado, retention ni lifecycle | 2026-07-27 | Propietario | Recuperacion posterior no garantizada |
 | Procedimientos de incidente | PASS | `docs/18_PRODUCTION_OPERATIONS_RUNBOOK.md` | 2026-07-22 | Codex | Calendar, correo, protocolo, usuario y scheduler |
 | Procedimiento de rollback | PASS | Runbook, seccion Rollback | 2026-07-22 | Codex | Sin ejecucion productiva |
 | Auth y roles reales | VERIFIED_MANUAL | QA Fase 18C con docente y responsable | 2026-07-22 | Propietario | Admin validado en fases previas |
@@ -61,24 +68,24 @@ No usar `PASS` por inferencia.
 | Pruebas Angular | PASS | `npm --prefix apps/web test -- --watch=false` | 2026-07-22 | Codex | Angular 21 no acepta `--run` |
 | Lint y builds | PASS | Scripts directos y `npm run validate` | 2026-07-22 | Codex | Advertencias no bloqueantes registradas |
 | CI remota | NOT_CONFIGURED | No existe `.github/workflows` | 2026-07-22 | Equipo | No se crea workflow en esta fase |
-| Deploy en Fase 18D.1 | NOT_APPLICABLE | Alcance prohibe deploy | 2026-07-22 | Codex | Solo auditoria y preparacion |
-| Tag/release `v1.0.0` | BLOCKED | Requiere cerrar backups, alertas e IAM | 2026-07-22 | Propietario | No crear tag aun |
+| Deploy en Fases 18D.1/18D.2 | NOT_APPLICABLE | Alcance prohibe deploy de aplicacion y reglas | 2026-07-27 | Codex | Solo controles operativos y documentacion |
+| Tag/release `v1.0.0` | NOT_APPLICABLE | No autorizado en esta fase | 2026-07-27 | Propietario | Crear solo con autorizacion expresa |
 
 ## Dictamen
 
-**APTO CONDICIONADO PARA LIBERACION CONTROLADA.**
+**APTO PARA LIBERACION CONTROLADA CON RIESGOS ACEPTADOS.**
 
-La aplicacion, Functions, reglas locales, Hosting y flujos funcionales criticos
-cuentan con evidencia tecnica o QA manual. Antes de declarar `v1.0.0` como
-liberacion institucional definitiva deben cerrarse con evidencia los bloqueos
-de IAM, alertas, indices remotos, backups/PITR, proteccion de Storage y scopes
-de delegacion Workspace.
+La aplicacion, Functions, reglas, Hosting, integraciones y flujos funcionales
+criticos cuentan con evidencia tecnica o QA manual. Los controles operativos
+seleccionados quedaron configurados. El propietario acepta expresamente la
+ausencia de PITR/backups de Firestore, la recuperacion limitada de Storage y el
+riesgo de `roles/editor` durante el MVP.
 
-## Criterio de desbloqueo
+## Condiciones de operacion y liberacion
 
-1. Reautenticar `gcloud` con una cuenta autorizada.
-2. Adjuntar evidencia sin secretos de IAM, alertas, indices y backups.
-3. Confirmar scopes de delegacion en Workspace Admin.
-4. Aprobar RPO/RTO y una prueba de restauracion aislada.
-5. Reejecutar `npm test`, `npm run validate` y smoke final.
-6. Crear tag/release solo con autorizacion expresa.
+1. Mantener la revision manual mensual de Error Reporting, Functions,
+   Scheduler, notificaciones `FAILED`, consumo y facturacion.
+2. Registrar cualquier cambio a los riesgos aceptados de continuidad.
+3. Resolver el endurecimiento IAM en una fase posterior al MVP.
+4. Reejecutar `npm test`, `npm run validate` y smoke final antes del tag.
+5. Crear tag/release solo con autorizacion expresa.
