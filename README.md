@@ -1797,7 +1797,11 @@ evento externo real, confirmado manualmente, de 10:00 a 13:00; la solicitud de
 11:00 a 13:30 tenía un traslape legítimo. No hubo duplicado, autoconflicto ni
 evento huérfano generado por 18B.
 
-## Fases 18D.1 y 18D.2: operación productiva y controles de liberación
+## Fase 18D: cierre de producción
+
+**Fase 18D — CERRADA**
+
+**MVP v1.0.0 — LIBERADO**
 
 La operación de producción se documenta en:
 
@@ -1844,6 +1848,7 @@ ni lifecycle. IAM conserva `roles/editor` como riesgo conocido que se endurecer�
 después del MVP. Existe una revisión manual mensual compensatoria de Error
 Reporting, Functions, Scheduler, notificaciones `FAILED` y facturación.
 
-El dictamen vigente es **apto para liberación controlada con riesgos
-aceptados**. Esta fase no desplegó Hosting, Functions ni reglas, no leyó valores
-de secretos y no creó el tag ni la GitHub Release `v1.0.0`.
+La liberación `v1.0.0` consolida el MVP institucional con los riesgos
+operativos aceptados descritos en el runbook y el checklist. Las fases 18D.1,
+18D.2 y 18D.3 no desplegaron Hosting, Functions ni reglas; el código productivo
+ya había sido desplegado y validado previamente.

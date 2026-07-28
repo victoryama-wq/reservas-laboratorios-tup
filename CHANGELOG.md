@@ -2,7 +2,14 @@
 
 Los cambios relevantes del proyecto se documentan en este archivo.
 
-## [1.0.0] - 2026-07-22
+## [1.0.0] - 2026-07-28
+
+Esta versión corresponde al MVP institucional del Sistema Web de Reservas de
+Laboratorios y consolida el cierre de las fases 17F a 18D. El código productivo
+ya había sido desplegado y validado antes de esta liberación documental; las
+fases 18D.1, 18D.2 y 18D.3 no ejecutaron deploy de aplicación, Functions ni
+reglas. Los riesgos operativos aceptados permanecen documentados en el runbook
+y en el checklist de liberación.
 
 ### Autenticacion y roles
 
@@ -110,5 +117,3 @@ Los cambios relevantes del proyecto se documentan en este archivo.
 - Existe un presupuesto heredado de 300 MXN para el mismo proyecto, detectado y
   no modificado durante la Fase 18D.2.
 - CI remota no esta configurada.
-- El tag y la GitHub Release `v1.0.0` no se crean en esta fase y requieren
-  autorizacion expresa.

@@ -1108,3 +1108,44 @@ Cloud Functions, Cloud Scheduler, notificaciones `FAILED`, consumo y
 facturación. El dictamen de `docs/19_MVP_RELEASE_CHECKLIST.md` es **APTO PARA
 LIBERACIÓN CONTROLADA CON RIESGOS ACEPTADOS**. Esta fase no desplegó aplicación
 ni reglas y no creó tag o GitHub Release `v1.0.0`.
+
+## 45. Fase 18D.3: cierre documental definitivo y liberación v1.0.0
+
+Estado: **18D.3 — CERRADA**.
+
+Estado de producto: **MVP v1.0.0 — LIBERADO**.
+
+Fecha de liberación: `2026-07-28`, zona horaria `America/Cancun`.
+
+La liberación se preparó sobre el commit base validado de Fase 18D.2
+`f89c8dc66e7adf7476ea80a9320ef6b73b78db2f`. El cierre incluye un único commit
+documental, el tag anotado `v1.0.0` apuntando al commit que contiene este
+reporte y una GitHub Release pública, latest, no draft y no prerelease.
+
+No se ejecutó deploy en 18D.1, 18D.2 ni 18D.3. El código productivo, Functions,
+Hosting y reglas ya habían sido desplegados y validados antes de este cierre.
+La validación final se ejecutó con Node.js 22 e incluyó pruebas, lint y builds
+de Functions y Angular, además de `npm test`, `npm run validate` y
+`git diff --check`.
+
+Riesgos operativos aceptados:
+
+- Firestore sin PITR, backups programados ni exportaciones automáticas; RPO y
+  RTO no garantizados;
+- Storage con soft delete de 7 días, sin versionado, retention policy ni
+  lifecycle;
+- `roles/editor` pendiente de endurecimiento posterior al MVP;
+- CI remota no configurada;
+- presupuesto heredado de 300 MXN pendiente de revisión.
+
+Actividades posteriores al MVP:
+
+- reducir privilegios IAM y retirar `roles/editor` mediante una fase controlada;
+- evaluar PITR, backups y objetivos institucionales de RPO/RTO;
+- evaluar versionado o protección adicional de Storage;
+- decidir el tratamiento del presupuesto heredado de 300 MXN;
+- configurar CI remota;
+- revisar dependencias y warnings conocidos sin mezclarlo con operación
+  productiva;
+- mantener la revisión manual mensual de Error Reporting, Functions,
+  Scheduler, notificaciones `FAILED`, consumo y facturación.

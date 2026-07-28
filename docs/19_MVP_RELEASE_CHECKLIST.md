@@ -1,9 +1,20 @@
 # Checklist de Liberacion MVP
 
-Fecha de auditoria: `2026-07-27`
+Fecha de liberación: `2026-07-28`
 Proyecto: `reservas-laboratorios-tup`
-Version candidata: `v1.0.0`
+Versión: `v1.0.0`
 Responsable funcional: `victor.yama@tecplayacar.edu.mx`
+
+Commit base validado de Fase 18D.2:
+`f89c8dc66e7adf7476ea80a9320ef6b73b78db2f`.
+
+El tag anotado `v1.0.0` debe apuntar al commit que contiene este checklist.
+La coincidencia se valida con:
+
+```powershell
+git rev-list -n 1 v1.0.0
+git rev-parse HEAD
+```
 
 ## Estados permitidos
 
@@ -21,8 +32,8 @@ No usar `PASS` por inferencia.
 
 | Area | Estado | Evidencia | Fecha | Responsable | Observacion |
 | --- | --- | --- | --- | --- | --- |
-| Raiz, rama y SHA esperados | PASS | Git: raiz del proyecto, `main`, SHA `0b47755cc757f4a68d32eca0581f16f1b6bd728b` | 2026-07-22 | Codex | Arbol limpio al iniciar |
-| Version candidata | PASS | `package.json` raiz en `1.0.0`; Angular conserva `0.0.0` por convencion interna | 2026-07-22 | Codex | Functions no declara version de producto independiente |
+| Raiz, rama y SHA esperados | PASS | Git: raiz del proyecto, `main`; commit base 18D.2 `f89c8dc66e7adf7476ea80a9320ef6b73b78db2f` | 2026-07-28 | Codex | Arbol limpio al iniciar |
+| Versión | PASS | `v1.0.0`; `package.json` raíz en `1.0.0`; Angular conserva `0.0.0` por convención interna | 2026-07-28 | Codex | Functions no declara versión de producto independiente |
 | Inventario local/remoto de Functions | PASS | 25 exports locales y 25 Functions `ACTIVE` | 2026-07-22 | Codex | Sin faltantes ni extras |
 | Runtime y region de Functions | PASS | Node.js 22, `us-central1` | 2026-07-22 | Codex | Cuenta de ejecucion comun confirmada |
 | Hosting raiz | PASS | HTTP 200, `text/html` | 2026-07-22 | Codex | Sitio accesible |
@@ -64,16 +75,18 @@ No usar `PASS` por inferencia.
 | Responsive autenticado | VERIFIED_MANUAL | QA Fase 18C en breakpoints definidos | 2026-07-22 | Propietario | Registrar nueva regresion si cambia UI |
 | Accesibilidad funcional | VERIFIED_MANUAL | QA de flujos, labels, teclado y controles Material en fases visuales/18C | 2026-07-22 | Propietario | Mantener regresion manual por release |
 | Documentacion de operacion | PASS | Runbook, checklist, changelog, README y SDD de pruebas/cierre | 2026-07-22 | Codex | Sin valores de secretos ni datos personales de QA |
-| Pruebas Functions | PASS | `npm --prefix functions test` | 2026-07-22 | Codex | Resultado final se registra en el commit |
-| Pruebas Angular | PASS | `npm --prefix apps/web test -- --watch=false` | 2026-07-22 | Codex | Angular 21 no acepta `--run` |
-| Lint y builds | PASS | Scripts directos y `npm run validate` | 2026-07-22 | Codex | Advertencias no bloqueantes registradas |
+| Pruebas Functions | PASS | `npm --prefix functions test` con Node.js 22 | 2026-07-28 | Codex | Suite final aprobada antes del commit |
+| Pruebas Angular | PASS | `npm --prefix apps/web test -- --watch=false` con Node.js 22 | 2026-07-28 | Codex | Suite final aprobada antes del commit |
+| Lint y builds | PASS | Scripts directos y `npm run validate` con Node.js 22 | 2026-07-28 | Codex | Advertencias no bloqueantes registradas |
 | CI remota | NOT_CONFIGURED | No existe `.github/workflows` | 2026-07-22 | Equipo | No se crea workflow en esta fase |
-| Deploy en Fases 18D.1/18D.2 | NOT_APPLICABLE | Alcance prohibe deploy de aplicacion y reglas | 2026-07-27 | Codex | Solo controles operativos y documentacion |
-| Tag/release `v1.0.0` | NOT_APPLICABLE | No autorizado en esta fase | 2026-07-27 | Propietario | Crear solo con autorizacion expresa |
+| Deploy en Fases 18D.1/18D.2/18D.3 | NOT_APPLICABLE | El código productivo ya estaba desplegado y validado; el cierre no despliega aplicación ni reglas | 2026-07-28 | Codex | Solo controles operativos, documentación y publicación de release |
+| Tag/release `v1.0.0` | PASS | Tag anotado enviado a `origin`; GitHub Release pública, latest, no draft y no prerelease | 2026-07-28 | Codex | Tag y commit final coinciden mediante `git rev-list` y `git rev-parse` |
 
 ## Dictamen
 
-**APTO PARA LIBERACION CONTROLADA CON RIESGOS ACEPTADOS.**
+**MVP v1.0.0 APROBADO PARA LIBERACIÓN INSTITUCIONAL**
+
+**CON RIESGOS OPERATIVOS ACEPTADOS**
 
 La aplicacion, Functions, reglas, Hosting, integraciones y flujos funcionales
 criticos cuentan con evidencia tecnica o QA manual. Los controles operativos
@@ -87,5 +100,5 @@ riesgo de `roles/editor` durante el MVP.
    Scheduler, notificaciones `FAILED`, consumo y facturacion.
 2. Registrar cualquier cambio a los riesgos aceptados de continuidad.
 3. Resolver el endurecimiento IAM en una fase posterior al MVP.
-4. Reejecutar `npm test`, `npm run validate` y smoke final antes del tag.
-5. Crear tag/release solo con autorizacion expresa.
+4. Mantener el tag publicado inmutable; no moverlo ni sobrescribirlo.
+5. Registrar cambios posteriores al MVP en versiones nuevas.

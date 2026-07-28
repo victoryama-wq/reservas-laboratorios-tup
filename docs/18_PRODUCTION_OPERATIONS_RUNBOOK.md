@@ -146,10 +146,9 @@ Las reglas usan denegacion por defecto. Las escrituras criticas de reservas,
 bitacoras, notificaciones y auditoria no se permiten al cliente. Los accesos se
 limitan por propietario, laboratorio asignado o rol Admin segun el recurso.
 
-`firebase/firestore.indexes.json` no declara indices compuestos. El barrido de
-consultas no encontro una combinacion local inequívoca de rango y ordenamiento
-que exija un indice compuesto adicional. Los indices remotos deben verificarse
-en consola o con una sesion `gcloud` reautenticada antes de liberar.
+Los índices remotos fueron verificados el 27 de julio de 2026.
+No existen índices compuestos ni excepciones de campo remotas.
+El estado coincide con `firebase/firestore.indexes.json`.
 
 ## 9. Storage
 
@@ -164,8 +163,10 @@ No existen lecturas publicas generales y el fallback deniega todo. La interfaz
 no debe exponer `storagePath`; los protocolos se abren mediante callable y URL
 temporal autorizada.
 
-Versionado, retencion y lifecycle del bucket no pudieron verificarse por la
-sesion expirada de `gcloud`; deben revisarse manualmente.
+El 27 de julio de 2026 se verificó que el bucket conserva soft delete de 7
+días, con versionado deshabilitado y sin retention policy ni lifecycle. La
+recuperación posterior a 7 días no está garantizada y el propietario aceptó
+este riesgo para el MVP.
 
 ## 10. Scheduler de protocolos huerfanos
 
@@ -389,4 +390,5 @@ seguir un procedimiento aprobado de recuperacion.
 - evaluar versionado o retencion adicional de Storage;
 - decidir si se conserva el presupuesto heredado de 300 MXN;
 - mantener la revision manual mensual documentada;
-- crear tag o release `v1.0.0` solo con autorizacion expresa.
+- configurar CI remota cuando se apruebe su alcance;
+- revisar dependencias y warnings conocidos en una fase técnica separada.
