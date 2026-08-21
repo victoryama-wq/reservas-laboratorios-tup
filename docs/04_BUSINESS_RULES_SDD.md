@@ -219,3 +219,26 @@ La validacion se ejecuta en backend en:
 Los bloqueos extraordinarios no modifican reservas ya existentes ni crean
 eventos por si mismos en Google Calendar. Solo bloquean nuevas confirmaciones
 o aprobaciones dentro del rango configurado.
+
+## Solicitudes de varias fechas y evidencias
+
+Una solicitud puede contener de 1 a 20 fechas únicas dentro de los próximos 90
+días, con el mismo laboratorio, horario y datos comunes. Cada fecha se valida y
+persiste como reserva individual. Un conflicto o regla incumplida rechaza solo
+esa fecha con un estatus oficial; las demás continúan y el resultado se informa
+en un único correo consolidado.
+
+Un grupo pendiente comparte el protocolo vinculado. Aprobar o rechazar una de
+sus reservas resuelve en conjunto todas las ocurrencias que sigan en
+`PENDIENTE_VALIDACION`, con evento y bitácora individual pero una sola
+notificación.
+
+`responsible_direct` solo puede usarlo un perfil activo con rol
+`responsable_laboratorio` o `admin_sistemas`. El responsable queda limitado a
+un laboratorio de `labsAssigned`; Admin/Sistemas conserva alcance global. El
+modo no acepta datos académicos, material, riesgo ni protocolo.
+
+El docente propietario puede agregar hasta 10 evidencias comprimidas, de 5 MB
+cada una, después del inicio de una reserva confirmada. Solo propietario,
+responsable asignado y Admin/Sistemas pueden consultarlas. Se eliminan a los 90
+días sin borrar reservas ni trazabilidad.

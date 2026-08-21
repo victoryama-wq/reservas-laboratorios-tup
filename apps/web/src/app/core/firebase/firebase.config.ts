@@ -1,7 +1,7 @@
 import { FirebaseOptions } from 'firebase/app';
 
-// Configuracion publica de la Web App de Firebase.
-// No incluir aqui credenciales privadas ni archivos de cuenta de servicio.
+// Configuración pública de la Web App de Firebase.
+// No incluir aquí credenciales privadas ni archivos de cuenta de servicio.
 export const firebaseConfig: FirebaseOptions = {
   apiKey: 'AIzaSyB-TNekEip71HHHmJ2sWiHZdUMa4sc1Jvo',
   authDomain: 'reservas-laboratorios-tup.firebaseapp.com',

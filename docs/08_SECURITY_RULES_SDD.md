@@ -319,3 +319,21 @@ Reglas de seguridad:
   operativos;
 - la carga inicial de protocolos al crear reserva sigue usando Storage SDK bajo
   las reglas existentes.
+
+## Evidencias privadas de reservas
+
+Las evidencias se almacenan en
+`reservationEvidence/{teacherUid}/{reservationId}/{uploadId}/{fileName}`. El
+docente propietario puede subir hasta 10 imágenes JPG, PNG o WebP, de máximo
+5 MB cada una, únicamente cuando la reserva ya inició y tiene un estatus
+confirmado. La compresión se ejecuta en el navegador antes de subir; Storage
+vuelve a validar tipo, tamaño y propiedad.
+
+La lectura directa desde Storage está denegada. Una callable genera una URL
+firmada temporal solo para el docente propietario, un responsable asignado al
+laboratorio o un Admin/Sistemas activo. Angular no escribe metadata de
+evidencias directamente en Firestore.
+
+Una función programada elimina los archivos después de 90 días sin borrar
+reservas, logs, notificaciones ni auditoría. La recuperación de evidencias
+vencidas no está garantizada.

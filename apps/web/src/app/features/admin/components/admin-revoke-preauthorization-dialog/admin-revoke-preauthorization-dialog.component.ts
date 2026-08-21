@@ -57,7 +57,7 @@ export interface AdminRevokePreauthorizationDialogResult {
       <app-info-callout
         variant="warning"
         icon="warning"
-        message="La persona ya no podra reclamar esta prealta al iniciar sesion. Si despues se requiere acceso, debera crear una nueva prealta."
+        message="La persona ya no podrá reclamar esta prealta al iniciar sesión. Si después se requiere acceso, deberá crear una nueva prealta."
       />
 
       <div class="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">

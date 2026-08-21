@@ -88,3 +88,16 @@
     grid-row: span 2;
   }
 }
+.responsible-evidence-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.responsible-evidence-list button {
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 2.75rem;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

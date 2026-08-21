@@ -47,3 +47,8 @@ export {ensureUserProfile} from
   "./modules/users/ensure-user-profile.function";
 export {getLabUsageReport} from
   "./modules/reports/get-lab-usage-report.function";
+export {
+  addReservationEvidence,
+  getReservationEvidenceAccess,
+  scheduledCleanupReservationEvidence,
+} from "./modules/evidence/reservation-evidence.function";

@@ -153,7 +153,7 @@ export class AdminRulesService {
   }
 
   formatRuleDate(value?: string): string {
-    return value || 'Sin limite';
+    return value || 'Sin límite';
   }
 
   private async listBlockedPeriods(): Promise<AdminBlockedPeriodView[]> {

@@ -75,7 +75,7 @@ type PreauthorizationStatus = {
         <app-info-callout
           variant="info"
           icon="verified_user"
-          message="Los docentes con correo tup-dNUMEROS@tecplayacar.edu.mx se registran automaticamente al iniciar sesion. Usa prealta solo para responsables/coordinadores. Los usuarios existentes no se eliminan: para impedir acceso, suspende el perfil."
+          message="Los docentes con correo tup-dNUMEROS@tecplayacar.edu.mx se registran automáticamente al iniciar sesión. Usa prealta solo para responsables/coordinadores. Los usuarios existentes no se eliminan: para impedir acceso, suspende el perfil."
         />
 
         <button
@@ -296,7 +296,7 @@ type PreauthorizationStatus = {
                         Estado de acceso
                       </span>
                       <p class="m-0 mt-1">
-                        {{ user.active ? 'Puede iniciar sesion' : 'Acceso suspendido' }}
+                        {{ user.active ? 'Puede iniciar sesión' : 'Acceso suspendido' }}
                       </p>
                     </div>
                     <div>
@@ -628,7 +628,7 @@ export class AdminUsersPageComponent implements OnInit {
       }
     }
 
-    return 'No fue posible revocar la prealta. Intente de nuevo o revise la bitacora tecnica.';
+    return 'No fue posible revocar la prealta. Intente de nuevo o revise la bitácora técnica.';
   }
 
   private toErrorMessage(error: unknown): string {

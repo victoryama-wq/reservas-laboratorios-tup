@@ -63,13 +63,13 @@
             </a>
             <a mat-menu-item routerLink="/admin/bitacora">
               <mat-icon aria-hidden="true">history</mat-icon>
-              <span>Bitacora</span>
+              <span>Bitácora</span>
             </a>
           }
 
           <button mat-menu-item type="button" (click)="signOut()">
             <mat-icon aria-hidden="true">logout</mat-icon>
-            <span>Cerrar sesion</span>
+            <span>Cerrar sesión</span>
           </button>
         } @else if (state.kind === 'signed-out') {
           <a mat-menu-item routerLink="/login">
@@ -84,7 +84,7 @@
         }
       </mat-menu>
 
-      <nav class="nav-actions" aria-label="Navegacion principal">
+      <nav class="nav-actions" aria-label="Navegación principal">
         @if (state.kind === 'ready') {
           <a
             mat-button
@@ -145,7 +145,7 @@
               routerLink="/admin/bitacora"
               routerLinkActive="active-link"
             >
-              Bitacora
+              Bitácora
             </a>
           }
         } @else if (state.kind === 'signed-out') {
@@ -184,7 +184,7 @@
             <small>{{ getUnavailableProfileLabel(state.status) }}</small>
           </div>
         } @else {
-          <span class="secure-label">Conexion segura</span>
+          <span class="secure-label">Conexión segura</span>
         }
 
         @if (state.kind !== 'signed-out') {
@@ -194,7 +194,7 @@
             type="button"
             (click)="signOut()"
           >
-            Cerrar sesion
+            Cerrar sesión
           </button>
         }
       </div>

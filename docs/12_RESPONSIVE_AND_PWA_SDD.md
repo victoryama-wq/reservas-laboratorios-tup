@@ -607,3 +607,20 @@ secundarios se distribuyen en dos columnas.
 
 Las gráficas incluyen `aria-label`, respetan `prefers-reduced-motion` y siempre
 tienen una alternativa textual/tabular. No se permite overflow horizontal.
+
+## Solicitudes múltiples y evidencias en responsive
+
+En 360, 390 y 414 px la selección de fechas usa un datepicker táctil y chips
+removibles que envuelven sin overflow. El límite de 20 fechas y el rango de 90
+días permanecen visibles. Los resultados parciales se presentan como tarjetas
+por fecha, no como tabla ancha.
+
+La ayuda de selección múltiple y el contador `seleccionadas / 20` deben
+permanecer legibles en una columna, sin depender de hover ni de espacio de
+escritorio.
+
+El formulario simplificado de responsable y Admin/Sistemas conserva solo las
+secciones básicas y evita espacios vacíos por pasos ocultos. La carga de
+evidencias usa selector,
+mensajes de compresión y tarjetas privadas; los nombres largos se truncan
+visualmente sin perder su valor accesible.

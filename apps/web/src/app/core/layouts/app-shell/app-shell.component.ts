@@ -134,7 +134,7 @@ export class AppShellComponent {
       return 'Docente';
     }
 
-    return 'Rol no valido';
+    return 'Rol no válido';
   }
 
   protected getUnavailableProfileLabel(status: UserProfileStatus): string {
@@ -147,9 +147,9 @@ export class AppShellComponent {
     }
 
     if (status === 'invalid-role') {
-      return 'Rol no valido';
+      return 'Rol no válido';
     }
 
-    return 'Perfil en validacion';
+    return 'Perfil en validación';
   }
 }

@@ -48,7 +48,7 @@ export class AuthService {
     const credential = await this.withRequiredResult(
       signInWithPopup(this.auth, this.createGoogleProvider()),
       30000,
-      'El inicio de sesion con Google tardo demasiado. Intente de nuevo o pruebe con redireccion.',
+      'El inicio de sesión con Google tardó demasiado. Intente de nuevo o pruebe con redirección.',
     );
     const user = credential.user;
 

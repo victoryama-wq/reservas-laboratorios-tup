@@ -10,15 +10,15 @@
     </div>
   } @else if (!lab()) {
     <div class="state-panel app-state-panel">
-      <p>El laboratorio solicitado no esta disponible.</p>
-      <a mat-button routerLink="/laboratorios">Volver al catalogo</a>
+      <p>El laboratorio solicitado no está disponible.</p>
+      <a mat-button routerLink="/laboratorios">Volver al catálogo</a>
     </div>
   } @else {
     <app-page-header
       kicker="Detalle de laboratorio"
       [title]="lab()?.name ?? ''"
       [subtitle]="lab()?.description ?? ''"
-      backLabel="Volver al catalogo"
+      backLabel="Volver al catálogo"
       backLink="/laboratorios"
       statusLabel="Disponible"
       statusVariant="success"
@@ -47,7 +47,7 @@
             <div>
               <app-icon-box icon="event_available" variant="primary" />
               <div>
-                <dt>Anticipacion minima</dt>
+                <dt>Anticipación mínima</dt>
                 <dd>{{ minNoticeLabel(selectedLab) }}</dd>
               </div>
             </div>
@@ -55,7 +55,7 @@
               <app-icon-box icon="verified_user" variant="primary" />
               <div>
                 <dt>Validaciones requeridas</dt>
-                <dd>Validacion y protocolo si hay riesgo.</dd>
+                <dd>Validación y protocolo si hay riesgo.</dd>
               </div>
             </div>
           </dl>

@@ -260,9 +260,17 @@ export class ReservationRepository {
       teacherUid: data.teacherUid ?? "",
       teacherName: data.teacherName ?? "",
       teacherEmail: data.teacherEmail ?? "",
+      requestedByRole: data.requestedByRole,
+      guestTeacherEmail: data.guestTeacherEmail,
+      reservationMode: data.reservationMode,
+      reservationGroupId: data.reservationGroupId,
+      reservationGroupSize: data.reservationGroupSize,
+      reservationGroupIndex: data.reservationGroupIndex,
       subject: data.subject ?? "",
       group: data.group ?? "",
       practiceName: data.practiceName ?? "",
+      practiceNumber: data.practiceNumber,
+      description: data.description,
       objective: data.objective ?? "",
       materialRequired: data.materialRequired ?? "",
       practiceType: data.practiceType ?? "",
@@ -271,6 +279,8 @@ export class ReservationRepository {
       externalParticipants: data.externalParticipants === true,
       protocolRequired: data.protocolRequired === true,
       protocolFiles: data.protocolFiles ?? [],
+      evidenceFiles: data.evidenceFiles ?? [],
+      evidenceCleanupAt: data.evidenceCleanupAt,
       startAt: data.startAt ?? now,
       endAt: data.endAt ?? now,
       status: data.status as ReservationStatus,
@@ -280,6 +290,22 @@ export class ReservationRepository {
       updatedAt: data.updatedAt ?? now,
       source: data.source ?? "web",
     };
+  }
+
+  /**
+   * Lists reservations linked to the same multi-date request.
+   *
+   * @param {string} reservationGroupId Reservation group id.
+   * @return {Promise<ReservationDoc[]>} Group reservations.
+   */
+  async listReservationsByGroup(
+      reservationGroupId: string,
+  ): Promise<ReservationDoc[]> {
+    const snapshot = await this.reservations()
+        .where("reservationGroupId", "==", reservationGroupId)
+        .limit(20)
+        .get();
+    return snapshot.docs.map((document) => this.toReservationDoc(document));
   }
 
   /**

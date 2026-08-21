@@ -1,7 +1,7 @@
 <app-section-card
   class="reservation-stepper-card"
   title="Solicitud de reserva"
-  subtitle="Complete la informacion para crear la solicitud."
+  subtitle="Complete la información para crear la solicitud."
   icon="description"
 >
   <mat-stepper
@@ -24,15 +24,22 @@
 
     <mat-step [stepControl]="group('schedule')">
       <form [formGroup]="group('schedule')" class="step-content">
-        <ng-template matStepLabel>Fecha</ng-template>
+        <ng-template matStepLabel>Fechas</ng-template>
 
         <div class="step-intro">
           <app-icon-box icon="calendar_today" />
           <div>
-            <h3>Fecha y horario</h3>
-            <p>El laboratorio se conserva precargado desde la ruta QR.</p>
+            <h3>Fechas y horario</h3>
+            <p>Agregue las fechas en las que desea utilizar el laboratorio.</p>
           </div>
         </div>
+
+        <app-info-callout
+          variant="info"
+          icon="touch_app"
+          title="Cómo seleccionar varias fechas"
+          message="Seleccione una fecha en el calendario. Para agregar otra, abra nuevamente el calendario y repita el proceso. Cada fecha aparecerá debajo y podrá quitarla con el botón X. Puede elegir un máximo de 20 fechas dentro de los próximos 90 días."
+        />
 
         <mat-form-field appearance="outline">
           <mat-label>Laboratorio</mat-label>
@@ -45,13 +52,14 @@
           class="app-reservation-date-field"
           (click)="openDatepicker(picker)"
         >
-          <mat-label>Fecha de reserva</mat-label>
+          <mat-label>Agregar fecha de reserva</mat-label>
           <input
             matInput
             [matDatepicker]="picker"
             [min]="minDate()"
             [max]="maxDate()"
             formControlName="date"
+            (dateChange)="dateSelected.emit($event.value)"
           />
           <mat-datepicker-toggle matIconSuffix [for]="picker" />
           <mat-datepicker #picker />
@@ -59,6 +67,45 @@
             <mat-error>La fecha es requerida.</mat-error>
           }
         </mat-form-field>
+
+        <div
+          class="flex min-h-11 items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-600"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <span class="inline-flex min-w-0 items-center gap-2">
+            <mat-icon
+              class="!flex !h-5 !w-5 items-center justify-center text-[20px] !leading-5 text-indigo-700"
+              aria-hidden="true"
+            >event_available</mat-icon>
+            Fechas seleccionadas
+          </span>
+          <strong class="shrink-0 font-extrabold text-slate-950">
+            {{ selectedDates().length }} / 20
+          </strong>
+        </div>
+
+        @if (selectedDates().length) {
+          <div class="selected-dates" aria-label="Fechas seleccionadas">
+            @for (date of selectedDates(); track date.getTime()) {
+              <button
+                mat-stroked-button
+                type="button"
+                [attr.aria-label]="'Quitar fecha ' + formatShortDate(date)"
+                (click)="dateRemoved.emit(date)"
+              >
+                <mat-icon>event</mat-icon>
+                {{ formatShortDate(date) }}
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </div>
+          <app-info-callout
+            variant="info"
+            icon="date_range"
+            [message]="'Se creará una reserva independiente para cada una de las ' + selectedDates().length + ' fechas seleccionadas.'"
+          />
+        }
 
         @if (dateInPastError()) {
           <app-info-callout
@@ -82,14 +129,14 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="app-reservation-time-field">
-            <mat-label>Hora de finalizacion</mat-label>
+            <mat-label>Hora de finalización</mat-label>
             <input
               matInput
               type="time"
               formControlName="endTime"
             />
             @if (hasRequiredError('schedule', 'endTime')) {
-              <mat-error>La hora de finalizacion es requerida.</mat-error>
+              <mat-error>La hora de finalización es requerida.</mat-error>
             }
           </mat-form-field>
         </div>
@@ -98,7 +145,7 @@
           <app-info-callout
             variant="warning"
             icon="warning"
-            message="La hora de finalizacion debe ser mayor que la hora de inicio."
+            message="La hora de finalización debe ser mayor que la hora de inicio."
           />
         }
 
@@ -109,7 +156,7 @@
             [message]="
               'Este laboratorio requiere ' +
               minNoticeHours() +
-              ' horas de anticipacion. Backend validara esta regla de forma definitiva.'
+              ' horas de anticipación. Backend validará esta regla de forma definitiva.'
             "
           />
         }
@@ -125,39 +172,65 @@
 
     <mat-step [stepControl]="group('academic')">
       <form [formGroup]="group('academic')" class="step-content">
-        <ng-template matStepLabel>Datos</ng-template>
+        <ng-template matStepLabel>{{ simplifiedMode() ? 'Detalles' : 'Datos' }}</ng-template>
 
         <div class="step-intro">
           <app-icon-box icon="school" />
           <div>
-            <h3>Datos academicos</h3>
-            <p>Describa la asignatura, grupo y objetivo de la practica.</p>
+            <h3>{{ simplifiedMode() ? 'Datos básicos' : 'Datos académicos' }}</h3>
+            <p>
+              {{ simplifiedMode()
+                ? 'Indique la práctica, una descripción y el docente invitado si aplica.'
+                : 'Describa la asignatura, grupo y objetivo de la práctica.' }}
+            </p>
           </div>
         </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Asignatura</mat-label>
-          <input matInput formControlName="subject" />
-          <mat-error>La asignatura es requerida.</mat-error>
-        </mat-form-field>
+        @if (!simplifiedMode()) {
+          <mat-form-field appearance="outline">
+            <mat-label>Asignatura</mat-label>
+            <input matInput formControlName="subject" />
+            <mat-error>La asignatura es requerida.</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Grupo</mat-label>
+            <input matInput formControlName="group" />
+            <mat-error>El grupo es requerido.</mat-error>
+          </mat-form-field>
+        }
 
         <mat-form-field appearance="outline">
-          <mat-label>Grupo</mat-label>
-          <input matInput formControlName="group" />
-          <mat-error>El grupo es requerido.</mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre de la practica</mat-label>
+          <mat-label>Nombre de la práctica</mat-label>
           <input matInput formControlName="practiceName" />
-          <mat-error>El nombre de la practica es requerido.</mat-error>
+          <mat-error>El nombre de la práctica es requerido.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Objetivo</mat-label>
-          <textarea matInput rows="4" formControlName="objective"></textarea>
-          <mat-error>El objetivo es requerido.</mat-error>
+          <mat-label>Número de práctica (opcional)</mat-label>
+          <input matInput formControlName="practiceNumber" maxlength="40" />
+          <mat-hint>Coloque el número de práctica si aplica.</mat-hint>
         </mat-form-field>
+
+        @if (simplifiedMode()) {
+          <mat-form-field appearance="outline">
+            <mat-label>Correo institucional del docente invitado (opcional)</mat-label>
+            <input matInput type="email" formControlName="guestTeacherEmail" />
+            <mat-hint>El docente será invitado al evento de Google Calendar.</mat-hint>
+            <mat-error>Ingrese un correo institucional válido.</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Descripción (opcional)</mat-label>
+            <textarea matInput rows="4" formControlName="description"></textarea>
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="outline">
+            <mat-label>Objetivo</mat-label>
+            <textarea matInput rows="4" formControlName="objective"></textarea>
+            <mat-error>El objetivo es requerido.</mat-error>
+          </mat-form-field>
+        }
 
         <div class="step-actions">
           <button mat-button matStepperPrevious [disabled]="disabled()">Regresar</button>
@@ -169,15 +242,16 @@
       </form>
     </mat-step>
 
+    @if (!simplifiedMode()) {
     <mat-step [stepControl]="group('practice')">
       <form [formGroup]="group('practice')" class="step-content">
-        <ng-template matStepLabel>Practica</ng-template>
+        <ng-template matStepLabel>Práctica</ng-template>
 
         <div class="step-intro">
           <app-icon-box icon="science" />
           <div>
-            <h3>Material y practica</h3>
-            <p>Indique materiales, tipo de practica y participantes externos.</p>
+            <h3>Material y práctica</h3>
+            <p>Indique materiales, tipo de práctica y participantes externos.</p>
           </div>
         </div>
 
@@ -187,21 +261,21 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Tipo de practica</mat-label>
+          <mat-label>Tipo de práctica</mat-label>
           <mat-select formControlName="practiceType">
             @for (type of practiceTypes(); track type) {
               <mat-option [value]="type">{{ type }}</mat-option>
             }
           </mat-select>
-          <mat-error>El tipo de practica es requerido.</mat-error>
+          <mat-error>El tipo de práctica es requerido.</mat-error>
         </mat-form-field>
 
         @if (isPracticeTypeOther()) {
           <mat-form-field appearance="outline">
-            <mat-label>Especifique el tipo de practica</mat-label>
+            <mat-label>Especifique el tipo de práctica</mat-label>
             <input matInput formControlName="practiceTypeOther" maxlength="120" />
             @if (hasPracticeTypeOtherError()) {
-              <mat-error>Debe especificar el tipo de practica.</mat-error>
+              <mat-error>Debe especificar el tipo de práctica.</mat-error>
             }
           </mat-form-field>
         }
@@ -233,26 +307,26 @@
 
         <div class="question-field">
           <p id="risky-question" class="question-field__label">
-            ¿Se utilizaran sustancias, muestras biologicas o material
+            ¿Se utilizarán sustancias, muestras biológicas o material
             potencialmente riesgoso?
           </p>
           <mat-form-field appearance="outline">
-            <mat-label>Seleccione una opcion</mat-label>
+            <mat-label>Seleccione una opción</mat-label>
             <mat-select formControlName="risky" aria-labelledby="risky-question">
               @for (option of riskOptions(); track option.label) {
                 <mat-option [value]="option.value">{{ option.label }}</mat-option>
               }
             </mat-select>
-            <mat-error>Indique si la practica es riesgosa.</mat-error>
+            <mat-error>Indique si la práctica es riesgosa.</mat-error>
           </mat-form-field>
         </div>
 
         <div class="question-field">
           <p id="external-participants-question" class="question-field__label">
-            ¿Participan pacientes, usuarios simulados o poblacion externa?
+            ¿Participan pacientes, usuarios simulados o población externa?
           </p>
           <mat-form-field appearance="outline">
-            <mat-label>Seleccione una opcion</mat-label>
+            <mat-label>Seleccione una opción</mat-label>
             <mat-select
               formControlName="externalParticipants"
               aria-labelledby="external-participants-question"
@@ -262,7 +336,7 @@
               }
             </mat-select>
             <mat-error>
-              Indique si participan pacientes, usuarios simulados o poblacion externa.
+              Indique si participan pacientes, usuarios simulados o población externa.
             </mat-error>
           </mat-form-field>
         </div>
@@ -271,7 +345,7 @@
           <app-info-callout
             variant="warning"
             icon="warning"
-            message="Se requiere protocolo porque la practica involucra material potencialmente riesgoso o participacion de pacientes, usuarios simulados o poblacion externa."
+            message="Se requiere protocolo porque la práctica involucra material potencialmente riesgoso o participación de pacientes, usuarios simulados o población externa."
           />
 
           <section class="protocol-panel">
@@ -279,7 +353,7 @@
               <app-icon-box icon="attach_file" size="sm" />
               <div>
                 <h3>Protocolo</h3>
-                <p>El archivo se cargara de forma privada antes de crear la solicitud.</p>
+                <p>El archivo se cargará de forma privada antes de crear la solicitud.</p>
               </div>
             </div>
 
@@ -342,6 +416,7 @@
         </div>
       </form>
     </mat-step>
+    }
 
     <mat-step>
       <ng-template matStepLabel>Resumen</ng-template>
@@ -351,7 +426,7 @@
           <app-icon-box icon="fact_check" />
           <div>
             <h3>Resumen de solicitud</h3>
-            <p>Revise la informacion antes de crear la reserva.</p>
+            <p>Revise la información antes de crear la reserva.</p>
           </div>
         </div>
 
@@ -361,8 +436,8 @@
             <strong>{{ selectedLabName() }}</strong>
           </div>
           <div class="summary-card">
-            <span>Fecha</span>
-            <strong>{{ formatDate(controlValue('schedule', 'date')) }}</strong>
+            <span>Fechas</span>
+            <strong>{{ selectedDates().length }} seleccionada(s)</strong>
           </div>
           <div class="summary-card">
             <span>Horario</span>
@@ -371,18 +446,37 @@
               {{ displayValue('schedule', 'endTime') }}
             </strong>
           </div>
+          @if (!simplifiedMode()) {
+            <div class="summary-card">
+              <span>Asignatura</span>
+              <strong>{{ displayValue('academic', 'subject') }}</strong>
+            </div>
+            <div class="summary-card">
+              <span>Grupo</span>
+              <strong>{{ displayValue('academic', 'group') }}</strong>
+            </div>
+          }
           <div class="summary-card">
-            <span>Asignatura</span>
-            <strong>{{ displayValue('academic', 'subject') }}</strong>
-          </div>
-          <div class="summary-card">
-            <span>Grupo</span>
-            <strong>{{ displayValue('academic', 'group') }}</strong>
-          </div>
-          <div class="summary-card">
-            <span>Practica</span>
+            <span>Práctica</span>
             <strong>{{ displayValue('academic', 'practiceName') }}</strong>
           </div>
+          @if (displayValue('academic', 'practiceNumber', '')) {
+            <div class="summary-card">
+              <span>Número de práctica</span>
+              <strong>{{ displayValue('academic', 'practiceNumber') }}</strong>
+            </div>
+          }
+          @if (simplifiedMode()) {
+            <div class="summary-card wide">
+              <span>Descripción</span>
+              <strong>{{ displayValue('academic', 'description', 'Sin descripción') }}</strong>
+            </div>
+            <div class="summary-card wide">
+              <span>Docente invitado</span>
+              <strong>{{ displayValue('academic', 'guestTeacherEmail', 'Sin invitado') }}</strong>
+            </div>
+          }
+          @if (!simplifiedMode()) {
           <div class="summary-card wide">
             <span>Objetivo</span>
             <strong>{{ displayValue('academic', 'objective') }}</strong>
@@ -394,44 +488,47 @@
             </strong>
           </div>
           <div class="summary-card">
-            <span>Tipo de practica</span>
+            <span>Tipo de práctica</span>
             <strong>{{ displayValue('practice', 'practiceType') }}</strong>
           </div>
+          }
           @if (isPracticeTypeOther()) {
             <div class="summary-card">
               <span>Especificacion</span>
               <strong>{{ displayValue('practice', 'practiceTypeOther') }}</strong>
             </div>
           }
-          <div class="summary-card">
-            <span>Material riesgoso</span>
-            <strong>{{ yesNo(controlValue('risk', 'risky')) }}</strong>
-          </div>
-          <div class="summary-card">
-            <span>Pacientes, usuarios simulados o poblacion externa</span>
-            <strong>{{ yesNo(controlValue('risk', 'externalParticipants')) }}</strong>
-          </div>
-          <div class="summary-card">
-            <span>Protocolo requerido</span>
-            <strong>{{ protocolIsRequired() ? 'Si' : 'No' }}</strong>
-          </div>
-          <div class="summary-card">
-            <span>Protocolo adjunto</span>
-            <strong>
-              @if (protocolFileName()) {
-                {{ protocolFileName() }}
-              } @else {
-                No
-              }
-            </strong>
-          </div>
+          @if (!simplifiedMode()) {
+            <div class="summary-card">
+              <span>Material riesgoso</span>
+              <strong>{{ yesNo(controlValue('risk', 'risky')) }}</strong>
+            </div>
+            <div class="summary-card">
+              <span>Pacientes, usuarios simulados o población externa</span>
+              <strong>{{ yesNo(controlValue('risk', 'externalParticipants')) }}</strong>
+            </div>
+            <div class="summary-card">
+              <span>Protocolo requerido</span>
+              <strong>{{ protocolIsRequired() ? 'Sí' : 'No' }}</strong>
+            </div>
+            <div class="summary-card">
+              <span>Protocolo adjunto</span>
+              <strong>
+                @if (protocolFileName()) {
+                  {{ protocolFileName() }}
+                } @else {
+                  No
+                }
+              </strong>
+            </div>
+          }
         </section>
 
         @if (protocolWarning()) {
           <app-info-callout
             variant="warning"
             icon="warning"
-            message="Falta seleccionar protocolo. La validacion definitiva se realizara en backend."
+            message="Falta seleccionar protocolo. La validación definitiva se realizará en backend."
           />
         }
 
@@ -441,6 +538,26 @@
             <strong>{{ reservationResult.status }}</strong>
             <p>{{ reservationResult.message }}</p>
             <p>Folio: {{ reservationResult.folio }}</p>
+            @if (reservationResult.results?.length) {
+              <div class="batch-results" aria-label="Resultado por fecha">
+                @for (item of reservationResult.results; track item.reservationId) {
+                  <article class="batch-result-item">
+                    <div>
+                      <strong>{{ formatResultDate(item.startAt) }}</strong>
+                      <span>
+                        {{ formatResultTime(item.startAt) }} -
+                        {{ formatResultTime(item.endAt) }}
+                      </span>
+                    </div>
+                    <app-status-chip
+                      [variant]="item.status.startsWith('RECHAZADA') ? 'danger' : item.status === 'ERROR_CALENDAR' ? 'warning' : 'success'"
+                      [label]="item.status"
+                    />
+                    <p>{{ item.message }}</p>
+                  </article>
+                }
+              </div>
+            }
           </section>
         }
 

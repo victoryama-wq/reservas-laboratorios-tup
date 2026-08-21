@@ -60,7 +60,7 @@ export class ReserveLabPageComponent implements OnInit {
     this.labSlug.set(slug);
 
     if (!slug) {
-      this.errorMessage.set('No se recibio el laboratorio solicitado.');
+      this.errorMessage.set('No se recibió el laboratorio solicitado.');
       this.loading.set(false);
       return;
     }
@@ -125,30 +125,42 @@ export class ReserveLabPageComponent implements OnInit {
 
   protected onReservationCreated(event: ReservationCreatedEvent): void {
     this.selectedCalendarSlot.set(null);
-    const calendarEvent = this.toOptimisticCalendarEvent(event);
+    const calendarEvents = this.toOptimisticCalendarEvents(event);
 
-    if (calendarEvent) {
+    if (calendarEvents.length) {
+      const ids = new Set(calendarEvents.map((item) => item.id));
       this.optimisticCalendarEvents.update((events) => [
-        ...events.filter((item) => item.id !== calendarEvent.id),
-        calendarEvent,
+        ...events.filter((item) => !ids.has(item.id)),
+        ...calendarEvents,
       ]);
     }
 
     this.calendarRefreshKey.update((value) => value + 1);
   }
 
-  private toOptimisticCalendarEvent(
+  private toOptimisticCalendarEvents(
     event: ReservationCreatedEvent,
-  ): EventInput | null {
-    if (!this.isBlockingStatus(event.result.status)) {
-      return null;
+  ): EventInput[] {
+    if (event.result.results?.length) {
+      return event.result.results
+        .filter((result) => this.isBlockingStatus(result.status))
+        .map((result) => ({
+          id: result.reservationId,
+          title: result.status === 'PENDIENTE_VALIDACION'
+            ? 'Pendiente de validación' : 'Ocupado',
+          start: result.startAt,
+          end: result.endAt,
+          extendedProps: { source: 'reservation', status: result.status },
+        }));
     }
-
-    return {
+    if (!this.isBlockingStatus(event.result.status)) {
+      return [];
+    }
+    return [{
       id: event.result.reservationId,
       title:
         event.result.status === 'PENDIENTE_VALIDACION'
-          ? 'Pendiente de validacion'
+          ? 'Pendiente de validación'
           : 'Ocupado',
       start: event.payload.startAt,
       end: event.payload.endAt,
@@ -156,7 +168,7 @@ export class ReserveLabPageComponent implements OnInit {
         source: 'reservation',
         status: event.result.status,
       },
-    };
+    }];
   }
 
   private isBlockingStatus(status: ReservationCreatedEvent['result']['status']): boolean {
@@ -169,6 +181,13 @@ export class ReserveLabPageComponent implements OnInit {
   }
 
   private showReservationResultMessage(event: ReservationCreatedEvent): void {
+    if (event.result.results?.length) {
+      this.snackBar.open(event.result.message, 'Cerrar', {
+        duration: 8500,
+        panelClass: ['app-snackbar--info'],
+      });
+      return;
+    }
     const status = event.result.status;
 
     if (status === 'CONFIRMADA' || status === 'CONFIRMADA_TRAS_VALIDACION') {
@@ -182,7 +201,7 @@ export class ReserveLabPageComponent implements OnInit {
 
     if (status === 'PENDIENTE_VALIDACION') {
       this.snackBar.open(
-        'Solicitud enviada. Quedo pendiente de revision por el responsable.',
+        'Solicitud enviada. Quedó pendiente de revisión por el responsable.',
         'Cerrar',
         { duration: 7000, panelClass: ['app-snackbar--info'] },
       );
@@ -191,7 +210,7 @@ export class ReserveLabPageComponent implements OnInit {
 
     if (status === 'ERROR_CALENDAR') {
       this.snackBar.open(
-        'La solicitud requiere revision tecnica por un error de calendario.',
+        'La solicitud requiere revisión técnica por un error de calendario.',
         'Cerrar',
         { duration: 7500, panelClass: ['app-snackbar--warning'] },
       );

@@ -83,6 +83,60 @@
       }
     </app-section-card>
 
+    <app-section-card
+      title="Evidencias de la actividad"
+      subtitle="Imágenes privadas disponibles durante 90 días."
+      icon="photo_library"
+    >
+      <app-info-callout
+        variant="info"
+        icon="info"
+        message="Puede conservar hasta 10 imágenes por reserva. El sistema las comprime y cada archivo debe quedar por debajo de 5 MB."
+      />
+
+      @if (reservation().evidenceFiles?.length) {
+        <div class="evidence-grid">
+          @for (file of reservation().evidenceFiles; track file.storagePath) {
+            <button
+              mat-stroked-button
+              type="button"
+              class="evidence-item"
+              [disabled]="evidenceOpeningPath() === file.storagePath"
+              [attr.aria-label]="'Abrir evidencia ' + file.fileName"
+              (click)="openEvidence.emit(file)"
+            >
+              <mat-icon>image</mat-icon>
+              <span>{{ file.fileName }}</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="evidence-empty">Todavía no hay evidencias cargadas.</p>
+      }
+
+      @if (canUploadEvidence()) {
+        <div class="evidence-upload">
+          <input
+            #evidenceInput
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            [disabled]="evidenceUploading()"
+            (change)="onEvidenceInput($event)"
+          />
+          <button
+            mat-flat-button
+            type="button"
+            [disabled]="evidenceUploading()"
+            (click)="evidenceInput.click()"
+          >
+            <mat-icon>add_photo_alternate</mat-icon>
+            {{ evidenceUploading() ? 'Comprimiendo y guardando...' : 'Agregar evidencias' }}
+          </button>
+        </div>
+      }
+    </app-section-card>
+
     @if (canCancel()) {
       <app-section-card
         title="Cancelar reserva"

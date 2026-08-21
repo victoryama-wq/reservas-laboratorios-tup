@@ -412,3 +412,27 @@ Un conflicto externo produce `RECHAZADA_CONFLICTO` y evita por completo la
 creacion del evento. Google Calendar se considera una fuente operativa adicional
 de ocupacion: todo evento no cancelado y traslapado bloquea, incluso si esta
 marcado como `Disponible` o usa `transparency = transparent`.
+
+## Flujo de solicitud múltiple y evidencias
+
+El usuario selecciona hasta 20 fechas dentro de 90 días y envía una sola
+solicitud. `createReservation` procesa cada ocurrencia, conserva folios,
+estados, logs y eventos individuales, y devuelve `results[]`. Los rechazos
+parciales no revierten fechas válidas. Solo se crea una notificación
+`RESERVATION_BATCH_RESULT`.
+
+Si el grupo queda pendiente, el responsable revisa el protocolo una vez. Al
+aprobar se revalidan todas las ocurrencias pendientes antes de asegurar cada
+evento Calendar; al rechazar se actualizan todas las pendientes. Ambos caminos
+envían un solo correo consolidado.
+
+Después del inicio de una reserva confirmada, su docente puede comprimir y subir
+evidencias. `addReservationEvidence` valida propiedad y metadata, las vincula
+y notifica a responsables. La consulta usa URL firmada temporal. La limpieza
+programada elimina archivos vinculados u huérfanos al cumplir 90 días.
+
+Los perfiles `responsable_laboratorio` y `admin_sistemas` crean solicitudes
+mediante el formulario simplificado `responsible_direct`. El responsable solo
+puede seleccionar laboratorios presentes en `labsAssigned`; Admin/Sistemas
+puede seleccionar cualquier laboratorio activo. Ambos omiten datos académicos,
+materiales, condiciones de seguridad y protocolo.

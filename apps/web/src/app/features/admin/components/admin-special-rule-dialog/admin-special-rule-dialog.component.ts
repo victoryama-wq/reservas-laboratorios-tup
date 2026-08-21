@@ -69,7 +69,7 @@ export type AdminSpecialRuleDialogResult =
             {{ data.mode === 'create' ? 'Nueva regla especial' : 'Editar regla especial' }}
           </h2>
           <p class="m-0 mt-1 text-sm leading-6 text-slate-600">
-            Define excepciones de horario para un laboratorio especifico.
+            Define excepciones de horario para un laboratorio específico.
           </p>
         </div>
       </header>
@@ -103,13 +103,13 @@ export type AdminSpecialRuleDialogResult =
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Dias aplicables</mat-label>
+            <mat-label>Días aplicables</mat-label>
             <mat-select formControlName="daysOfWeek" multiple>
               @for (day of dayOptions; track day.value) {
                 <mat-option [value]="day.value">{{ day.label }}</mat-option>
               }
             </mat-select>
-            <mat-hint>Sin seleccion aplica a todos los dias.</mat-hint>
+            <mat-hint>Sin selección, aplica a todos los días.</mat-hint>
           </mat-form-field>
         </div>
 
@@ -130,7 +130,7 @@ export type AdminSpecialRuleDialogResult =
 
         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <mat-checkbox formControlName="fullDayBlocked">
-            Bloqueo de dia completo
+            Bloqueo de día completo
           </mat-checkbox>
         </div>
 
@@ -158,7 +158,7 @@ export type AdminSpecialRuleDialogResult =
         }
 
         <mat-form-field appearance="outline">
-          <mat-label>Motivo visible para administracion</mat-label>
+          <mat-label>Motivo visible para administración</mat-label>
           <textarea matInput formControlName="reason" rows="3"></textarea>
           @if (form.get('reason')?.hasError('required')) {
             <mat-error>El motivo es obligatorio.</mat-error>

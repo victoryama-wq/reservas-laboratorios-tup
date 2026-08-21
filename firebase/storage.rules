@@ -55,6 +55,13 @@ service firebase.storage {
         );
     }
 
+    function isAllowedEvidenceImage() {
+      return request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches(
+          'image/jpeg|image/png|image/webp'
+        );
+    }
+
     match /protocolUploads/{uid}/{uploadId}/{fileName} {
       allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
       allow create, update: if isSignedIn()
@@ -70,6 +77,14 @@ service firebase.storage {
           request.resource == null ||
           isAllowedLabImage(fileName)
         );
+    }
+
+    match /reservationEvidence/{uid}/{reservationId}/{uploadId}/{fileName} {
+      allow read: if false;
+      allow create, update: if isSignedIn()
+        && request.auth.uid == uid
+        && isAllowedEvidenceImage();
+      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
     }
 
     match /{allPaths=**} {

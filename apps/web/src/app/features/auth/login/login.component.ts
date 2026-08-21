@@ -70,7 +70,7 @@ export class LoginComponent implements OnInit {
         }
 
         this.errorMessage =
-          'No se pudo iniciar la redireccion a Google. Pruebe Chrome o desactive Brave Shields para localhost.';
+          'No se pudo iniciar la redirección a Google. Pruebe Chrome o desactive Brave Shields para localhost.';
         this.loading = false;
         this.loginMode = null;
         this.showRedirectFallback = true;
@@ -113,7 +113,7 @@ export class LoginComponent implements OnInit {
         await this.completeLoginForUser(
           existingUser.uid,
           6000,
-          'Hay una sesion previa, pero no fue posible validar el perfil institucional. Intente ingresar de nuevo.',
+          'Hay una sesión previa, pero no fue posible validar el perfil institucional. Intente ingresar de nuevo.',
         );
         return;
       }
@@ -128,7 +128,7 @@ export class LoginComponent implements OnInit {
 
       if (!user) {
         this.errorMessage =
-          'Google devolvio el control a la app, pero Firebase no pudo restaurar la sesion. Pruebe desactivar Brave Shields para localhost o use Chrome. Tambien verifique que Google Sign-In este habilitado.';
+          'Google devolvió el control a la app, pero Firebase no pudo restaurar la sesión. Pruebe desactivar Brave Shields para localhost o use Chrome. También verifique que Google Sign-In esté habilitado.';
         this.loading = false;
         this.loginMode = null;
         return;
@@ -147,7 +147,7 @@ export class LoginComponent implements OnInit {
     uid: string,
     timeoutMs = 15000,
     timeoutMessage =
-      'No fue posible validar el perfil institucional. Revise la conexion con Firestore e intente nuevamente.',
+      'No fue posible validar el perfil institucional. Revise la conexión con Firestore e intente nuevamente.',
   ): Promise<void> {
     let profileResult = await this.withTimeout(
       this.profileService.getProfile(uid),
@@ -236,33 +236,33 @@ export class LoginComponent implements OnInit {
     const errorCode = (error as { code?: string }).code;
 
     if (errorCode === 'auth/unauthorized-domain') {
-      return 'El dominio local no esta autorizado en Firebase Authentication. Agregue localhost en Authorized domains.';
+      return 'El dominio local no está autorizado en Firebase Authentication. Agregue localhost en Authorized domains.';
     }
 
     if (errorCode === 'auth/redirect-cancelled-by-user') {
-      return 'El inicio de sesion fue cancelado antes de completarse.';
+      return 'El inicio de sesión fue cancelado antes de completarse.';
     }
 
     if (errorCode === 'auth/popup-closed-by-user') {
-      return 'La ventana de Google se cerro antes de completar el inicio de sesion.';
+      return 'La ventana de Google se cerró antes de completar el inicio de sesión.';
     }
 
     if (errorCode === 'auth/popup-blocked') {
-      return 'El navegador bloqueo la ventana de Google. Permita ventanas emergentes o pruebe con redireccion.';
+      return 'El navegador bloqueó la ventana de Google. Permita ventanas emergentes o pruebe con redirección.';
     }
 
     if (errorCode === 'auth/operation-not-allowed') {
-      return 'Google Sign-In no esta habilitado en Firebase Authentication para este proyecto.';
+      return 'Google Sign-In no está habilitado en Firebase Authentication para este proyecto.';
     }
 
     if (errorCode === 'auth/network-request-failed') {
-      return 'No fue posible conectar con Firebase Auth. Revise su conexion e intente nuevamente.';
+      return 'No fue posible conectar con Firebase Auth. Revise su conexión e intente nuevamente.';
     }
 
     if (error instanceof Error && error.message) {
       return error.message;
     }
 
-    return 'No fue posible iniciar sesion. Intente nuevamente.';
+    return 'No fue posible iniciar sesión. Intente nuevamente.';
   }
 }

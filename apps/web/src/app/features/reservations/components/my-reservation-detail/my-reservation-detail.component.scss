@@ -178,6 +178,43 @@
   gap: 1rem;
 }
 
+.evidence-grid {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+
+.evidence-item {
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 2.75rem;
+  border-radius: 0.85rem;
+}
+
+.evidence-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evidence-empty {
+  color: var(--text-muted);
+}
+
+.evidence-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.evidence-upload button {
+  width: 100%;
+  min-height: 2.75rem;
+  border-radius: 0.9rem;
+}
+
 .cancel-panel__button {
   justify-self: start;
   border-radius: 0.9rem;

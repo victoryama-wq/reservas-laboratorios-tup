@@ -41,7 +41,7 @@ export class ProtocolUploadService {
 
     const user = this.auth.currentUser;
     if (!user) {
-      throw new Error('Debe iniciar sesion para cargar el protocolo.');
+      throw new Error('Debe iniciar sesión para cargar el protocolo.');
     }
 
     const uploadId = globalThis.crypto.randomUUID();

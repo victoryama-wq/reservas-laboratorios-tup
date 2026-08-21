@@ -1,3 +1,4 @@
+/* eslint-disable max-len, require-jsdoc, valid-jsdoc */
 import {HttpsError} from "firebase-functions/v2/https";
 
 import {
@@ -36,6 +37,9 @@ const ALLOWED_PRACTICE_TYPES = [
   "Otro",
 ] as const;
 const MAX_PRACTICE_TYPE_OTHER_LENGTH = 120;
+const MAX_PRACTICE_NUMBER_LENGTH = 40;
+const MAX_BATCH_OCCURRENCES = 20;
+const MAX_BATCH_RANGE_DAYS = 90;
 const ALLOWED_ROLES: UserRole[] = [
   "docente",
   "responsable_laboratorio",
@@ -60,15 +64,9 @@ export function parseCreateReservationInput(
     );
   }
 
-  const requiredTextFields = [
-    "subject",
-    "group",
-    "practiceName",
-    "objective",
-    "practiceType",
-    "startAt",
-    "endAt",
-  ] as const;
+  const reservationMode = input.reservationMode === "responsible_direct" ?
+    "responsible_direct" : "academic";
+  const requiredTextFields = ["practiceName", "startAt", "endAt"] as const;
 
   for (const field of requiredTextFields) {
     if (!isNonEmptyString(input[field])) {
@@ -79,14 +77,17 @@ export function parseCreateReservationInput(
     }
   }
 
-  if (typeof input.risky !== "boolean") {
+  if (reservationMode === "academic" && typeof input.risky !== "boolean") {
     throw new HttpsError(
         "invalid-argument",
         "Debe indicar si la practica es riesgosa.",
     );
   }
 
-  if (typeof input.externalParticipants !== "boolean") {
+  if (
+    reservationMode === "academic" &&
+    typeof input.externalParticipants !== "boolean"
+  ) {
     throw new HttpsError(
         "invalid-argument",
         [
@@ -96,28 +97,200 @@ export function parseCreateReservationInput(
     );
   }
 
-  const practiceType = validatePracticeType(
-      input.practiceType?.trim() ?? "",
-      input.practiceTypeOther,
+  if (reservationMode === "academic") {
+    for (const field of ["subject", "group", "objective", "practiceType"] as const) {
+      if (!isNonEmptyString(input[field])) {
+        throw new HttpsError(
+            "invalid-argument",
+            `El campo ${field} es obligatorio.`,
+        );
+      }
+    }
+  }
+
+  const practiceType = reservationMode === "academic" ?
+    validatePracticeType(
+        input.practiceType?.trim() ?? "",
+        input.practiceTypeOther,
+    ) : {practiceType: "Otro", practiceTypeOther: "Reserva operativa"};
+  const practiceNumber = parseOptionalText(
+      input.practiceNumber,
+      MAX_PRACTICE_NUMBER_LENGTH,
+      "El numero de practica",
   );
+  const description = parseOptionalText(
+      input.description,
+      800,
+      "La descripcion",
+  );
+  const guestTeacherEmail = parseOptionalInstitutionalEmail(
+      input.guestTeacherEmail,
+  );
+  const occurrences = parseOccurrences(input);
 
   return {
     labId: input.labId,
     labSlug: input.labSlug,
-    subject: input.subject?.trim() ?? "",
-    group: input.group?.trim() ?? "",
+    subject: reservationMode === "academic" ? input.subject?.trim() ?? "" : "",
+    group: reservationMode === "academic" ? input.group?.trim() ?? "" : "",
     practiceName: input.practiceName?.trim() ?? "",
-    objective: input.objective?.trim() ?? "",
-    materialRequired: input.materialRequired?.trim() ?? "",
+    practiceNumber,
+    description,
+    objective: reservationMode === "academic" ?
+      input.objective?.trim() ?? "" : "",
+    materialRequired: reservationMode === "academic" ?
+      input.materialRequired?.trim() ?? "" : "",
     practiceType: practiceType.practiceType,
     practiceTypeOther: practiceType.practiceTypeOther,
-    risky: input.risky,
-    externalParticipants: input.externalParticipants,
+    risky: reservationMode === "academic" ? input.risky === true : false,
+    externalParticipants: reservationMode === "academic" ?
+      input.externalParticipants === true : false,
+    reservationMode,
+    guestTeacherEmail,
     startAt: input.startAt ?? "",
     endAt: input.endAt ?? "",
+    occurrences,
     protocolFiles: input.protocolFiles ?? [],
     source: parseSource(input.source),
   };
+}
+
+/**
+ * Validates role-specific reservation mode and assigned laboratory.
+ *
+ * @param {CreateReservationInput} input Parsed input.
+ * @param {AppUser} profile Authenticated profile.
+ * @param {LabDoc} lab Requested laboratory.
+ */
+export function validateReservationModeForProfile(
+    input: CreateReservationInput,
+    profile: AppUser,
+    lab: LabDoc,
+): void {
+  const simplifiedRole = profile.role === "responsable_laboratorio" ||
+    profile.role === "admin_sistemas";
+
+  if (simplifiedRole && input.reservationMode !== "responsible_direct") {
+    throw new HttpsError(
+        "permission-denied",
+        "Responsables y Admin/Sistemas deben usar el formulario simplificado.",
+    );
+  }
+
+  if (input.reservationMode !== "responsible_direct") {
+    return;
+  }
+
+  if (!simplifiedRole) {
+    throw new HttpsError(
+        "permission-denied",
+        "El formulario simplificado es exclusivo de responsables y Admin/Sistemas.",
+    );
+  }
+
+  if (
+    profile.role === "responsable_laboratorio" &&
+    !(profile.labsAssigned ?? []).includes(lab.id)
+  ) {
+    throw new HttpsError(
+        "permission-denied",
+        "Solo puede reservar directamente laboratorios asignados.",
+    );
+  }
+}
+
+/** Parses and validates a reservation batch. */
+function parseOccurrences(
+    input: Partial<CreateReservationInput>,
+): Array<{startAt: string; endAt: string}> | undefined {
+  if (input.occurrences === undefined) {
+    return undefined;
+  }
+
+  if (!Array.isArray(input.occurrences) || !input.occurrences.length) {
+    throw new HttpsError("invalid-argument", "Seleccione al menos una fecha.");
+  }
+
+  if (input.occurrences.length > MAX_BATCH_OCCURRENCES) {
+    throw new HttpsError(
+        "invalid-argument",
+        `Puede solicitar como maximo ${MAX_BATCH_OCCURRENCES} fechas.`,
+    );
+  }
+
+  const unique = new Set<string>();
+  const now = new Date();
+  const minimum = new Date(now);
+  minimum.setHours(0, 0, 0, 0);
+  const maximum = new Date(now);
+  maximum.setDate(maximum.getDate() + MAX_BATCH_RANGE_DAYS);
+  maximum.setHours(23, 59, 59, 999);
+
+  return input.occurrences.map((occurrence) => {
+    if (
+      !isNonEmptyString(occurrence?.startAt) ||
+      !isNonEmptyString(occurrence?.endAt)
+    ) {
+      throw new HttpsError(
+          "invalid-argument",
+          "Cada fecha debe incluir horario de inicio y finalizacion.",
+      );
+    }
+
+    const startAt = new Date(occurrence.startAt);
+    if (
+      Number.isNaN(startAt.getTime()) ||
+      startAt < minimum ||
+      startAt > maximum
+    ) {
+      throw new HttpsError(
+          "invalid-argument",
+          "Las fechas deben estar dentro de los proximos 90 dias.",
+      );
+    }
+
+    const dateKey = occurrence.startAt.slice(0, 10);
+    if (unique.has(dateKey)) {
+      throw new HttpsError("invalid-argument", "No repita fechas en la solicitud.");
+    }
+    unique.add(dateKey);
+
+    return {startAt: occurrence.startAt, endAt: occurrence.endAt};
+  });
+}
+
+/** Parses a bounded optional text. */
+function parseOptionalText(
+    value: unknown,
+    maxLength: number,
+    label: string,
+): string | undefined {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+  if (typeof value !== "string") {
+    throw new HttpsError("invalid-argument", `${label} debe ser texto.`);
+  }
+  const trimmed = value.trim();
+  if (trimmed.length > maxLength) {
+    throw new HttpsError(
+        "invalid-argument",
+        `${label} no puede exceder ${maxLength} caracteres.`,
+    );
+  }
+  return trimmed || undefined;
+}
+
+/** Parses an optional institutional guest address. */
+function parseOptionalInstitutionalEmail(value: unknown): string | undefined {
+  const email = parseOptionalText(value, 160, "El correo invitado")?.toLowerCase();
+  if (email && !email.endsWith(INSTITUTIONAL_DOMAIN)) {
+    throw new HttpsError(
+        "invalid-argument",
+        "El correo invitado debe ser institucional.",
+    );
+  }
+  return email;
 }
 
 /**

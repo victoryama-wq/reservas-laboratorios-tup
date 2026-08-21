@@ -3,14 +3,14 @@
     <div class="title-block">
       <app-icon-box icon="science" variant="primary" size="lg" />
       <div>
-        <p class="app-page-kicker">Escenarios academicos</p>
+        <p class="app-page-kicker">Escenarios académicos</p>
         <h1 class="app-page-title">Laboratorios disponibles</h1>
         <p class="app-page-subtitle">
-          Explora y reserva espacios academicos de acuerdo a tus necesidades.
+          Explora y reserva espacios académicos de acuerdo con tus necesidades.
         </p>
       </div>
     </div>
-    <div class="catalog-summary" aria-label="Resumen del catalogo">
+    <div class="catalog-summary" aria-label="Resumen del catálogo">
       <mat-icon aria-hidden="true">inventory_2</mat-icon>
       <div>
         <span>Espacios activos</span>
@@ -33,7 +33,7 @@
       <p>No hay laboratorios activos disponibles en este momento.</p>
     </div>
   } @else {
-    <div class="catalog-tools" aria-label="Filtros del catalogo">
+    <div class="catalog-tools" aria-label="Filtros del catálogo">
       <mat-form-field
         class="tool-field tool-field--search"
         appearance="outline"
@@ -45,7 +45,7 @@
           type="search"
           [value]="searchTerm()"
           (input)="setSearchTerm($event)"
-          aria-label="Buscar laboratorios por nombre o descripcion"
+          aria-label="Buscar laboratorios por nombre o descripción"
         />
       </mat-form-field>
 
@@ -61,7 +61,7 @@
           aria-label="Filtrar por tipo de laboratorio"
         >
           <mat-option value="all">Todos</mat-option>
-          <mat-option value="health">Salud y simulacion</mat-option>
+          <mat-option value="health">Salud y simulación</mat-option>
           <mat-option value="technology">Tecnologia</mat-option>
           <mat-option value="food">Alimentos y bebidas</mat-option>
           <mat-option value="legal">Legal</mat-option>
@@ -84,7 +84,7 @@
         >
           <mat-option value="nameAsc">Nombre A-Z</mat-option>
           <mat-option value="nameDesc">Nombre Z-A</mat-option>
-          <mat-option value="noticeAsc">Menor anticipacion</mat-option>
+          <mat-option value="noticeAsc">Menor anticipación</mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -94,7 +94,7 @@
         class="clear-filters-button"
         [disabled]="!hasActiveFilters()"
         (click)="clearFilters()"
-        aria-label="Limpiar filtros del catalogo"
+        aria-label="Limpiar filtros del catálogo"
       >
         <span>Limpiar</span>
       </button>

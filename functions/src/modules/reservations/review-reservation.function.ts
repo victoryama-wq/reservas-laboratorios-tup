@@ -1,3 +1,4 @@
+/* eslint-disable max-len, require-jsdoc, valid-jsdoc, quotes */
 import {getStorage} from "firebase-admin/storage";
 import {
   getFirestore,
@@ -132,6 +133,9 @@ export const approveReservation = onCall(
     ): Promise<ReviewReservationOutput> => {
       const input = parseApproveInput(request.data);
       const context = await loadReviewContext(request);
+      if (context.reservation.reservationGroupId) {
+        return approveReservationGroup(context, input.note);
+      }
       const startAt = context.repository.toDate(context.reservation.startAt);
       const endAt = context.repository.toDate(context.reservation.endAt);
 
@@ -244,6 +248,201 @@ export const approveReservation = onCall(
     },
 );
 
+interface GroupApprovalResult {
+  reservation: ReservationDoc;
+  calendarEventId: string;
+  calendarOutcome: "CREATED" | "REUSED" | "RECONCILED";
+}
+
+/** Approves every pending occurrence linked to the same request. */
+async function approveReservationGroup(
+    context: ReviewContext,
+    note?: string,
+): Promise<ReviewReservationOutput> {
+  const groupId = context.reservation.reservationGroupId as string;
+  const reservations = (await context.repository.listReservationsByGroup(
+      groupId,
+  )).filter((item) => item.status === "PENDIENTE_VALIDACION");
+
+  if (!reservations.length) {
+    throw new HttpsError(
+        "failed-precondition",
+        "El grupo ya no tiene reservas pendientes de validacion.",
+    );
+  }
+
+  const prepared: Array<{reservation: ReservationDoc; startAt: Date; endAt: Date}> = [];
+  for (const reservation of reservations) {
+    const siblingContext = {...context, reservation};
+    assertCanReview(context.profile, reservation);
+    assertPendingReservation(reservation);
+    const startAt = context.repository.toDate(reservation.startAt);
+    const endAt = context.repository.toDate(reservation.endAt);
+    if (!startAt || !endAt) {
+      throw new HttpsError("failed-precondition", "Una fecha del grupo no es valida.");
+    }
+    validateReservationReviewTiming(context.lab, startAt, endAt, new Date());
+    await assertProtocolFilesExist(reservation);
+    await assertNoBlockedPeriodConflict(siblingContext, startAt, endAt);
+    await assertNoInternalConflict(siblingContext, startAt, endAt);
+    await assertNoExternalConflict(context.lab, startAt, endAt, reservation.id);
+    prepared.push({reservation, startAt, endAt});
+  }
+
+  const approved: GroupApprovalResult[] = [];
+  for (const item of prepared) {
+    const approvedReservation: ReservationDoc = {
+      ...item.reservation,
+      startAt: Timestamp.fromDate(item.startAt),
+      endAt: Timestamp.fromDate(item.endAt),
+      status: "CONFIRMADA_TRAS_VALIDACION",
+      statusReason: undefined,
+    };
+    try {
+      const calendarResult = await context.calendarService
+          .ensureReservationEvent({lab: context.lab, reservation: approvedReservation});
+      approved.push({
+        reservation: approvedReservation,
+        calendarEventId: calendarResult.eventId,
+        calendarOutcome: calendarResult.outcome,
+      });
+    } catch (error) {
+      logReviewError("create_group_calendar_events", error, {
+        ...context,
+        reservation: item.reservation,
+      });
+      throw new HttpsError(
+          "internal",
+          [
+            "No fue posible sincronizar todas las fechas con Google Calendar.",
+            "Puede reintentar sin crear eventos duplicados.",
+          ].join(" "),
+      );
+    }
+  }
+
+  const transition = buildApprovalReasonTransition(note);
+  const now = Timestamp.now();
+  const notification = await context.repository.runTransaction(
+      async (transaction) => {
+        for (const item of approved) {
+          context.repository.updateReservation(transaction, item.reservation.id, {
+            status: "CONFIRMADA_TRAS_VALIDACION",
+            calendarEventId: item.calendarEventId,
+            approvedBy: context.profile.uid,
+            approvedAt: now,
+            updatedAt: now,
+          }, transition.fieldsToDelete);
+          context.logRepository.createLog(transaction, {
+            reservationId: item.reservation.id,
+            action: "APPROVED",
+            actorUid: context.profile.uid,
+            actorEmail: context.profile.email,
+            previousStatus: "PENDIENTE_VALIDACION",
+            newStatus: "CONFIRMADA_TRAS_VALIDACION",
+            note: transition.note,
+            metadata: {reservationGroupId: groupId},
+          });
+          context.logRepository.createLog(transaction, {
+            reservationId: item.reservation.id,
+            action: "CALENDAR_EVENT_CREATED",
+            actorUid: context.profile.uid,
+            actorEmail: context.profile.email,
+            newStatus: "CONFIRMADA_TRAS_VALIDACION",
+            metadata: {
+              calendarEventId: item.calendarEventId,
+              calendarOutcome: item.calendarOutcome,
+              reservationGroupId: groupId,
+            },
+          });
+        }
+        return createGroupReviewNotification(
+            context,
+            transaction,
+            approved.map((item) => item.reservation),
+            "RESERVATION_APPROVED",
+            transition.note,
+        );
+      },
+  );
+  await sendNotificationSafely(context, notification);
+
+  return {
+    reservationId: context.reservation.id,
+    folio: context.reservation.folio,
+    status: "CONFIRMADA_TRAS_VALIDACION",
+    message: `${approved.length} reservas aprobadas y sincronizadas con Google Calendar.`,
+  };
+}
+
+/** Rejects every pending occurrence linked to the same request. */
+async function rejectReservationGroup(
+    context: ReviewContext,
+    reason: string,
+): Promise<ReviewReservationOutput> {
+  const groupId = context.reservation.reservationGroupId as string;
+  const reservations = (await context.repository.listReservationsByGroup(
+      groupId,
+  )).filter((item) => item.status === "PENDIENTE_VALIDACION");
+  if (!reservations.length) {
+    throw new HttpsError(
+        "failed-precondition",
+        "El grupo ya no tiene reservas pendientes de validacion.",
+    );
+  }
+  reservations.forEach((reservation) => {
+    assertCanReview(context.profile, reservation);
+    assertPendingReservation(reservation);
+  });
+
+  const now = Timestamp.now();
+  const rejected = reservations.map((reservation): ReservationDoc => ({
+    ...reservation,
+    status: "RECHAZADA_POR_RESPONSABLE",
+    statusReason: reason,
+    rejectionReason: reason,
+  }));
+  const notification = await context.repository.runTransaction(
+      async (transaction) => {
+        for (const reservation of rejected) {
+          context.repository.updateReservation(transaction, reservation.id, {
+            status: "RECHAZADA_POR_RESPONSABLE",
+            statusReason: reason,
+            rejectedBy: context.profile.uid,
+            rejectedAt: now,
+            rejectionReason: reason,
+            updatedAt: now,
+          });
+          context.logRepository.createLog(transaction, {
+            reservationId: reservation.id,
+            action: "REJECTED",
+            actorUid: context.profile.uid,
+            actorEmail: context.profile.email,
+            previousStatus: "PENDIENTE_VALIDACION",
+            newStatus: "RECHAZADA_POR_RESPONSABLE",
+            note: reason,
+            metadata: {reservationGroupId: groupId},
+          });
+        }
+        return createGroupReviewNotification(
+            context,
+            transaction,
+            rejected,
+            "RESERVATION_REJECTED",
+            reason,
+        );
+      },
+  );
+  await sendNotificationSafely(context, notification);
+
+  return {
+    reservationId: context.reservation.id,
+    folio: context.reservation.folio,
+    status: "RECHAZADA_POR_RESPONSABLE",
+    message: `${rejected.length} reservas rechazadas y notificadas en un solo correo.`,
+  };
+}
+
 /**
  * Rejects a pending risky reservation.
  */
@@ -258,6 +457,9 @@ export const rejectReservation = onCall(
     ): Promise<ReviewReservationOutput> => {
       const input = parseRejectInput(request.data);
       const context = await loadReviewContext(request);
+      if (context.reservation.reservationGroupId) {
+        return rejectReservationGroup(context, input.reason);
+      }
       assertCanReview(context.profile, context.reservation);
       assertPendingReservation(context.reservation);
 
@@ -1149,6 +1351,11 @@ function buildTimelineText(log: ReservationLogDoc): {
       description: "Se envio la notificacion correspondiente.",
       severity: "info",
     },
+    EVIDENCE_UPLOADED: {
+      title: "Evidencias cargadas",
+      description: "El docente agrego evidencias fotograficas de la actividad.",
+      severity: "info",
+    },
     PENDING_APPROVAL: {
       title: "Pendiente de validacion",
       description: "La solicitud requiere revision del responsable.",
@@ -1251,6 +1458,11 @@ function buildMyReservationTimelineText(log: ReservationLogDoc): {
         "Se envio la notificacion correspondiente",
         "por correo institucional.",
       ].join(" "),
+      severity: "success",
+    },
+    EVIDENCE_UPLOADED: {
+      title: "Evidencias guardadas",
+      description: "Las evidencias fotograficas quedaron vinculadas a la reserva.",
       severity: "success",
     },
     PENDING_APPROVAL: {
@@ -1385,6 +1597,10 @@ function toSafeActorLabel(log: ReservationLogDoc): string | undefined {
 
   if (log.action === "APPROVED" || log.action === "REJECTED") {
     return "Responsable";
+  }
+
+  if (log.action === "EVIDENCE_UPLOADED") {
+    return "Docente";
   }
 
   if (
@@ -1622,6 +1838,101 @@ function createReviewNotification(
     body: template.body,
     htmlBody: template.htmlBody,
   });
+}
+
+/** Creates one consolidated notification for a reviewed reservation group. */
+function createGroupReviewNotification(
+    context: ReviewContext,
+    transaction: Transaction,
+    reservations: ReservationDoc[],
+    type: "RESERVATION_APPROVED" | "RESERVATION_REJECTED",
+    reason?: string,
+): CreatedNotification {
+  const representative = reservations[0];
+  const rows = reservations
+      .slice()
+      .sort((first, second) =>
+        (first.reservationGroupIndex ?? 0) -
+        (second.reservationGroupIndex ?? 0),
+      )
+      .map((reservation) => {
+        const startAt = context.repository.toDate(reservation.startAt);
+        const endAt = context.repository.toDate(reservation.endAt);
+        return {
+          folio: reservation.folio,
+          date: formatGroupDate(startAt),
+          time: `${formatGroupTime(startAt)} - ${formatGroupTime(endAt)}`,
+        };
+      });
+  const approved = type === "RESERVATION_APPROVED";
+  const status = approved ? "Aprobadas" : "Rechazadas";
+  const detail = rows.map((row) =>
+    `- ${row.date}, ${row.time} (${row.folio})`,
+  ).join("\n");
+  const htmlRows = rows.map((row) => [
+    "<tr>",
+    `<td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeGroupEmail(row.date)}</td>`,
+    `<td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeGroupEmail(row.time)}</td>`,
+    `<td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeGroupEmail(row.folio)}</td>`,
+    "</tr>",
+  ].join("")).join("");
+  const reasonText = reason ? `\nMotivo o nota: ${reason}` : "";
+  const body = [
+    `Solicitud multiple ${status.toLowerCase()}.`,
+    `Laboratorio: ${representative.labName}`,
+    `Practica: ${representative.practiceName}`,
+    detail,
+    reasonText,
+  ].filter(Boolean).join("\n\n");
+  const htmlBody = [
+    '<div style="background:#f8fafc;padding:24px;font-family:Arial,sans-serif;color:#111827">',
+    '<div style="max-width:700px;margin:auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden">',
+    `<div style="background:#271e5d;color:#fff;padding:22px"><strong>Sistema Web de Reservas de Laboratorios</strong><h2 style="margin:8px 0 0">Reservas ${status.toLowerCase()}</h2></div>`,
+    `<div style="padding:22px"><p><strong>Laboratorio:</strong> ${escapeGroupEmail(representative.labName)}</p>`,
+    `<p><strong>Practica:</strong> ${escapeGroupEmail(representative.practiceName)}</p>`,
+    '<table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Fecha</th><th align="left">Horario</th><th align="left">Folio</th></tr></thead>',
+    `<tbody>${htmlRows}</tbody></table>`,
+    reason ? `<p><strong>Motivo o nota:</strong> ${escapeGroupEmail(reason)}</p>` : "",
+    "</div></div></div>",
+  ].join("");
+
+  return context.notificationRepository.createPendingNotification(transaction, {
+    reservationId: representative.id,
+    type,
+    to: resolveNotificationRecipients(
+        type,
+        representative,
+        context.lab,
+        context.systemSettings,
+    ),
+    subject: `${status}: ${reservations.length} fechas - ${representative.labName}`,
+    body,
+    htmlBody,
+  });
+}
+
+function formatGroupDate(value: Date | null): string {
+  return value ? new Intl.DateTimeFormat("es-MX", {
+    dateStyle: "long",
+    timeZone: "America/Cancun",
+  }).format(value) : "Fecha no disponible";
+}
+
+function formatGroupTime(value: Date | null): string {
+  return value ? new Intl.DateTimeFormat("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "America/Cancun",
+  }).format(value) : "--:--";
+}
+
+function escapeGroupEmail(value: string): string {
+  return value.replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
 }
 
 /**

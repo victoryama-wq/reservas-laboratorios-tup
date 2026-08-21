@@ -319,6 +319,20 @@ function buildReservationDetails(
     });
   }
 
+  if (reservation.practiceNumber) {
+    items.push({
+      label: "Número de práctica",
+      value: reservation.practiceNumber,
+    });
+  }
+
+  if (reservation.guestTeacherEmail) {
+    items.push({
+      label: "Docente invitado",
+      value: reservation.guestTeacherEmail,
+    });
+  }
+
   items.push(
       {label: "Material riesgoso", value: yesNo(reservation.risky)},
       {

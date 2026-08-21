@@ -284,3 +284,21 @@ como un defecto de integracion.
 La consulta de conflictos externos ocurre antes de `ensureReservationEvent`.
 Por ello, un conflicto devuelve `RECHAZADA_CONFLICTO` sin insertar un evento
 nuevo, mientras que un evento cancelado no bloquea.
+
+## Solicitudes múltiples y evidencias
+
+Una solicitud de varias fechas crea una reserva y, cuando corresponda, un
+evento Calendar individual por fecha. Las reservas se vinculan mediante
+`reservationGroupId`, pero conservan folio, estatus y `calendarEventId`
+independientes. Un conflicto afecta solo la fecha correspondiente.
+
+Gmail envía un único resumen consolidado al docente por la creación del grupo.
+La aprobación o rechazo de las reservas pendientes hermanas también genera una
+sola notificación. El protocolo se referencia individualmente en cada reserva,
+aunque provenga del mismo archivo privado.
+
+Una reserva creada por responsable puede incluir un correo docente
+institucional como asistente Calendar. Cuando el docente agrega evidencias,
+Gmail notifica una sola vez a los responsables configurados con folio, docente,
+laboratorio, fecha, horario y práctica. El correo no adjunta imágenes ni expone
+URLs públicas o rutas de Storage.

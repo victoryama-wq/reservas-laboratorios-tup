@@ -1,3 +1,4 @@
+/* eslint-disable max-len, require-jsdoc, valid-jsdoc, quotes */
 import {
   getFirestore,
   Timestamp,
@@ -9,6 +10,7 @@ import {
   onCall,
 } from "firebase-functions/v2/https";
 import {logger} from "firebase-functions";
+import {randomUUID} from "node:crypto";
 
 import {
   checkExternalCalendarConflicts,
@@ -52,6 +54,7 @@ import {
   validateLab,
   validateProtocolFiles,
   validateReservationTiming,
+  validateReservationModeForProfile,
   validateUserProfile,
 } from "./reservation.validators";
 
@@ -104,206 +107,340 @@ export const createReservation = onCall(
       if (!lab) {
         throw new HttpsError("not-found", "Laboratorio no disponible.");
       }
+      validateReservationModeForProfile(input, profile, lab);
       const systemSettings = await reservationRepository.getSystemSettings();
-
-      const {startAt, endAt} = parseReservationDates(input);
       validateProtocolFiles(input, lab, uid);
+      const occurrences = input.occurrences?.length ?
+        input.occurrences : [{startAt: input.startAt, endAt: input.endAt}];
+      const groupId = occurrences.length > 1 ? randomUUID() : undefined;
+      const processed: ProcessedOccurrence[] = [];
 
-      const timingRejection = validateReservationTiming(
-          input,
-          lab,
-          startAt,
-          endAt,
-          new Date(),
-      );
-
-      let rejectionDecision = timingRejection;
-      let calendarErrorReason: string | undefined;
-      const reservationRef = reservationRepository.createReservationRef();
-      const folio = generateReservationFolio(new Date());
-
-      if (!rejectionDecision) {
-        const blockedPeriods = await reservationRepository
-            .findActiveBlockedPeriods(lab.id, startAt, endAt);
-
-        if (blockedPeriods.length) {
-          rejectionDecision = {
-            status: "RECHAZADA_REGLA_HORARIO",
-            reason: [
-              "El horario solicitado esta bloqueado",
-              "por una restriccion institucional.",
-            ].join(" "),
-          };
-        }
-      }
-
-      if (!rejectionDecision) {
-        const conflicts = await reservationRepository.runTransaction(
-            (transaction) => reservationRepository.findBlockingConflicts(
-                transaction,
-                lab.id,
-                startAt,
-                endAt,
-            ),
-        );
-
-        if (conflicts.length) {
-          rejectionDecision = {
-            status: "RECHAZADA_CONFLICTO",
-            reason: "Existe una reserva traslapada para este laboratorio.",
-          };
-        }
-      }
-
-      if (!rejectionDecision) {
-        try {
-          const externalConflict = await checkExternalCalendarConflicts({
-            calendarId: lab.calendarId,
-            startAt,
-            endAt,
-            excludeReservationId: reservationRef.id,
-          });
-
-          if (externalConflict.hasConflict) {
-            rejectionDecision = {
-              status: "RECHAZADA_CONFLICTO",
-              reason: [
-                "El laboratorio ya tiene un evento ocupado",
-                "en Google Calendar para ese horario.",
-              ].join(" "),
-            };
-          }
-        } catch (error) {
-          logCalendarError("validate_external_availability", error, lab);
-          calendarErrorReason = [
-            "No fue posible validar Google Calendar.",
-            "Admin/Sistemas debe revisar la integracion.",
-          ].join(" ");
-        }
-      }
-
-      let calendarEventId: string | null = null;
-      let calendarEnsureOutcome: CalendarEnsureOutcome | null = null;
-
-      if (
-        !rejectionDecision &&
-        !calendarErrorReason &&
-        !requiresManualReview(input)
-      ) {
-        try {
-          const draftReservation = buildReservation(
-              reservationRepository,
-              reservationRef.id,
-              folio,
-              input,
-              lab,
-              {
-                uid,
-                email: profile.email,
-                displayName: profile.displayName,
-              },
-              startAt,
-              endAt,
-              "CONFIRMADA",
-              undefined,
-              null,
-          );
-          const calendarResult = await calendarService.ensureReservationEvent({
-            lab,
-            reservation: draftReservation,
-          });
-          calendarEventId = calendarResult.eventId;
-          calendarEnsureOutcome = calendarResult.outcome;
-        } catch (error) {
-          logCalendarError("create_calendar_event", error, lab);
-          calendarErrorReason = [
-            "Hubo un error tecnico al crear el evento",
-            "en Google Calendar.",
-          ].join(" ");
-        }
-      }
-
-      const createdNotification: { value: CreatedNotification | null } = {
-        value: null,
-      };
-      const output = await reservationRepository.runTransaction(
-          async (transaction) => {
-            const status = calendarErrorReason ?
-              "ERROR_CALENDAR" :
-              resolveStatus(input, rejectionDecision);
-            const reservation = buildReservation(
-                reservationRepository,
-                reservationRef.id,
-                folio,
-                input,
-                lab,
-                {
-                  uid,
-                  email: profile.email,
-                  displayName: profile.displayName,
-                },
-                startAt,
-                endAt,
-                status,
-                calendarErrorReason ?? rejectionDecision?.reason,
-                calendarEventId,
-            );
-
-            reservationRepository.createReservation(
-                transaction,
-                reservationRef,
-                reservation,
-            );
-            createLogs(
-                logRepository,
-                transaction,
-                reservation,
-                profile.email,
-                rejectionDecision,
-                calendarErrorReason,
-                calendarEnsureOutcome,
-            );
-            createdNotification.value = createNotification(
-                notificationRepository,
-                transaction,
-                reservation,
-                lab,
-                systemSettings,
-                rejectionDecision,
-                calendarErrorReason,
-            );
-
-            return {
-              reservationId: reservation.id,
-              folio: reservation.folio,
-              status: reservation.status,
-              message: getOutputMessage(
-                  reservation.status,
-                  rejectionDecision,
-                  calendarErrorReason,
-              ),
-            };
+      for (const [index, occurrence] of occurrences.entries()) {
+        processed.push(await processOccurrence({
+          input: {
+            ...input,
+            startAt: occurrence.startAt,
+            endAt: occurrence.endAt,
+            occurrences: undefined,
           },
-      );
-
-      if (createdNotification.value) {
-        try {
-          await notificationDeliveryService.sendNotification(
-              createdNotification.value.notification,
-          );
-        } catch (error) {
-          logger.error("Email notification delivery failed", {
-            reservationId: createdNotification.value.notification
-                .reservationId,
-            notificationId: createdNotification.value.id,
-            ...toSafeErrorMetadata(error),
-          });
-        }
+          groupId,
+          groupSize: occurrences.length,
+          groupIndex: index,
+          uid,
+          profile,
+          lab,
+          systemSettings,
+          reservationRepository,
+          logRepository,
+          notificationRepository,
+          notificationDeliveryService,
+          calendarService,
+          notifyIndividually: occurrences.length === 1,
+        }));
       }
 
-      return output;
+      if (groupId) {
+        await createAndSendBatchNotification({
+          groupId,
+          processed,
+          lab,
+          systemSettings,
+          notificationRepository,
+          notificationDeliveryService,
+        });
+      }
+
+      const first = processed[0];
+      return {
+        ...first.output,
+        reservationGroupId: groupId,
+        results: groupId ? processed.map((item) => ({
+          ...item.output,
+          startAt: item.startAt.toISOString(),
+          endAt: item.endAt.toISOString(),
+        })) : undefined,
+        message: groupId ? buildBatchOutputMessage(processed) :
+          first.output.message,
+      };
     },
 );
+
+interface ProcessedOccurrence {
+  output: CreateReservationOutput;
+  reservation: ReservationDoc;
+  startAt: Date;
+  endAt: Date;
+}
+
+interface ProcessOccurrenceParams {
+  input: CreateReservationInput;
+  groupId?: string;
+  groupSize: number;
+  groupIndex: number;
+  uid: string;
+  profile: NonNullable<Awaited<ReturnType<ReservationRepository["getUserProfile"]>>>;
+  lab: LabDoc;
+  systemSettings: SystemSettingsDoc | null;
+  reservationRepository: ReservationRepository;
+  logRepository: ReservationLogRepository;
+  notificationRepository: NotificationRepository;
+  notificationDeliveryService: NotificationDeliveryService;
+  calendarService: GoogleCalendarService;
+  notifyIndividually: boolean;
+}
+
+interface BatchNotificationParams {
+  groupId: string;
+  processed: ProcessedOccurrence[];
+  lab: LabDoc;
+  systemSettings: SystemSettingsDoc | null;
+  notificationRepository: NotificationRepository;
+  notificationDeliveryService: NotificationDeliveryService;
+}
+
+/** Writes and sends one consolidated result for a multi-date request. */
+async function createAndSendBatchNotification(
+    params: BatchNotificationParams,
+): Promise<void> {
+  const representative = params.processed[0].reservation;
+  const template = buildBatchEmail(params.processed, params.lab.name);
+  const created = await getFirestore().runTransaction(async (transaction) =>
+    params.notificationRepository.createPendingNotification(transaction, {
+      reservationId: representative.id,
+      type: "RESERVATION_BATCH_RESULT",
+      to: uniqueEmails([
+        representative.teacherEmail,
+        representative.guestTeacherEmail ?? "",
+        ...params.lab.responsibleEmails,
+        ...params.lab.defaultNotifyEmails,
+        ...(params.processed.some((item) => item.output.status === "ERROR_CALENDAR") ?
+          params.systemSettings?.adminEmails ?? [] : []),
+      ]),
+      subject: template.subject,
+      body: template.body,
+      htmlBody: template.htmlBody,
+    }),
+  );
+  await sendNotificationSafely(params.notificationDeliveryService, created);
+}
+
+/** Builds a compact, consolidated multi-date email. */
+function buildBatchEmail(
+    processed: ProcessedOccurrence[],
+    labName: string,
+): {subject: string; body: string; htmlBody: string} {
+  const rows = processed.map((item) => {
+    const date = new Intl.DateTimeFormat("es-MX", {
+      dateStyle: "long",
+      timeZone: "America/Cancun",
+    }).format(item.startAt);
+    const time = new Intl.DateTimeFormat("es-MX", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "America/Cancun",
+    });
+    return {
+      folio: item.output.folio,
+      date,
+      time: `${time.format(item.startAt)} - ${time.format(item.endAt)}`,
+      status: item.output.status,
+      message: item.output.message,
+    };
+  });
+  const textRows = rows.map((row) =>
+    `- ${row.date}, ${row.time}: ${row.status}. ${row.message} (${row.folio})`,
+  ).join("\n");
+  const htmlRows = rows.map((row) => [
+    "<tr>",
+    `<td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeEmail(row.date)}</td>`,
+    `<td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeEmail(row.time)}</td>`,
+    `<td style="padding:10px;border-bottom:1px solid #e5e7eb"><strong>${escapeEmail(row.status)}</strong><br>${escapeEmail(row.message)}</td>`,
+    "</tr>",
+  ].join("")).join("");
+
+  return {
+    subject: `Resultado de reservas multiples - ${labName}`,
+    body: [
+      "Sistema Web de Reservas de Laboratorios",
+      `Laboratorio: ${labName}`,
+      "Resultado por fecha:",
+      textRows,
+      "Las fechas rechazadas indican el conflicto o regla que impidio reservar.",
+    ].join("\n\n"),
+    htmlBody: [
+      '<div style="background:#f8fafc;padding:24px;font-family:Arial,sans-serif;color:#111827">',
+      '<div style="max-width:720px;margin:auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden">',
+      '<div style="background:#271e5d;color:#fff;padding:22px"><strong>Sistema Web de Reservas de Laboratorios</strong><h2 style="margin:8px 0 0">Resultado de solicitud multiple</h2></div>',
+      `<div style="padding:22px"><p><strong>Laboratorio:</strong> ${escapeEmail(labName)}</p>`,
+      '<table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Fecha</th><th align="left">Horario</th><th align="left">Resultado</th></tr></thead>',
+      `<tbody>${htmlRows}</tbody></table>`,
+      '<p style="color:#4b5563">Las fechas rechazadas muestran el motivo correspondiente. No se envian correos separados por cada fecha.</p></div></div></div>',
+    ].join(""),
+  };
+}
+
+/** Produces the callable summary for a multi-date request. */
+function buildBatchOutputMessage(processed: ProcessedOccurrence[]): string {
+  const accepted = processed.filter((item) =>
+    !item.output.status.startsWith("RECHAZADA"),
+  ).length;
+  const rejected = processed.length - accepted;
+  return `Se procesaron ${processed.length} fechas: ${accepted} aceptadas y ${rejected} rechazadas.`;
+}
+
+/** Sends a persisted notification without changing reservation status. */
+async function sendNotificationSafely(
+    delivery: NotificationDeliveryService,
+    created: CreatedNotification,
+): Promise<void> {
+  try {
+    await delivery.sendNotification(created.notification);
+  } catch (error) {
+    logger.error("Email notification delivery failed", {
+      reservationId: created.notification.reservationId,
+      notificationId: created.id,
+      ...toSafeErrorMetadata(error),
+    });
+  }
+}
+
+/** Escapes dynamic text included in an email body. */
+function escapeEmail(value: string): string {
+  return value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+}
+
+/** Creates and validates one occurrence in a multi-date request. */
+async function processOccurrence(
+    params: ProcessOccurrenceParams,
+): Promise<ProcessedOccurrence> {
+  const {
+    input, lab, uid, profile, reservationRepository, logRepository,
+    notificationRepository, notificationDeliveryService, calendarService,
+  } = params;
+  const {startAt, endAt} = parseReservationDates(input);
+  let rejectionDecision = validateReservationTiming(
+      input, lab, startAt, endAt, new Date(),
+  );
+  let calendarErrorReason: string | undefined;
+  const reservationRef = reservationRepository.createReservationRef();
+  const folio = generateReservationFolio(new Date());
+
+  if (!rejectionDecision) {
+    const blockedPeriods = await reservationRepository
+        .findActiveBlockedPeriods(lab.id, startAt, endAt);
+    if (blockedPeriods.length) {
+      rejectionDecision = {
+        status: "RECHAZADA_REGLA_HORARIO",
+        reason: "El horario solicitado esta bloqueado por una restriccion institucional.",
+      };
+    }
+  }
+
+  if (!rejectionDecision) {
+    const conflicts = await reservationRepository.runTransaction(
+        (transaction) => reservationRepository.findBlockingConflicts(
+            transaction, lab.id, startAt, endAt,
+        ),
+    );
+    if (conflicts.length) {
+      rejectionDecision = {
+        status: "RECHAZADA_CONFLICTO",
+        reason: "Existe una reserva traslapada para este laboratorio.",
+      };
+    }
+  }
+
+  if (!rejectionDecision) {
+    try {
+      const externalConflict = await checkExternalCalendarConflicts({
+        calendarId: lab.calendarId,
+        startAt,
+        endAt,
+        excludeReservationId: reservationRef.id,
+      });
+      if (externalConflict.hasConflict) {
+        rejectionDecision = {
+          status: "RECHAZADA_CONFLICTO",
+          reason: "El laboratorio ya tiene un evento ocupado en Google Calendar para ese horario.",
+        };
+      }
+    } catch (error) {
+      logCalendarError("validate_external_availability", error, lab);
+      calendarErrorReason = "No fue posible validar Google Calendar. Admin/Sistemas debe revisar la integracion.";
+    }
+  }
+
+  let calendarEventId: string | null = null;
+  let calendarEnsureOutcome: CalendarEnsureOutcome | null = null;
+  if (!rejectionDecision && !calendarErrorReason && !requiresManualReview(input)) {
+    try {
+      const draft = buildReservation(
+          reservationRepository, reservationRef.id, folio, input, lab,
+          {uid, email: profile.email, displayName: profile.displayName},
+          startAt, endAt, "CONFIRMADA", undefined, null,
+          params.groupId, params.groupSize, params.groupIndex, profile.role,
+      );
+      const calendarResult = await calendarService.ensureReservationEvent({
+        lab,
+        reservation: draft,
+      });
+      calendarEventId = calendarResult.eventId;
+      calendarEnsureOutcome = calendarResult.outcome;
+    } catch (error) {
+      logCalendarError("create_calendar_event", error, lab);
+      calendarErrorReason = "Hubo un error tecnico al crear el evento en Google Calendar.";
+    }
+  }
+
+  const createdNotification: {value: CreatedNotification | null} = {value: null};
+  const saved = await reservationRepository.runTransaction(async (transaction) => {
+    const status = calendarErrorReason ? "ERROR_CALENDAR" :
+      resolveStatus(input, rejectionDecision);
+    const reservation = buildReservation(
+        reservationRepository, reservationRef.id, folio, input, lab,
+        {uid, email: profile.email, displayName: profile.displayName},
+        startAt, endAt, status,
+        calendarErrorReason ?? rejectionDecision?.reason, calendarEventId,
+        params.groupId, params.groupSize, params.groupIndex, profile.role,
+    );
+    reservationRepository.createReservation(transaction, reservationRef, reservation);
+    createLogs(
+        logRepository, transaction, reservation, profile.email,
+        rejectionDecision, calendarErrorReason, calendarEnsureOutcome,
+    );
+    if (params.notifyIndividually) {
+      createdNotification.value = createNotification(
+          notificationRepository, transaction, reservation, lab,
+          params.systemSettings, rejectionDecision, calendarErrorReason,
+      );
+    }
+    return reservation;
+  });
+
+  if (createdNotification.value) {
+    await sendNotificationSafely(
+        notificationDeliveryService, createdNotification.value,
+    );
+  }
+
+  return {
+    reservation: saved,
+    startAt,
+    endAt,
+    output: {
+      reservationId: saved.id,
+      folio: saved.folio,
+      status: saved.status,
+      message: getOutputMessage(saved.status, rejectionDecision, calendarErrorReason),
+    },
+  };
+}
 
 /**
  * Resolves final reservation status.
@@ -347,6 +484,10 @@ function requiresManualReview(input: CreateReservationInput): boolean {
  * @param {ReservationStatus} status Reservation status.
  * @param {string | undefined} statusReason Status reason.
  * @param {string | null} calendarEventId Google Calendar event id.
+ * @param {string | undefined} groupId Multi-date request id.
+ * @param {number} groupSize Number of requested dates.
+ * @param {number} groupIndex Zero-based occurrence index.
+ * @param {string} requestedByRole Authenticated role.
  * @return {ReservationDoc} Reservation document.
  */
 function buildReservation(
@@ -361,6 +502,10 @@ function buildReservation(
     status: ReservationStatus,
     statusReason: string | undefined,
     calendarEventId: string | null,
+    groupId?: string,
+    groupSize = 1,
+    groupIndex = 0,
+    requestedByRole?: "docente" | "responsable_laboratorio" | "admin_sistemas",
 ): ReservationDoc {
   const now = Timestamp.now();
 
@@ -372,9 +517,17 @@ function buildReservation(
     teacherUid: user.uid,
     teacherName: user.displayName,
     teacherEmail: user.email,
+    requestedByRole,
+    guestTeacherEmail: input.guestTeacherEmail,
+    reservationMode: input.reservationMode ?? "academic",
+    reservationGroupId: groupId,
+    reservationGroupSize: groupId ? groupSize : undefined,
+    reservationGroupIndex: groupId ? groupIndex : undefined,
     subject: input.subject,
     group: input.group,
     practiceName: input.practiceName,
+    practiceNumber: input.practiceNumber,
+    description: input.description,
     objective: input.objective,
     materialRequired: input.materialRequired,
     practiceType: input.practiceType,
@@ -383,6 +536,7 @@ function buildReservation(
     externalParticipants: input.externalParticipants,
     protocolRequired: input.risky || input.externalParticipants,
     protocolFiles: toProtocolFiles(input.protocolFiles ?? []),
+    evidenceFiles: [],
     startAt: toTimestamp(startAt.toISOString()),
     endAt: toTimestamp(endAt.toISOString()),
     status,

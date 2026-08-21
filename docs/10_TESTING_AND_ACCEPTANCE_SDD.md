@@ -931,3 +931,39 @@ La liberación definitiva `v1.0.0` queda condicionada a evidencia vigente de
 IAM, alertas, índices remotos, backups/PITR, protección de Storage y scopes de
 delegación Workspace. Ningún control bloqueado debe marcarse `PASS` por
 inferencia.
+
+## Aceptación posterior al MVP: solicitudes múltiples y evidencias
+
+Se deben validar al menos los siguientes casos:
+
+- aceptar entre 1 y 20 fechas únicas dentro de los siguientes 90 días;
+- rechazar 21 fechas, fechas duplicadas o fechas fuera del límite;
+- mostrar antes de la selección la instrucción para agregar y retirar fechas,
+  junto con un contador visible y accesible `seleccionadas / 20`;
+- crear un documento y folio independiente por fecha;
+- confirmar fechas válidas y rechazar solo las que tengan conflicto, mostrando
+  el motivo por fecha;
+- emitir un único correo consolidado por solicitud múltiple;
+- aprobar o rechazar juntas las reservas pendientes hermanas con una sola
+  notificación;
+- permitir al responsable reservar solo laboratorios de `labsAssigned` con el
+  formulario simplificado;
+- permitir a `admin_sistemas` reservar cualquier laboratorio con el mismo
+  formulario simplificado;
+- impedir que responsable y Admin/Sistemas omitan el modo simplificado;
+- impedir que un docente envíe `reservationMode = responsible_direct`;
+- rechazar un correo invitado que no pertenezca al dominio institucional;
+- conservar `practiceNumber` como campo opcional;
+- permitir evidencias solo al docente propietario, después del inicio y en
+  estatus confirmado;
+- limitar evidencias a 10 imágenes JPG/PNG/WebP de hasta 5 MB, con compresión
+  previa obligatoria;
+- permitir lectura privada solo a propietario, responsable asignado y Admin;
+- eliminar archivos al cumplir 90 días y conservar reserva y bitácoras.
+
+La aceptación productiva requiere smoke manual con los tres roles y comprobar
+que las fechas rechazadas no generan eventos Calendar.
+
+La aceptación visual incluye revisar ortografía, acentuación y puntuación de
+los textos visibles. Los identificadores técnicos deben conservarse sin
+traducción ni cambios.

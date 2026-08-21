@@ -32,7 +32,7 @@
       @if (qrDataUrl()) {
         <img
           [src]="qrDataUrl()"
-          [alt]="'Codigo QR para reservar ' + labName()"
+          [alt]="'Código QR para reservar ' + labName()"
         />
         @if (normalizedConfig().showLogo && !logoPreviewFailed()) {
           <span class="qr-preview__code-logo" aria-hidden="true">
@@ -70,14 +70,14 @@
 
     <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <p class="m-0 text-xs font-bold uppercase tracking-[0.18em] text-violet-700">
-        Enlace publico de reserva
+        Enlace público de reserva
       </p>
       <p class="m-0 mt-2 break-all text-sm font-semibold text-slate-900">
         {{ qrUrl() }}
       </p>
       <p class="m-0 mt-2 text-sm leading-6 text-slate-600">
-        El QR siempre apunta a la ruta publica del laboratorio. No se guardan
-        imagenes QR ni archivos generados en Firestore o Storage.
+        El QR siempre apunta a la ruta pública del laboratorio. No se guardan
+        imágenes QR ni archivos generados en Firestore o Storage.
       </p>
     </div>
 

@@ -4,6 +4,9 @@
   [selectedLabName]="lab().name"
   [selectedLabSlug]="lab().slug"
   [minDate]="minDate"
+  [maxDate]="maxDate"
+  [selectedDates]="selectedDates()"
+  [simplifiedMode]="simplifiedMode()"
   [practiceTypes]="practiceTypes"
   [submitting]="submitting()"
   [disabled]="submitting()"
@@ -22,5 +25,7 @@
   submitLabel="Crear reserva"
   (protocolSelected)="onProtocolFileSelected($event)"
   (protocolRemoved)="removeProtocolFile()"
+  (dateSelected)="addSelectedDate($event)"
+  (dateRemoved)="removeSelectedDate($event)"
   (submitReservation)="submitDraft()"
 />

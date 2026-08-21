@@ -18,6 +18,8 @@ import {
 } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+import { AuthService } from '../../../core/services/auth.service';
+import { UserProfileService } from '../../../core/services/user-profile.service';
 import { PublicLab } from '../../../shared/models';
 import { AvailabilitySlot } from '../../calendar/components';
 import { ReservationStepperFormComponent } from '../components/reservation-stepper-form/reservation-stepper-form.component';
@@ -39,6 +41,10 @@ export interface ReservationDraftPayload {
   subject: string;
   group: string;
   practiceName: string;
+  practiceNumber?: string;
+  description?: string;
+  guestTeacherEmail?: string;
+  reservationMode: 'academic' | 'responsible_direct';
   objective: string;
   materialRequired: string;
   practiceType: string;
@@ -47,6 +53,7 @@ export interface ReservationDraftPayload {
   risky: boolean;
   protocolRequired: boolean;
   source: 'web' | 'qr';
+  occurrences?: Array<{ startAt: string; endAt: string }>;
 }
 
 export interface ReservationCreatedEvent {
@@ -75,6 +82,8 @@ export class ReservationFormComponent {
   private readonly reservationService = inject(ReservationService);
   private readonly protocolUploadService = inject(ProtocolUploadService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly authService = inject(AuthService);
+  private readonly profileService = inject(UserProfileService);
 
   protected readonly selectedProtocolFile = signal<File | null>(null);
   protected readonly isDesktop = signal(false);
@@ -82,6 +91,11 @@ export class ReservationFormComponent {
   protected readonly uploadingProtocol = signal(false);
   protected readonly result = signal<CreateReservationOutput | null>(null);
   protected readonly minDate = new Date();
+  protected readonly maxDate = new Date(
+    Date.now() + 90 * 24 * 60 * 60 * 1000,
+  );
+  protected readonly selectedDates = signal<Date[]>([]);
+  protected readonly simplifiedMode = signal(false);
 
   protected readonly practiceTypes = [
     'Teórica',
@@ -105,7 +119,10 @@ export class ReservationFormComponent {
     subject: ['', [Validators.required, Validators.maxLength(120)]],
     group: ['', [Validators.required, Validators.maxLength(60)]],
     practiceName: ['', [Validators.required, Validators.maxLength(160)]],
+    practiceNumber: ['', [Validators.maxLength(40)]],
     objective: ['', [Validators.required, Validators.maxLength(800)]],
+    description: ['', [Validators.maxLength(800)]],
+    guestTeacherEmail: ['', [Validators.email, Validators.maxLength(160)]],
   });
 
   protected readonly practiceForm = this.formBuilder.group(
@@ -149,6 +166,39 @@ export class ReservationFormComponent {
     this.riskForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.clearProtocolWhenNotRequired());
+
+    void this.loadReservationMode();
+  }
+
+  protected addSelectedDate(date: Date | null): void {
+    if (!date) {
+      return;
+    }
+    const normalized = new Date(date);
+    normalized.setHours(0, 0, 0, 0);
+    if (this.isDateBeforeToday(normalized) || normalized > this.maxDate) {
+      return;
+    }
+    this.selectedDates.update((dates) => {
+      if (dates.some((item) => item.getTime() === normalized.getTime())) {
+        return dates;
+      }
+      if (dates.length >= 20) {
+        this.snackBar.open('Puede seleccionar hasta 20 fechas.', 'Cerrar', {
+          duration: 4500,
+        });
+        return dates;
+      }
+      return [...dates, normalized].sort((a, b) => a.getTime() - b.getTime());
+    });
+  }
+
+  protected removeSelectedDate(date: Date): void {
+    this.selectedDates.update((dates) =>
+      dates.filter((item) => item.getTime() !== date.getTime()),
+    );
+    const remaining = this.selectedDates();
+    this.scheduleForm.controls.date.setValue(remaining[0] ?? null);
   }
 
   protected onProtocolFileSelected(file: File | null): void {
@@ -221,8 +271,14 @@ export class ReservationFormComponent {
       practice.practiceType === 'Otro' ?
         practice.practiceTypeOther?.trim() :
         undefined;
-    const startAt = this.toIsoDateTime(schedule.date, schedule.startTime);
-    const endAt = this.toIsoDateTime(schedule.date, schedule.endTime);
+    const dates = this.selectedDates().length ?
+      this.selectedDates() : schedule.date ? [schedule.date] : [];
+    const occurrences = dates.map((date) => ({
+      startAt: this.toIsoDateTime(date, schedule.startTime) ?? '',
+      endAt: this.toIsoDateTime(date, schedule.endTime) ?? '',
+    }));
+    const startAt = occurrences[0]?.startAt;
+    const endAt = occurrences[0]?.endAt;
 
     if (!startAt || !endAt) {
       throw new Error('Fecha u horario incompleto.');
@@ -234,16 +290,24 @@ export class ReservationFormComponent {
       startAt,
       endAt,
       protocolFiles,
-      subject: academic.subject ?? '',
-      group: academic.group ?? '',
+      occurrences,
+      reservationMode: this.simplifiedMode() ? 'responsible_direct' : 'academic',
+      subject: this.simplifiedMode() ? '' : academic.subject ?? '',
+      group: this.simplifiedMode() ? '' : academic.group ?? '',
       practiceName: academic.practiceName ?? '',
-      objective: academic.objective ?? '',
-      materialRequired: practice.materialRequired ?? '',
-      practiceType: practice.practiceType ?? '',
-      practiceTypeOther,
-      externalParticipants,
-      risky,
-      protocolRequired: risky || externalParticipants,
+      practiceNumber: academic.practiceNumber?.trim() || undefined,
+      description: this.simplifiedMode() ?
+        academic.description?.trim() || undefined : undefined,
+      guestTeacherEmail: this.simplifiedMode() ?
+        academic.guestTeacherEmail?.trim().toLowerCase() || undefined : undefined,
+      objective: this.simplifiedMode() ? '' : academic.objective ?? '',
+      materialRequired: this.simplifiedMode() ? '' : practice.materialRequired ?? '',
+      practiceType: this.simplifiedMode() ? 'Otro' : practice.practiceType ?? '',
+      practiceTypeOther: this.simplifiedMode() ?
+        'Reserva operativa' : practiceTypeOther,
+      externalParticipants: this.simplifiedMode() ? false : externalParticipants,
+      risky: this.simplifiedMode() ? false : risky,
+      protocolRequired: this.simplifiedMode() ? false : risky || externalParticipants,
       source: 'qr',
     };
   }
@@ -265,7 +329,15 @@ export class ReservationFormComponent {
       return;
     }
 
-    const mustUploadProtocol = this.isProtocolRequiredByConditions();
+    if (!this.selectedDates().length) {
+      this.snackBar.open('Seleccione al menos una fecha.', 'Cerrar', {
+        duration: 4500,
+      });
+      return;
+    }
+
+    const mustUploadProtocol = !this.simplifiedMode() &&
+      this.isProtocolRequiredByConditions();
 
     if (mustUploadProtocol && !this.selectedProtocolFile()) {
       this.snackBar.open(
@@ -361,10 +433,57 @@ export class ReservationFormComponent {
       startTime: slot.startTime,
       endTime: slot.endTime,
     });
+    this.addSelectedDate(this.dateFromSlotKey(slot.dayKey));
     this.scheduleForm.markAsDirty();
     this.scheduleForm.updateValueAndValidity();
     this.reservationForm.markAsDirty();
     this.reservationForm.updateValueAndValidity();
+  }
+
+  private async loadReservationMode(): Promise<void> {
+    const user = this.authService.currentUser();
+    if (!user) {
+      return;
+    }
+    const result = await this.profileService.getProfile(user.uid);
+    const directMode = result.status === 'active' &&
+      (result.profile?.role === 'responsable_laboratorio' ||
+        result.profile?.role === 'admin_sistemas');
+    this.simplifiedMode.set(directMode);
+    if (directMode) {
+      [
+        this.academicForm.controls.subject,
+        this.academicForm.controls.group,
+        this.academicForm.controls.objective,
+      ].forEach((control) => {
+        control.clearValidators();
+        control.updateValueAndValidity({emitEvent: false});
+      });
+      this.academicForm.controls.practiceName.setValidators([
+        Validators.required,
+        Validators.maxLength(160),
+      ]);
+      this.academicForm.controls.practiceName.updateValueAndValidity({
+        emitEvent: false,
+      });
+      this.practiceForm.controls.practiceType.clearValidators();
+      this.practiceForm.controls.practiceType.updateValueAndValidity({
+        emitEvent: false,
+      });
+      this.riskForm.controls.risky.clearValidators();
+      this.riskForm.controls.risky.updateValueAndValidity({emitEvent: false});
+      this.riskForm.controls.externalParticipants.clearValidators();
+      this.riskForm.controls.externalParticipants.updateValueAndValidity({
+        emitEvent: false,
+      });
+      this.riskForm.patchValue(
+        {risky: false, externalParticipants: false},
+        {emitEvent: false},
+      );
+      this.academicForm.updateValueAndValidity({emitEvent: false});
+      this.practiceForm.updateValueAndValidity({emitEvent: false});
+      this.riskForm.updateValueAndValidity({emitEvent: false});
+    }
   }
 
   private isSelectableCalendarSlot(slot: AvailabilitySlot): boolean {

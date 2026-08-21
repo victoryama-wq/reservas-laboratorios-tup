@@ -112,10 +112,19 @@ interface ReservationDoc {
   teacherUid: string;
   teacherName: string;
   teacherEmail: string;
+  requestedByRole?: UserRole;
+  reservationMode?: 'academic' | 'responsible_direct';
+  guestTeacherEmail?: string;
+
+  reservationGroupId?: string;
+  reservationGroupSize?: number;
+  reservationGroupIndex?: number;
 
   subject: string;
   group: string;
   practiceName: string;
+  practiceNumber?: string;
+  description?: string;
   objective: string;
   materialRequired: string;
 
@@ -126,6 +135,8 @@ interface ReservationDoc {
 
   protocolRequired: boolean;
   protocolFiles: ProtocolFile[];
+  evidenceFiles?: EvidenceFile[];
+  evidenceCleanupAt?: Timestamp;
 
   startAt: Timestamp;
   endAt: Timestamp;
@@ -151,6 +162,34 @@ interface ReservationDoc {
 
   source: 'web' | 'qr' | 'admin';
 }
+
+interface EvidenceFile {
+  storagePath: string;
+  fileName: string;
+  contentType: 'image/jpeg' | 'image/png' | 'image/webp';
+  sizeBytes: number;
+  uploadedByUid: string;
+  uploadedAt: Timestamp;
+  expiresAt: Timestamp;
+}
+
+Las solicitudes de varias fechas conservan un documento independiente por
+ocurrencia. `reservationGroupId` las relaciona sin cambiar el folio, estatus,
+horario, evento Calendar ni bitácora individual. El límite es de 20 fechas
+únicas dentro de los siguientes 90 días.
+
+`reservationMode = responsible_direct` identifica el formulario simplificado
+de responsables y Admin/Sistemas. No crea un rol ni un estatus adicional. Sus
+campos académicos, materiales, riesgo y protocolo se normalizan vacíos o falsos
+en backend; puede guardar `guestTeacherEmail`, `description` y
+`practiceNumber`. El responsable solo puede usarlo en `labsAssigned` y
+Admin/Sistemas puede usarlo en cualquier laboratorio.
+
+Las evidencias fotográficas permanecen privadas bajo
+`reservationEvidence/{uid}/{reservationId}/{uploadId}/{fileName}`. Cada reserva
+admite 10 imágenes comprimidas, de hasta 5 MB cada una. `expiresAt` y
+`evidenceCleanupAt` permiten eliminarlas automáticamente al cumplir 90 días,
+sin borrar la reserva ni sus bitácoras.
 
 Uso de campos de motivo en Mis reservas
 

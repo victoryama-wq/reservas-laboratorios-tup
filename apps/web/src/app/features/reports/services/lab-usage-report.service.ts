@@ -35,13 +35,13 @@ export class LabUsageReportService {
 
     const messages: Record<string, string> = {
       'functions/unauthenticated':
-        'La sesion no esta disponible. Inicie sesion nuevamente.',
+        'La sesión no está disponible. Inicie sesión nuevamente.',
       'functions/permission-denied':
         'No tiene permiso para consultar el laboratorio solicitado.',
       'functions/invalid-argument':
         'Revise el periodo y los laboratorios seleccionados.',
       'functions/unavailable':
-        'El servicio de reportes no esta disponible temporalmente.',
+        'El servicio de reportes no está disponible temporalmente.',
     };
 
     return (

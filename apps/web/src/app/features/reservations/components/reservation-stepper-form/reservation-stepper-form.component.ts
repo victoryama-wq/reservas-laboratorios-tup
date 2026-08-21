@@ -13,6 +13,7 @@ import {
   AppIconBoxComponent,
   AppInfoCalloutComponent,
   AppSectionCardComponent,
+  AppStatusChipComponent,
 } from '../../../../shared/components';
 import { CreateReservationOutput } from '../../services/reservation.service';
 
@@ -26,6 +27,7 @@ type ReservationStepGroup = 'schedule' | 'academic' | 'practice' | 'risk';
     AppIconBoxComponent,
     AppInfoCalloutComponent,
     AppSectionCardComponent,
+    AppStatusChipComponent,
     MatButtonModule,
     MatDatepickerModule,
     MatFormFieldModule,
@@ -47,12 +49,14 @@ export class ReservationStepperFormComponent {
   readonly selectedLabSlug = input('');
   readonly minDate = input<Date | null>(null);
   readonly maxDate = input<Date | null>(null);
+  readonly selectedDates = input<Date[]>([]);
+  readonly simplifiedMode = input(false);
   readonly availableStartTimes = input<string[]>([]);
   readonly availableEndTimes = input<string[]>([]);
   readonly practiceTypes = input<string[]>([]);
   readonly riskOptions = input<Array<{ label: string; value: boolean }>>([
     { label: 'No', value: false },
-    { label: 'Si', value: true },
+    { label: 'Sí', value: true },
   ]);
   readonly loading = input(false);
   readonly disabled = input(false);
@@ -74,6 +78,8 @@ export class ReservationStepperFormComponent {
   readonly protocolRemoved = output<void>();
   readonly cancel = output<void>();
   readonly submitReservation = output<void>();
+  readonly dateSelected = output<Date | null>();
+  readonly dateRemoved = output<Date>();
 
   protected group(name: ReservationStepGroup): FormGroup {
     return this.form().get(name) as FormGroup;
@@ -137,8 +143,29 @@ export class ReservationStepperFormComponent {
     }).format(value);
   }
 
+  protected formatShortDate(value: Date): string {
+    return new Intl.DateTimeFormat('es-MX', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+    }).format(value);
+  }
+
+  protected formatResultDate(value: string): string {
+    return new Intl.DateTimeFormat('es-MX', {
+      dateStyle: 'long',
+    }).format(new Date(value));
+  }
+
+  protected formatResultTime(value: string): string {
+    return new Intl.DateTimeFormat('es-MX', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value));
+  }
+
   protected yesNo(value: unknown): string {
-    return value ? 'Si' : 'No';
+    return value ? 'Sí' : 'No';
   }
 
   protected displayValue(

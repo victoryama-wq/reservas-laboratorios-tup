@@ -1,4 +1,7 @@
-import {ReservationSource} from "../../shared/models/reservation.model";
+import {
+  ReservationMode,
+  ReservationSource,
+} from "../../shared/models/reservation.model";
 import {ReservationStatus} from "../../shared/models/reservation-status.model";
 
 export interface ProtocolFileInput {
@@ -16,16 +19,35 @@ export interface CreateReservationInput {
   subject: string;
   group: string;
   practiceName: string;
+  practiceNumber?: string;
+  description?: string;
   objective: string;
   materialRequired: string;
   practiceType: string;
   practiceTypeOther?: string;
   risky: boolean;
   externalParticipants: boolean;
+  reservationMode?: ReservationMode;
+  guestTeacherEmail?: string;
   startAt: string;
   endAt: string;
+  occurrences?: ReservationOccurrenceInput[];
   protocolFiles?: ProtocolFileInput[];
   source: ReservationSource;
+}
+
+export interface ReservationOccurrenceInput {
+  startAt: string;
+  endAt: string;
+}
+
+export interface CreateReservationOccurrenceOutput {
+  reservationId: string;
+  folio: string;
+  startAt: string;
+  endAt: string;
+  status: ReservationStatus;
+  message: string;
 }
 
 export interface CreateReservationOutput {
@@ -33,6 +55,8 @@ export interface CreateReservationOutput {
   folio: string;
   status: ReservationStatus;
   message: string;
+  reservationGroupId?: string;
+  results?: CreateReservationOccurrenceOutput[];
 }
 
 export interface ReservationValidationContext {

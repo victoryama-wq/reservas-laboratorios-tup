@@ -133,7 +133,7 @@
           >
             @if (day.disabled) {
               <div class="availability-calendar__day-note">
-                <span>Dia no disponible</span>
+                <span>Día no disponible</span>
               </div>
             } @else {
               @for (hour of hours(); track hour; let hourIndex = $index) {
@@ -211,7 +211,7 @@
                   }
                   @if (remainingBlocksForDay(day.key) > 0) {
                     <span class="month-pill month-pill--neutral">
-                      +{{ remainingBlocksForDay(day.key) }} mas
+                      +{{ remainingBlocksForDay(day.key) }} más
                     </span>
                   }
                 } @else {

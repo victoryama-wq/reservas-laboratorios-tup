@@ -329,7 +329,7 @@ export class AvailabilityCalendarComponent {
         statusLabel: block.label,
         timeRange: `${block.startTime} - ${block.endTime}`,
         message:
-          'Este horario esta ocupado por una solicitud pendiente de validacion. No se muestran datos personales o academicos en esta vista.',
+          'Este horario está ocupado por una solicitud pendiente de validación. No se muestran datos personales o académicos en esta vista.',
       };
     }
 
@@ -341,7 +341,7 @@ export class AvailabilityCalendarComponent {
         statusLabel: block.label,
         timeRange: `${block.startTime} - ${block.endTime}`,
         message:
-          'Este rango no esta disponible para reserva de acuerdo con el calendario o reglas del laboratorio.',
+          'Este rango no está disponible para reserva de acuerdo con el calendario o reglas del laboratorio.',
       };
     }
 
@@ -352,7 +352,7 @@ export class AvailabilityCalendarComponent {
       statusLabel: block.label,
       timeRange: `${block.startTime} - ${block.endTime}`,
       message:
-        'Este horario ya tiene una reserva o evento bloqueante. Por privacidad, solo se muestra informacion de disponibilidad.',
+        'Este horario ya tiene una reserva o evento bloqueante. Por privacidad, solo se muestra información de disponibilidad.',
     };
   }
 

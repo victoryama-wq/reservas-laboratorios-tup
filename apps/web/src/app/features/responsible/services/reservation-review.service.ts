@@ -202,13 +202,13 @@ export class ReservationReviewService {
     const user = await firstValueFrom(this.authService.authState$.pipe(take(1)));
 
     if (!user) {
-      throw new Error('Debe iniciar sesion.');
+      throw new Error('Debe iniciar sesión.');
     }
 
     const profileResult = await this.profileService.getProfile(user.uid);
 
     if (profileResult.status !== 'active' || !profileResult.profile) {
-      throw new Error('Su perfil institucional no esta activo.');
+      throw new Error('Su perfil institucional no está activo.');
     }
 
     return profileResult.profile;
@@ -342,7 +342,7 @@ export class ReservationReviewService {
     }
 
     if (code === 'functions/not-found') {
-      return 'No se encontro el archivo de protocolo.';
+      return 'No se encontró el archivo de protocolo.';
     }
 
     if (code === 'functions/failed-precondition') {
@@ -350,11 +350,11 @@ export class ReservationReviewService {
     }
 
     if (code === 'functions/unavailable') {
-      return 'El servicio no esta disponible temporalmente. Intenta nuevamente.';
+      return 'El servicio no está disponible temporalmente. Intenta nuevamente.';
     }
 
     if (code === 'functions/internal') {
-      return 'No fue posible generar el acceso temporal al protocolo. Contacta a Sistemas si el problema continua.';
+      return 'No fue posible generar el acceso temporal al protocolo. Contacta a Sistemas si el problema continúa.';
     }
 
     return (
@@ -367,17 +367,17 @@ export class ReservationReviewService {
     const code = (error as { code?: unknown }).code;
 
     if (code === 'functions/permission-denied') {
-      return 'No tienes permiso para consultar la bitacora de esta reserva.';
+      return 'No tienes permiso para consultar la bitácora de esta reserva.';
     }
 
     if (code === 'functions/not-found') {
-      return 'La reserva no existe o ya no esta disponible.';
+      return 'La reserva no existe o ya no está disponible.';
     }
 
     if (code === 'functions/unauthenticated') {
-      return 'Debe iniciar sesion para consultar la bitacora.';
+      return 'Debe iniciar sesión para consultar la bitácora.';
     }
 
-    return 'No fue posible cargar la bitacora. Intenta nuevamente.';
+    return 'No fue posible cargar la bitácora. Intenta nuevamente.';
   }
 }

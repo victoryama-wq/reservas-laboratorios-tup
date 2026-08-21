@@ -1300,3 +1300,26 @@ Si `Desde` es posterior a `Hasta`, la UI debe mostrar una advertencia clara:
 
 El botón `Limpiar` debe mantenerse alineado con los demás filtros en escritorio
 y ocupar un área táctil cómoda en móvil.
+
+## Solicitud múltiple, formulario por rol y evidencias
+
+El paso Fechas permite agregar y retirar hasta 20 días dentro de los próximos
+90 días, manteniendo un solo horario. El resumen y el resultado final muestran
+cada fecha y su estado sin ocultar rechazos parciales.
+
+La interfaz explica antes del selector que cada fecha se agrega abriendo
+nuevamente el calendario, que puede retirarse con la acción `X` de su chip y
+que el límite es de 20 fechas. Un contador visible `seleccionadas / 20` se
+actualiza durante la captura y debe anunciarse de forma accesible.
+
+Docente conserva el formulario académico completo y el campo opcional `Número
+de práctica`. Responsable de laboratorio y Admin/Sistemas reciben el mismo
+formulario simplificado: fechas, horario, nombre y número de práctica,
+descripción y correo institucional invitado opcionales. El responsable queda
+limitado a sus laboratorios asignados y Admin/Sistemas conserva alcance global.
+No se renderizan pasos de datos académicos, materiales, riesgo o protocolo.
+
+En el detalle de Mis reservas, después del inicio de una reserva confirmada, el
+docente puede seleccionar imágenes. La UI informa límite de 10, compresión y 5
+MB por archivo, muestra progreso y conserva acciones táctiles. Responsable y
+Admin/Sistemas visualizan las evidencias desde el detalle autorizado.

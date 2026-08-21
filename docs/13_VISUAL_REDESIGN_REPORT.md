@@ -1613,3 +1613,25 @@ horas mensuales y uso por laboratorio.
 Chart.js usa morado y azul institucional sin introducir una paleta alterna. En
 móvil las tablas se sustituyen visualmente por tarjetas, pero permanecen como
 contenido equivalente accesible.
+
+## Extensión visual posterior al MVP: lotes y evidencias
+
+El formulario conserva el stepper y agrega selección múltiple de fechas con
+chips compactos. El resultado presenta una tarjeta por fecha con folio, estatus
+y motivo, permitiendo comprender resultados parciales sin tablas pesadas.
+
+El paso Fechas incorpora una instrucción persistente sobre cómo volver a abrir
+el calendario para agregar fechas, cómo retirarlas y el máximo permitido. Un
+contador compacto `seleccionadas / 20` refuerza el estado de la captura sin
+saturar el formulario móvil.
+
+Para `responsable_laboratorio` y `admin_sistemas` el mismo componente adopta
+una variante breve: laboratorio, fechas, horario, práctica, número opcional,
+docente invitado y descripción. El alcance por laboratorio se resuelve por rol
+sin duplicar la interfaz. Las evidencias usan section cards, icon boxes,
+callouts y botones existentes, con límites visibles de 10 imágenes, 5 MB y 90
+días.
+
+La revisión final de interfaz normaliza ortografía, acentos, signos y
+puntuación de los textos visibles en español. Se mantienen intactos los
+identificadores técnicos, rutas, roles, estatus y contratos de datos.

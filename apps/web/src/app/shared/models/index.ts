@@ -1,4 +1,5 @@
 export * from './app-user.model';
+export * from './evidence-file.model';
 export * from './audit-event.model';
 export * from './blocked-period.model';
 export * from './lab.model';

@@ -1852,3 +1852,35 @@ La liberación `v1.0.0` consolida el MVP institucional con los riesgos
 operativos aceptados descritos en el runbook y el checklist. Las fases 18D.1,
 18D.2 y 18D.3 no desplegaron Hosting, Functions ni reglas; el código productivo
 ya había sido desplegado y validado previamente.
+
+## Solicitudes de varias fechas y evidencias
+
+La extensión posterior al MVP permite seleccionar hasta 20 fechas únicas dentro
+de los siguientes 90 días usando el mismo laboratorio, horario y formulario.
+Se crea una reserva individual por fecha: los conflictos se rechazan con motivo
+y las fechas válidas continúan. El docente recibe un solo correo consolidado.
+
+Las reservas que requieren revisión comparten la misma referencia privada de
+protocolo y las reservas pendientes del grupo se aprueban o rechazan juntas,
+con una sola notificación. No se introducen estatus nuevos.
+
+El formulario incluye `Número de práctica` opcional. Para
+`responsable_laboratorio` y `admin_sistemas` se usa el mismo modo simplificado,
+con fechas, horario, práctica, número opcional, correo docente institucional
+invitado y descripción. El responsable queda limitado a sus laboratorios
+asignados; Admin/Sistemas conserva alcance global.
+
+Desde Mis reservas, el docente propietario puede cargar evidencias después del
+inicio de una reserva confirmada. Se admiten hasta 10 imágenes JPG, PNG o WebP;
+el navegador las comprime y cada archivo debe quedar en 5 MB o menos. Las
+evidencias son privadas y solo pueden verlas el docente propietario, el
+responsable asignado y Admin/Sistemas. Los archivos se eliminan a los 90 días,
+pero las reservas y bitácoras se conservan.
+
+Para publicar esta extensión se requiere deploy controlado de Functions,
+Storage Rules y Hosting. No se ha desplegado como parte de la implementación
+local.
+
+Los textos visibles de la Web App se revisaron para corregir ortografía,
+acentuación, signos de interrogación y puntuación en español. Esta normalización
+no modifica rutas, roles, estatus, nombres de controles ni contratos de datos.

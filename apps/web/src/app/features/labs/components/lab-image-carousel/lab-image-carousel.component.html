@@ -1,6 +1,6 @@
 <section
   class="lab-carousel"
-  aria-label="Galeria del laboratorio"
+  aria-label="Galería del laboratorio"
   (mouseenter)="pauseAutoplayOnHover()"
   (mouseleave)="resumeAutoplayOnHover()"
   (focusin)="pauseAutoplayOnFocus()"
@@ -13,7 +13,7 @@
   @if (loading()) {
     <div class="lab-carousel__fallback">
       <mat-spinner diameter="34" />
-      <p>Cargando galeria...</p>
+      <p>Cargando galería...</p>
     </div>
   } @else if (currentImage(); as image) {
     <figure class="lab-carousel__figure">
@@ -48,7 +48,7 @@
       <figcaption class="lab-carousel__caption">
         <div>
           <p class="lab-carousel__kicker">
-            {{ image.isCover ? 'Imagen principal' : 'Galeria del laboratorio' }}
+            {{ image.isCover ? 'Imagen principal' : 'Galería del laboratorio' }}
           </p>
           <h2>{{ labName() }}</h2>
           @if (image.caption) {
@@ -59,7 +59,7 @@
     </figure>
 
     @if (showControls()) {
-      <div class="lab-carousel__indicators" aria-label="Selector de imagenes">
+      <div class="lab-carousel__indicators" aria-label="Selector de imágenes">
         @for (galleryImage of images(); track galleryImage.id; let index = $index) {
           <button
             type="button"
@@ -76,9 +76,9 @@
       <span class="lab-carousel__fallback-icon" aria-hidden="true">
         <mat-icon>photo_library</mat-icon>
       </span>
-      <p class="lab-carousel__kicker">Galeria</p>
+      <p class="lab-carousel__kicker">Galería</p>
       <h2>{{ labName() }}</h2>
-      <p>Galeria no disponible por el momento.</p>
+      <p>Galería no disponible por el momento.</p>
       @if (errorMessage()) {
         <p class="lab-carousel__error">{{ errorMessage() }}</p>
       }

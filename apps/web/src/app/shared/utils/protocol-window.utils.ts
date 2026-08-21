@@ -17,7 +17,7 @@ export function prepareProtocolWindow(): Window | null {
       '</main>',
     ].join('');
   } catch {
-    // La ventana preabierta puede quedar sin acceso al documento segun el navegador.
+    // La ventana preabierta puede quedar sin acceso al documento según el navegador.
   }
 
   return protocolWindow;

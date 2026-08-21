@@ -36,14 +36,14 @@ export class LabImageCarouselComponent implements OnDestroy {
   protected readonly autoplayPausedByUser = signal(false);
   protected readonly autoplayAssistiveText = computed(() => {
     if (this.prefersReducedMotion()) {
-      return 'Reproduccion automatica desactivada por preferencia de movimiento reducido.';
+      return 'Reproducción automática desactivada por preferencia de movimiento reducido.';
     }
 
     if (this.autoplayPausedByUser()) {
-      return 'Reproduccion automatica pausada por interaccion del usuario.';
+      return 'Reproducción automática pausada por interacción del usuario.';
     }
 
-    return 'La galeria cambia automaticamente cada 5 segundos.';
+    return 'La galería cambia automáticamente cada 5 segundos.';
   });
   protected readonly hasImages = computed(() => this.images().length > 0);
   protected readonly activeIndex = computed(() => {

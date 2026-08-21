@@ -206,6 +206,7 @@ export class MyReservationsService {
       ...reservation,
       id: reservation.id || documentId || '',
       protocolFiles: reservation.protocolFiles ?? [],
+      evidenceFiles: reservation.evidenceFiles ?? [],
       startDate: this.toDate(reservation.startAt),
       endDate: this.toDate(reservation.endAt),
       requiresManualReview:
@@ -259,7 +260,7 @@ export class MyReservationsService {
     }
 
     if (code.includes('not-found')) {
-      return 'No se encontro la reserva solicitada.';
+      return 'No se encontró la reserva solicitada.';
     }
 
     return 'No fue posible cargar la bitácora. Intenta nuevamente.';
@@ -274,7 +275,7 @@ export class MyReservationsService {
     }
 
     if (code.includes('not-found')) {
-      return 'No se encontro el archivo del protocolo.';
+      return 'No se encontró el archivo del protocolo.';
     }
 
     return 'No fue posible abrir el protocolo. Intenta nuevamente.';

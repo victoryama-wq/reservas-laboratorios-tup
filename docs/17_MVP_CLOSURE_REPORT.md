@@ -1149,3 +1149,19 @@ Actividades posteriores al MVP:
   productiva;
 - mantener la revisión manual mensual de Error Reporting, Functions,
   Scheduler, notificaciones `FAILED`, consumo y facturación.
+
+## Extensión funcional posterior a v1.0.0
+
+Se implementó localmente una extensión para solicitudes de hasta 20 fechas en
+90 días, formulario simplificado compartido por responsables y Admin/Sistemas,
+número de práctica opcional y evidencias privadas. Cada fecha conserva una
+reserva individual y los correos
+se consolidan por grupo. Las evidencias se limitan a 10 imágenes comprimidas de
+5 MB y se eliminan de Storage a los 90 días, conservando la trazabilidad.
+
+Esta extensión no forma parte del tag `v1.0.0` ni debe considerarse productiva
+hasta completar QA manual, commit, push y deploy controlado de Functions,
+Storage Rules y Hosting.
+
+También se completó una revisión ortográfica de la interfaz visible en español,
+sin modificar rutas, roles, estatus ni identificadores técnicos.

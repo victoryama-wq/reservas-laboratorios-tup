@@ -13,6 +13,7 @@ export type ReservationLogAction =
   | "CALENDAR_ERROR"
   | "EMAIL_SENT"
   | "EMAIL_ERROR"
+  | "EVIDENCE_UPLOADED"
   | "STATUS_CHANGED";
 
 export interface ReservationLogDoc {

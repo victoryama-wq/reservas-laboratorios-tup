@@ -2,6 +2,32 @@
 
 Los cambios relevantes del proyecto se documentan en este archivo.
 
+## [Unreleased]
+
+### Reservas
+
+- Solicitudes de hasta 20 fechas únicas dentro de 90 días, con una reserva y
+  resultado independiente por fecha.
+- Resultados parciales y correos consolidados para creación, aprobación y
+  rechazo de grupos.
+- Formulario simplificado para responsables en laboratorios asignados.
+- Número de práctica opcional y docente institucional invitado.
+
+### Evidencias
+
+- Carga privada posterior al inicio para reservas confirmadas.
+- Compresión en navegador, máximo 10 imágenes y 5 MB por archivo.
+- Acceso temporal exclusivo para propietario, responsable asignado y Admin.
+- Notificación operativa sin adjuntos ni enlaces públicos.
+- Limpieza automática de archivos a los 90 días conservando trazabilidad.
+
+### Interfaz y textos
+
+- Revisión ortográfica integral de textos visibles en español: acentos, signos
+  de interrogación, puntuación y etiquetas de acciones, estados y ayudas.
+- Conservación literal de rutas, roles, estatus, nombres de controles y demás
+  identificadores técnicos para no alterar contratos funcionales.
+
 ## [1.0.0] - 2026-07-28
 
 Esta versión corresponde al MVP institucional del Sistema Web de Reservas de

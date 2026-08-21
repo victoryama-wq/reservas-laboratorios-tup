@@ -11,6 +11,7 @@ import {
   StatusChipVariant,
 } from '../../../../shared/components';
 import {
+  EvidenceFile,
   ProtocolFile,
   ReservationStatus,
 } from '../../../../shared/models';
@@ -64,9 +65,14 @@ export class MyReservationDetailComponent {
   readonly protocolLoadingPath = input<string | null>(null);
   readonly canCancel = input(false);
   readonly cancelLoading = input(false);
+  readonly canUploadEvidence = input(false);
+  readonly evidenceUploading = input(false);
+  readonly evidenceOpeningPath = input<string | null>(null);
 
   readonly downloadProtocol = output<ProtocolFile>();
   readonly cancelReservation = output<void>();
+  readonly evidenceSelected = output<File[]>();
+  readonly openEvidence = output<EvidenceFile>();
 
   protected detailItems(): DetailItem[] {
     const reservation = this.reservation();
@@ -110,6 +116,13 @@ export class MyReservationDetailComponent {
           : 'Sin evento confirmado',
       },
     ];
+
+    if (reservation.practiceNumber) {
+      items.splice(6, 0, {
+        label: 'Número de práctica',
+        value: reservation.practiceNumber,
+      });
+    }
 
     if (reservation.practiceType === 'Otro') {
       items.splice(9, 0, {
@@ -200,6 +213,13 @@ export class MyReservationDetailComponent {
 
   protected isProtocolLoading(file: ProtocolFile): boolean {
     return this.protocolLoadingPath() === file.storagePath;
+  }
+
+  protected onEvidenceInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    this.evidenceSelected.emit(files);
+    input.value = '';
   }
 
   protected formatLogDate(log: MyReservationTimelineItem): string {

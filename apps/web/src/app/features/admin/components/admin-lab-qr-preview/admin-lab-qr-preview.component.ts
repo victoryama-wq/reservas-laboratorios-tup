@@ -27,7 +27,7 @@ const RESERVATION_BASE_URL = 'https://reservas-laboratorios-tup.web.app/reservar
 
 const DEFAULT_QR_CONFIG: Required<LabQrConfig> = {
   title: 'Reserva de laboratorio',
-  subtitle: 'Escanea para solicitar este espacio academico.',
+  subtitle: 'Escanea para solicitar este espacio académico.',
   customLabel: 'Sistema Web de Reservas de Laboratorios',
   primaryColor: '#271e5d',
   secondaryColor: '#252a86',
@@ -114,7 +114,7 @@ export class AdminLabQrPreviewComponent {
   protected downloadSvg(): void {
     const svg = this.qrSvg();
     if (!svg) {
-      this.snackBar.open('El QR aun no esta listo para descargar.', 'Cerrar', {
+      this.snackBar.open('El QR aún no está listo para descargar.', 'Cerrar', {
         duration: 3500,
         panelClass: ['app-snackbar-warning'],
       });
@@ -207,7 +207,7 @@ export class AdminLabQrPreviewComponent {
       if (token === this.renderToken) {
         this.qrDataUrl.set('');
         this.qrSvg.set('');
-        this.renderError.set('No fue posible generar la previsualizacion del QR.');
+        this.renderError.set('No fue posible generar la previsualización del QR.');
       }
     }
   }
@@ -215,7 +215,7 @@ export class AdminLabQrPreviewComponent {
   private async renderPrintablePng(): Promise<string> {
     const qrDataUrl = this.qrDataUrl();
     if (!qrDataUrl) {
-      this.snackBar.open('El QR aun no esta listo para descargar.', 'Cerrar', {
+      this.snackBar.open('El QR aún no está listo para descargar.', 'Cerrar', {
         duration: 3500,
         panelClass: ['app-snackbar-warning'],
       });

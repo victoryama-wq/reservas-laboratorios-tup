@@ -71,6 +71,10 @@ Consultar reportes.
 Atender errores técnicos.
 Crear reservas propias.
 
+Al crear reservas, `admin_sistemas` usa el mismo formulario operativo
+simplificado que `responsable_laboratorio`, pero con alcance global sobre los
+laboratorios. No depende de `labsAssigned`.
+
 Modelo de usuario
 interface AppUser {
   uid: string;

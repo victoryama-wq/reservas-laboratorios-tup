@@ -50,7 +50,7 @@ export class LabDetailComponent implements OnInit {
     const labId = this.route.snapshot.paramMap.get('labId');
 
     if (!labId) {
-      this.errorMessage.set('No se recibio el identificador del laboratorio.');
+      this.errorMessage.set('No se recibió el identificador del laboratorio.');
       this.loading.set(false);
       return;
     }
@@ -77,7 +77,7 @@ export class LabDetailComponent implements OnInit {
   protected minNoticeLabel(lab: PublicLab): string {
     return lab.minNoticeHours > 0
       ? `${lab.minNoticeHours} horas`
-      : 'Sin anticipacion minima';
+      : 'Sin anticipación mínima';
   }
 
   private async loadGallery(lab: PublicLab): Promise<void> {
@@ -95,12 +95,12 @@ export class LabDetailComponent implements OnInit {
       if ((lab.gallery ?? []).some((image) => image.active) &&
         images.length === 0) {
         this.galleryErrorMessage.set(
-          'No fue posible cargar las imagenes de este laboratorio.',
+          'No fue posible cargar las imágenes de este laboratorio.',
         );
       }
     } catch {
       this.galleryErrorMessage.set(
-        'No fue posible cargar las imagenes de este laboratorio.',
+        'No fue posible cargar las imágenes de este laboratorio.',
       );
     } finally {
       this.galleryLoading.set(false);

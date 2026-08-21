@@ -96,7 +96,7 @@ export class LabListComponent implements OnInit {
       },
       error: () => {
         this.errorMessage.set(
-          'No fue posible cargar el catalogo de laboratorios.',
+          'No fue posible cargar el catálogo de laboratorios.',
         );
         this.loading.set(false);
       },
@@ -116,8 +116,8 @@ export class LabListComponent implements OnInit {
 
   protected minNoticeLabel(lab: PublicLab): string {
     return lab.minNoticeHours > 0
-      ? `${lab.minNoticeHours} h de anticipacion`
-      : 'Sin anticipacion minima';
+      ? `${lab.minNoticeHours} h de anticipación`
+      : 'Sin anticipación mínima';
   }
 
   protected setSearchTerm(event: Event): void {

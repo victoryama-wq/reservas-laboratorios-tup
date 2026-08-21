@@ -249,3 +249,25 @@ reglas horarias y bloqueos, los conflictos Firestore y la disponibilidad
 externa. Todo evento Calendar no cancelado y traslapado bloquea, incluso si esta
 marcado como `Disponible` o usa `transparency = transparent`. No cambiar esta
 politica sin autorizacion institucional expresa.
+
+## Patrón posterior al MVP para solicitudes múltiples
+
+- Crear reservas individuales vinculadas por `reservationGroupId`; no crear un
+  documento contenedor ni un estatus de grupo nuevo.
+- Limitar la entrada a 20 fechas únicas dentro de 90 días.
+- Procesar cada fecha con los validadores oficiales y devolver resultados
+  parciales tipados.
+- Consolidar correos por grupo y conservar eventos Calendar individuales.
+- En modo `responsible_direct`, validar rol activo
+  `responsable_laboratorio` o `admin_sistemas` y correo invitado institucional;
+  exigir `labsAssigned` al responsable y conservar alcance global para Admin.
+  No confiar en campos ocultos del frontend.
+
+## Patron para evidencias
+
+- Comprimir imágenes en el navegador y volver a validar en Storage y Functions.
+- No usar `getDownloadURL` ni guardar URLs públicas o firmadas en Firestore.
+- Autorizar acceso temporal por callable para propietario, responsable asignado
+  o Admin.
+- Mantener máximo 10 archivos de 5 MB y eliminar objetos a los 90 días sin
+  eliminar documentos ni trazabilidad.

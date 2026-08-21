@@ -138,12 +138,12 @@ export type AdminBlockedPeriodDialogResult =
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Descripcion opcional</mat-label>
+          <mat-label>Descripción opcional</mat-label>
           <textarea matInput formControlName="description" rows="2"></textarea>
         </mat-form-field>
 
         <div class="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
-          <mat-checkbox formControlName="fullDay">Bloqueo de dia completo</mat-checkbox>
+          <mat-checkbox formControlName="fullDay">Bloqueo de día completo</mat-checkbox>
           <mat-checkbox formControlName="active">Bloqueo activo</mat-checkbox>
         </div>
       </form>

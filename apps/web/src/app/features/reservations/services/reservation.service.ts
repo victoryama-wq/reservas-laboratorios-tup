@@ -11,14 +11,19 @@ export interface CreateReservationInput {
   subject: string;
   group: string;
   practiceName: string;
+  practiceNumber?: string;
+  description?: string;
   objective: string;
   materialRequired: string;
   practiceType: string;
   practiceTypeOther?: string;
   risky: boolean;
   externalParticipants: boolean;
+  reservationMode?: 'academic' | 'responsible_direct';
+  guestTeacherEmail?: string;
   startAt: string;
   endAt: string;
+  occurrences?: Array<{ startAt: string; endAt: string }>;
   protocolFiles?: ProtocolUploadMetadata[];
   source: 'web' | 'qr' | 'admin';
 }
@@ -28,6 +33,15 @@ export interface CreateReservationOutput {
   folio: string;
   status: ReservationStatus;
   message: string;
+  reservationGroupId?: string;
+  results?: Array<{
+    reservationId: string;
+    folio: string;
+    startAt: string;
+    endAt: string;
+    status: ReservationStatus;
+    message: string;
+  }>;
 }
 
 @Injectable({

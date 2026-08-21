@@ -31,6 +31,19 @@ export class ReservationDataGridComponent {
   private defaultFields(): ReservationDataField[] {
     const reservation = this.reservation();
 
+    if (reservation.reservationMode === 'responsible_direct') {
+      return [
+        { label: 'Responsable solicitante', value: reservation.teacherName },
+        { label: 'Correo del responsable', value: reservation.teacherEmail },
+        { label: 'Fecha', value: this.dateLabel() },
+        { label: 'Horario', value: this.timeLabel() },
+        { label: 'Práctica', value: reservation.practiceName },
+        { label: 'Número de práctica', value: reservation.practiceNumber },
+        { label: 'Descripción', value: reservation.description },
+        { label: 'Docente invitado', value: reservation.guestTeacherEmail },
+      ];
+    }
+
     const fields: ReservationDataField[] = [
       { label: 'Docente', value: reservation.teacherName },
       { label: 'Correo', value: reservation.teacherEmail },
@@ -38,19 +51,20 @@ export class ReservationDataGridComponent {
       { label: 'Horario', value: this.timeLabel() },
       { label: 'Asignatura', value: reservation.subject },
       { label: 'Grupo', value: reservation.group },
-      { label: 'Practica', value: reservation.practiceName },
+      { label: 'Práctica', value: reservation.practiceName },
+      { label: 'Número de práctica', value: reservation.practiceNumber },
       { label: 'Objetivo', value: reservation.objective },
       { label: 'Material', value: reservation.materialRequired },
-      { label: 'Tipo de practica', value: reservation.practiceType },
-      { label: 'Material riesgoso', value: reservation.risky ? 'Si' : 'No' },
+      { label: 'Tipo de práctica', value: reservation.practiceType },
+      { label: 'Material riesgoso', value: reservation.risky ? 'Sí' : 'No' },
       {
-        label: 'Pacientes, usuarios simulados o poblacion externa',
-        value: reservation.externalParticipants ? 'Si' : 'No',
+        label: 'Pacientes, usuarios simulados o población externa',
+        value: reservation.externalParticipants ? 'Sí' : 'No',
       },
     ];
 
     if (reservation.practiceType === 'Otro') {
-      fields.splice(10, 0, {
+      fields.splice(11, 0, {
         label: 'Especificacion',
         value: reservation.practiceTypeOther,
       });

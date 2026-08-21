@@ -19,10 +19,12 @@ import {
 import {
   AppInfoCalloutComponent,
   AppPageHeaderComponent,
+  AppSectionCardComponent,
   ConfirmationDialogComponent,
   ConfirmationDialogData,
 } from '../../../shared/components';
-import { ProtocolFile } from '../../../shared/models';
+import { EvidenceFile, ProtocolFile } from '../../../shared/models';
+import { ReservationEvidenceService } from '../../reservations/services/reservation-evidence.service';
 import {
   closeProtocolWindow,
   openUrlInProtocolWindow,
@@ -39,6 +41,7 @@ import {
   imports: [
     AppInfoCalloutComponent,
     AppPageHeaderComponent,
+    AppSectionCardComponent,
     MatButtonModule,
     MatDialogModule,
     MatIconModule,
@@ -57,6 +60,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly reviewService = inject(ReservationReviewService);
+  private readonly evidenceService = inject(ReservationEvidenceService);
 
   protected readonly loading = signal(true);
   protected readonly submitting = signal(false);
@@ -64,6 +68,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
   protected readonly logsMessage = signal('');
   protected readonly protocolMessage = signal('');
   protected readonly openingProtocolPath = signal<string | null>(null);
+  protected readonly openingEvidencePath = signal<string | null>(null);
   protected readonly reservation = signal<ResponsibleReservationView | null>(null);
   protected readonly logs = signal<ReservationReviewTimelineItem[]>([]);
   protected approvalNote = '';
@@ -77,7 +82,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
     const reservationId = this.route.snapshot.paramMap.get('reservationId');
 
     if (!reservationId) {
-      this.errorMessage.set('No se recibio la reserva solicitada.');
+      this.errorMessage.set('No se recibió la reserva solicitada.');
       this.loading.set(false);
       return;
     }
@@ -89,7 +94,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
       await this.loadTimeline(reservationId);
 
       if (!reservation) {
-        this.errorMessage.set('La reserva no existe o no esta disponible.');
+        this.errorMessage.set('La reserva no existe o no está disponible.');
       }
     } catch (error) {
       this.errorMessage.set(
@@ -170,7 +175,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
 
       if (!openUrlInProtocolWindow(protocolWindow, access.url)) {
         throw new Error(
-          'El navegador bloqueo la apertura del protocolo.',
+          'El navegador bloqueó la apertura del protocolo.',
         );
       }
     } catch (error) {
@@ -181,6 +186,33 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
       );
     } finally {
       this.openingProtocolPath.set(null);
+    }
+  }
+
+  protected async openEvidence(file: EvidenceFile): Promise<void> {
+    const reservation = this.reservation();
+    if (!reservation) {
+      return;
+    }
+    this.openingEvidencePath.set(file.storagePath);
+    const evidenceWindow = prepareProtocolWindow();
+    try {
+      const url = await this.evidenceService.getAccessUrl(
+        reservation.id,
+        file.storagePath,
+      );
+      if (!openUrlInProtocolWindow(evidenceWindow, url)) {
+        throw new Error('El navegador bloqueó la apertura de la evidencia.');
+      }
+    } catch (error) {
+      closeProtocolWindow(evidenceWindow);
+      this.snackBar.open(
+        (error as { message?: string }).message ?? 'No fue posible abrir la evidencia.',
+        'Cerrar',
+        { duration: 6000, panelClass: ['app-snackbar-warning'] },
+      );
+    } finally {
+      this.openingEvidencePath.set(null);
     }
   }
 
@@ -316,7 +348,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
     } catch (error) {
       this.snackBar.open(
         (error as { message?: string }).message ??
-          'No fue posible completar la revision.',
+          'No fue posible completar la revisión.',
         'Cerrar',
         { duration: 6500 },
       );
@@ -352,7 +384,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
       this.logs.set([]);
       this.logsMessage.set(
         (error as { message?: string }).message ??
-          'No fue posible cargar la bitacora. Intenta nuevamente.',
+          'No fue posible cargar la bitácora. Intenta nuevamente.',
       );
     }
   }

@@ -10,7 +10,7 @@
     </div>
   } @else if (reservation()) {
     <app-page-header
-      kicker="Revision de reserva"
+      kicker="Revisión de reserva"
       [title]="reservation()?.folio ?? 'Reserva'"
       [subtitle]="reservation()?.labName"
       backLabel="Volver a solicitudes"
@@ -49,6 +49,29 @@
           }
         } @else {
           <app-protocol-file-card />
+        }
+
+        @if (reservation()?.evidenceFiles?.length) {
+          <app-section-card
+            title="Evidencias de la actividad"
+            subtitle="Imágenes privadas cargadas por el docente."
+            icon="photo_library"
+          >
+            <div class="responsible-evidence-list">
+              @for (file of reservation()?.evidenceFiles; track file.storagePath) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="openingEvidencePath() === file.storagePath"
+                  [attr.aria-label]="'Abrir evidencia ' + file.fileName"
+                  (click)="openEvidence(file)"
+                >
+                  <mat-icon>image</mat-icon>
+                  {{ file.fileName }}
+                </button>
+              }
+            </div>
+          </app-section-card>
         }
 
         @if (canShowDecisionAction()) {

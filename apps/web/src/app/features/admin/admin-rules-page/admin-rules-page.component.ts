@@ -87,7 +87,7 @@ type BlockedPeriodFilter = 'all' | 'active' | 'inactive';
       <app-info-callout
         variant="info"
         icon="verified_user"
-        message="El frontend solo administra configuracion. La validacion critica ocurre en Cloud Functions al crear o aprobar reservas."
+        message="El frontend solo administra configuración. La validación crítica ocurre en Cloud Functions al crear o aprobar reservas."
       />
 
       @if (errorMessage) {
@@ -136,7 +136,7 @@ type BlockedPeriodFilter = 'all' | 'active' | 'inactive';
                 <app-info-callout
                   variant="info"
                   icon="rule"
-                  message="Este laboratorio aun no tiene reglas especiales configuradas."
+                  message="Este laboratorio aún no tiene reglas especiales configuradas."
                 />
               } @else {
                 <div class="grid gap-4 xl:grid-cols-2">
@@ -173,11 +173,11 @@ type BlockedPeriodFilter = 'all' | 'active' | 'inactive';
                           <div>
                             <span class="app-page-kicker">Horario bloqueado</span>
                             <p class="m-0 mt-1 font-semibold">
-                              {{ rule.fullDayBlocked ? 'Dia completo' : rule.blockedStart + ' - ' + rule.blockedEnd }}
+                              {{ rule.fullDayBlocked ? 'Día completo' : rule.blockedStart + ' - ' + rule.blockedEnd }}
                             </p>
                           </div>
                           <div class="md:col-span-2">
-                            <span class="app-page-kicker">Dias</span>
+                            <span class="app-page-kicker">Días</span>
                             <p class="m-0 mt-1 font-semibold">
                               {{ dayLabels(rule.daysOfWeek) }}
                             </p>
@@ -361,7 +361,7 @@ export class AdminRulesPageComponent implements OnInit {
 
   protected dayLabels(days?: number[]): string {
     if (!days?.length) {
-      return 'Todos los dias';
+      return 'Todos los días';
     }
     const labels = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
     return days.map((day) => labels[day] ?? String(day)).join(', ');
@@ -517,7 +517,7 @@ export class AdminRulesPageComponent implements OnInit {
   private toErrorMessage(error: unknown): string {
     return error instanceof Error
       ? error.message
-      : 'No fue posible completar la operacion administrativa.';
+      : 'No fue posible completar la operación administrativa.';
   }
 
   private resolveSelectedLabId(): string {

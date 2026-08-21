@@ -74,7 +74,7 @@ type VisibilityFilter = 'all' | 'visible' | 'hidden';
       <app-info-callout
         variant="info"
         icon="event"
-        message="calendarId es visible solo para Admin/Sistemas. No se muestra al docente ni en el catalogo publico."
+        message="calendarId es visible solo para Admin/Sistemas. No se muestra al docente ni en el catálogo público."
       />
 
       <app-section-card icon="filter_list" title="Filtros">
@@ -84,7 +84,7 @@ type VisibilityFilter = 'all' | 'visible' | 'hidden';
             <input
               matInput
               [(ngModel)]="searchTerm"
-              placeholder="Nombre, slug o descripcion"
+              placeholder="Nombre, slug o descripción"
             />
             <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
@@ -99,7 +99,7 @@ type VisibilityFilter = 'all' | 'visible' | 'hidden';
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Catalogo</mat-label>
+            <mat-label>Catálogo</mat-label>
             <mat-select [(ngModel)]="visibilityFilter">
               <mat-option value="all">Todos</mat-option>
               <mat-option value="visible">Visibles</mat-option>
@@ -168,7 +168,7 @@ type VisibilityFilter = 'all' | 'visible' | 'hidden';
                 <div class="grid gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700 md:grid-cols-2">
                   <div>
                     <span class="font-bold uppercase tracking-wide text-violet-700">
-                      Anticipacion minima
+                      Anticipación mínima
                     </span>
                     <p class="m-0 mt-1">{{ lab.minNoticeHours }} h</p>
                   </div>
@@ -198,7 +198,7 @@ type VisibilityFilter = 'all' | 'visible' | 'hidden';
 
                   <div class="md:col-span-2">
                     <span class="font-bold uppercase tracking-wide text-violet-700">
-                      Correos de notificacion
+                      Correos de notificación
                     </span>
                     <p class="m-0 mt-1">
                       {{ emailSummary(lab.defaultNotifyEmails) }}
@@ -471,7 +471,7 @@ export class AdminLabsPageComponent implements OnInit {
     const backendMessage = error instanceof Error ? error.message : '';
 
     if (code.includes('permission-denied')) {
-      return 'No tienes permisos para realizar esta accion.';
+      return 'No tienes permisos para realizar esta acción.';
     }
 
     if (code.includes('invalid-argument') && backendMessage) {
@@ -480,18 +480,18 @@ export class AdminLabsPageComponent implements OnInit {
 
     if (code.includes('failed-precondition')) {
       return backendMessage ||
-        'No se cumple una condicion necesaria para guardar el laboratorio.';
+        'No se cumple una condición necesaria para guardar el laboratorio.';
     }
 
     if (code.includes('unavailable')) {
-      return 'El servicio no esta disponible temporalmente. Intenta nuevamente.';
+      return 'El servicio no está disponible temporalmente. Intenta nuevamente.';
     }
 
     if (code.includes('internal')) {
-      return 'Ocurrio un error tecnico. Contacta a Sistemas.';
+      return 'Ocurrió un error técnico. Contacta a Sistemas.';
     }
 
-    return backendMessage || 'No fue posible completar la operacion administrativa.';
+    return backendMessage || 'No fue posible completar la operación administrativa.';
   }
 
   private errorCode(error: unknown): string {
@@ -516,17 +516,17 @@ export class AdminLabsPageComponent implements OnInit {
 
     if (update.calendarId !== undefined && update.calendarId !== lab.calendarId) {
       messages.push(
-        'Cambiar el calendario puede afectar la sincronizacion de futuras reservas.',
+        'Cambiar el calendario puede afectar la sincronización de futuras reservas.',
       );
     }
 
     if (update.active === false && lab.active) {
-      messages.push('Desactivar este laboratorio impedira nuevas reservas.');
+      messages.push('Desactivar este laboratorio impedirá nuevas reservas.');
     }
 
     if (update.visibleInCatalog === false && lab.visibleInCatalog) {
       messages.push(
-        'Ocultar del catalogo impedira que docentes lo vean como opcion.',
+        'Ocultar del catálogo impedirá que docentes lo vean como opción.',
       );
     }
 
@@ -535,7 +535,7 @@ export class AdminLabsPageComponent implements OnInit {
       !sameStringSet(update.responsibleUids, lab.responsibleUids)
     ) {
       messages.push(
-        'Cambiar responsables actualizara automaticamente los laboratorios asignados en sus perfiles.',
+        'Cambiar responsables actualizará automáticamente los laboratorios asignados en sus perfiles.',
       );
     }
 
@@ -553,7 +553,7 @@ export class AdminLabsPageComponent implements OnInit {
       activeGalleryCount(update.gallery) < activeGalleryCount(lab.gallery ?? [])
     ) {
       messages.push(
-        'Desactivar imagenes activas puede cambiar la presentacion visual del laboratorio.',
+        'Desactivar imágenes activas puede cambiar la presentación visual del laboratorio.',
       );
     }
 

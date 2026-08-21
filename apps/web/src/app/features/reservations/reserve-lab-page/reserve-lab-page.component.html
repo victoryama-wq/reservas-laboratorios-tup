@@ -10,15 +10,15 @@
     </div>
   } @else if (!lab()) {
     <div class="state-panel app-state-panel">
-      <p>El laboratorio {{ labSlug() }} no esta disponible.</p>
-      <a routerLink="/laboratorios">Volver al catalogo</a>
+      <p>El laboratorio {{ labSlug() }} no está disponible.</p>
+      <a routerLink="/laboratorios">Volver al catálogo</a>
     </div>
   } @else {
     <app-page-header
       kicker="Reserva por laboratorio"
       [title]="lab()?.name ?? ''"
       subtitle="Revise la disponibilidad visual y cree una solicitud cuando tenga definido el horario."
-      backLabel="Volver al catalogo"
+      backLabel="Volver al catálogo"
       backLink="/laboratorios"
     />
 

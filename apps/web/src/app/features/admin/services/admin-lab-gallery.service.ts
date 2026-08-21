@@ -37,7 +37,7 @@ export class AdminLabGalleryService {
 
   validateImageFile(file: File): string | null {
     if (!this.normalizeImageContentType(file)) {
-      return 'Solo se permiten imagenes JPG, PNG o WebP.';
+      return 'Solo se permiten imágenes JPG, PNG o WebP.';
     }
 
     if (file.size > MAX_LAB_IMAGE_SIZE_BYTES) {
@@ -57,7 +57,7 @@ export class AdminLabGalleryService {
 
     const contentType = this.normalizeImageContentType(params.file);
     if (!contentType) {
-      throw new Error('Solo se permiten imagenes JPG, PNG o WebP.');
+      throw new Error('Solo se permiten imágenes JPG, PNG o WebP.');
     }
 
     const imageId = this.createImageId();

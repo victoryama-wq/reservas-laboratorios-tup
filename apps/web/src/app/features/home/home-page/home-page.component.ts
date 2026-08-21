@@ -56,14 +56,14 @@ interface HomeStep {
           <div class="grid gap-6">
             <app-page-header
               kicker="RESERVAS DE LABORATORIOS"
-              title="Gestion academica de espacios, disponibilidad y solicitudes"
+              title="Gestión académica de espacios, disponibilidad y solicitudes"
               subtitle="Consulta laboratorios activos, revisa disponibilidad visual y da seguimiento a tus reservas desde una experiencia institucional, clara y responsive."
             >
               <div page-actions class="flex flex-wrap gap-3">
                 <app-status-chip
                   variant="success"
                   icon="verified_user"
-                  label="Sesion institucional"
+                  label="Sesión institucional"
                 />
                 <app-status-chip
                   variant="info"
@@ -97,7 +97,7 @@ interface HomeStep {
               variant="info"
               icon="qr_code_2"
               title="Acceso desde QR"
-              message="Si entras desde el QR de un laboratorio, el sistema conserva la ruta original y precarga el espacio correspondiente despues del inicio de sesion."
+              message="Si entras desde el QR de un laboratorio, el sistema conserva la ruta original y precarga el espacio correspondiente después del inicio de sesión."
             />
           </div>
 
@@ -177,7 +177,7 @@ interface HomeStep {
         </app-section-card>
 
         <app-section-card
-          title="Buenas practicas"
+          title="Buenas prácticas"
           subtitle="Puntos clave para una solicitud clara y verificable."
           icon="verified"
           iconVariant="success"
@@ -233,7 +233,7 @@ export class HomePageComponent {
     {
       label: '1',
       title: 'Elige laboratorio',
-      description: 'Revisa el catalogo y abre el detalle del espacio academico.',
+      description: 'Revisa el catálogo y abre el detalle del espacio académico.',
       icon: 'grid_view',
     },
     {
@@ -252,8 +252,8 @@ export class HomePageComponent {
 
   protected readonly tips = [
     {
-      title: 'Usa datos academicos completos',
-      description: 'Incluye asignatura, grupo, practica, objetivo y material requerido.',
+      title: 'Usa datos académicos completos',
+      description: 'Incluye asignatura, grupo, práctica, objetivo y material requerido.',
     },
     {
       title: 'Declara condiciones de seguridad',
@@ -261,7 +261,7 @@ export class HomePageComponent {
     },
     {
       title: 'Carga protocolo cuando aplique',
-      description: 'Los archivos se revisan desde el sistema y no son publicos.',
+      description: 'Los archivos se revisan desde el sistema y no son públicos.',
     },
   ];
 }

@@ -54,7 +54,7 @@ const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 const DEFAULT_QR_CONFIG: Required<LabQrConfig> = {
   title: 'Reserva de laboratorio',
-  subtitle: 'Escanea para solicitar este espacio academico.',
+  subtitle: 'Escanea para solicitar este espacio académico.',
   customLabel: 'Sistema Web de Reservas de Laboratorios',
   primaryColor: '#271e5d',
   secondaryColor: '#252a86',
@@ -136,7 +136,7 @@ export type AdminLabEditDialogResult =
                     <mat-error>El slug es obligatorio.</mat-error>
                   }
                   @if (form.get('slug')?.hasError('pattern')) {
-                    <mat-error>Use minusculas, numeros y guiones.</mat-error>
+                    <mat-error>Use minúsculas, números y guiones.</mat-error>
                   }
                 </mat-form-field>
               </div>
@@ -150,15 +150,15 @@ export type AdminLabEditDialogResult =
               }
 
               <mat-form-field appearance="outline">
-                <mat-label>Descripcion</mat-label>
+                <mat-label>Descripción</mat-label>
                 <textarea matInput formControlName="description" rows="3"></textarea>
                 @if (form.get('description')?.hasError('required')) {
-                  <mat-error>La descripcion es obligatoria.</mat-error>
+                  <mat-error>La descripción es obligatoria.</mat-error>
                 }
               </mat-form-field>
 
               <mat-form-field appearance="outline">
-                <mat-label>Descripcion breve</mat-label>
+                <mat-label>Descripción breve</mat-label>
                 <textarea matInput formControlName="shortDescription" rows="2"></textarea>
               </mat-form-field>
 
@@ -171,7 +171,7 @@ export type AdminLabEditDialogResult =
                 <mat-form-field appearance="outline">
                   <mat-label>URL de imagen</mat-label>
                   <input matInput formControlName="imageUrl" />
-                  <mat-hint>Campo legado opcional. Use Galeria para imagenes nuevas.</mat-hint>
+                  <mat-hint>Campo legado opcional. Use Galería para imágenes nuevas.</mat-hint>
                 </mat-form-field>
               </div>
 
@@ -180,10 +180,10 @@ export type AdminLabEditDialogResult =
                   Laboratorio activo
                 </mat-checkbox>
                 <mat-checkbox formControlName="visibleInCatalog">
-                  Visible en catalogo
+                  Visible en catálogo
                 </mat-checkbox>
                 <mat-checkbox formControlName="requiresApprovalWhenRisky">
-                  Validacion si hay riesgo
+                  Validación si hay riesgo
                 </mat-checkbox>
                 <mat-checkbox formControlName="requiresProtocolWhenRisky">
                   Protocolo si hay riesgo
@@ -191,7 +191,7 @@ export type AdminLabEditDialogResult =
               </div>
 
               <mat-form-field appearance="outline">
-                <mat-label>Anticipacion minima en horas</mat-label>
+                <mat-label>Anticipación mínima en horas</mat-label>
                 <input
                   matInput
                   type="number"
@@ -205,21 +205,21 @@ export type AdminLabEditDialogResult =
             </div>
           </mat-tab>
 
-          <mat-tab label="Galeria">
+          <mat-tab label="Galería">
             <div class="grid gap-4 pt-5">
               <app-info-callout
                 variant="info"
                 icon="photo_library"
-                message="Sube hasta 8 imagenes activas por laboratorio. No se guardan URLs publicas; solo metadata y rutas privadas de Storage."
+                message="Sube hasta 8 imágenes activas por laboratorio. No se guardan URLs públicas; solo metadata y rutas privadas de Storage."
               />
 
               <div class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p class="m-0 text-sm font-bold uppercase tracking-wide text-violet-700">
-                    {{ activeGalleryCount() }} de {{ maxGalleryImages }} imagenes activas
+                    {{ activeGalleryCount() }} de {{ maxGalleryImages }} imágenes activas
                   </p>
                   <p class="m-0 mt-1 text-sm text-slate-600">
-                    Formatos permitidos: JPG, PNG o WebP. Tamano maximo: 5 MB.
+                    Formatos permitidos: JPG, PNG o WebP. Tamaño máximo: 5 MB.
                   </p>
                 </div>
 
@@ -239,7 +239,7 @@ export type AdminLabEditDialogResult =
                   (click)="galleryInput.click()"
                 >
                   <mat-icon>add_photo_alternate</mat-icon>
-                  Agregar imagenes
+                  Agregar imágenes
                 </button>
               </div>
 
@@ -265,10 +265,10 @@ export type AdminLabEditDialogResult =
                 <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
                   <mat-icon class="text-[32px] text-violet-700">image</mat-icon>
                   <p class="m-0 mt-2 text-sm font-semibold text-slate-800">
-                    Sin imagenes registradas
+                    Sin imágenes registradas
                   </p>
                   <p class="m-0 mt-1 text-sm text-slate-600">
-                    Agregue imagenes institucionales del laboratorio para preparar el catalogo visual.
+                    Agregue imágenes institucionales del laboratorio para preparar el catálogo visual.
                   </p>
                 </div>
               } @else {
@@ -337,7 +337,7 @@ export type AdminLabEditDialogResult =
                           </mat-form-field>
 
                           <mat-form-field appearance="outline">
-                            <mat-label>Descripcion breve</mat-label>
+                            <mat-label>Descripción breve</mat-label>
                             <input
                               matInput
                               maxlength="120"
@@ -386,7 +386,7 @@ export type AdminLabEditDialogResult =
               <app-info-callout
                 variant="info"
                 icon="schedule"
-                message="El horario base se valida nuevamente en backend. Las reglas especiales se gestionan desde el modulo Reglas."
+                message="El horario base se valida nuevamente en backend. Las reglas especiales se gestionan desde el módulo Reglas."
               />
 
               @if (data.mode === 'edit') {
@@ -443,7 +443,7 @@ export type AdminLabEditDialogResult =
               <app-info-callout
                 variant="info"
                 icon="sync"
-                message="Al guardar, el sistema sincroniza automaticamente los laboratorios asignados en el perfil de cada responsable. Los usuarios Admin/Sistemas tienen acceso global y no dependen de labsAssigned."
+                message="Al guardar, el sistema sincroniza automáticamente los laboratorios asignados en el perfil de cada responsable. Los usuarios Admin/Sistemas tienen acceso global y no dependen de labsAssigned."
               />
 
               <mat-form-field appearance="outline">
@@ -465,21 +465,21 @@ export type AdminLabEditDialogResult =
                   rows="3"
                   placeholder="responsable@tecplayacar.edu.mx"
                 ></textarea>
-                <mat-hint>Separe varios correos con coma o salto de linea.</mat-hint>
+                <mat-hint>Separe varios correos con coma o salto de línea.</mat-hint>
                 @if (form.get('responsibleEmailsText')?.hasError('emailList')) {
                   <mat-error>Solo correos @tecplayacar.edu.mx.</mat-error>
                 }
               </mat-form-field>
 
               <mat-form-field appearance="outline">
-                <mat-label>Correos de notificacion</mat-label>
+                <mat-label>Correos de notificación</mat-label>
                 <textarea
                   matInput
                   formControlName="defaultNotifyEmailsText"
                   rows="3"
                   placeholder="avisos@tecplayacar.edu.mx"
                 ></textarea>
-                <mat-hint>Separe varios correos con coma o salto de linea.</mat-hint>
+                <mat-hint>Separe varios correos con coma o salto de línea.</mat-hint>
                 @if (form.get('defaultNotifyEmailsText')?.hasError('emailList')) {
                   <mat-error>Solo correos @tecplayacar.edu.mx.</mat-error>
                 }
@@ -507,7 +507,7 @@ export type AdminLabEditDialogResult =
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p class="m-0 text-sm font-bold uppercase tracking-wide text-violet-700">
-                      Validacion real de calendario
+                      Validación real de calendario
                     </p>
                     <p class="m-0 mt-1 text-sm leading-6 text-slate-600">
                       Verifica que el calendario exista y que la cuenta operativa pueda escribir eventos.
@@ -583,7 +583,7 @@ export type AdminLabEditDialogResult =
                   <app-info-callout
                     variant="warning"
                     icon="info"
-                    message="Valide el calendario antes de guardar. El backend tambien bloqueara el guardado si la cuenta operativa no tiene permisos de escritura."
+                    message="Valide el calendario antes de guardar. El backend también bloqueará el guardado si la cuenta operativa no tiene permisos de escritura."
                   />
                 }
               </div>
@@ -595,14 +595,14 @@ export type AdminLabEditDialogResult =
               <app-info-callout
                 variant="info"
                 icon="qr_code_2"
-                message="El QR apunta siempre a la ruta publica de reserva del laboratorio. No se guardan imagenes QR ni archivos generados."
+                message="El QR apunta siempre a la ruta pública de reserva del laboratorio. No se guardan imágenes QR ni archivos generados."
               />
 
               @if (slugChanged()) {
                 <app-info-callout
                   variant="warning"
                   icon="warning"
-                  message="El slug cambio. La URL del QR tambien cambiara y debera actualizar los QR impresos."
+                  message="El slug cambió. La URL del QR también cambiará y deberá actualizar los QR impresos."
                 />
               }
 
@@ -665,7 +665,7 @@ export type AdminLabEditDialogResult =
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>Tamano de impresion</mat-label>
+                  <mat-label>Tamaño de impresión</mat-label>
                   <mat-select formControlName="printSize">
                     <mat-option value="small">Pequeno</mat-option>
                     <mat-option value="medium">Mediano</mat-option>
@@ -1012,14 +1012,14 @@ export class AdminLabEditDialogComponent {
     const labId = this.storageLabId();
     if (!labId) {
       this.galleryError =
-        'Capture un slug valido antes de subir imagenes de galeria.';
+        'Capture un slug válido antes de subir imágenes de galería.';
       return;
     }
 
     for (const file of files) {
       if (this.activeGalleryCount() >= MAX_LAB_GALLERY_IMAGES) {
         this.galleryError =
-          `Solo se permiten ${MAX_LAB_GALLERY_IMAGES} imagenes activas.`;
+          `Solo se permiten ${MAX_LAB_GALLERY_IMAGES} imágenes activas.`;
         break;
       }
 
@@ -1078,7 +1078,7 @@ export class AdminLabEditDialogComponent {
   protected toggleGalleryActive(imageId: string, active: boolean): void {
     if (active && this.activeGalleryCount() >= MAX_LAB_GALLERY_IMAGES) {
       this.galleryError =
-        `Solo se permiten ${MAX_LAB_GALLERY_IMAGES} imagenes activas.`;
+        `Solo se permiten ${MAX_LAB_GALLERY_IMAGES} imágenes activas.`;
       return;
     }
 
@@ -1509,21 +1509,21 @@ function getErrorMessage(error: unknown, fallback: string): string {
     : '';
 
   if (code.includes('permission-denied')) {
-    return 'No tienes permisos para realizar esta accion.';
+    return 'No tienes permisos para realizar esta acción.';
   }
 
   if (code.includes('failed-precondition')) {
     return error instanceof Error && error.message
       ? error.message
-      : 'No se cumple una condicion necesaria para validar el calendario.';
+      : 'No se cumple una condición necesaria para validar el calendario.';
   }
 
   if (code.includes('unavailable')) {
-    return 'El servicio no esta disponible temporalmente. Intenta nuevamente.';
+    return 'El servicio no está disponible temporalmente. Intenta nuevamente.';
   }
 
   if (code.includes('internal')) {
-    return 'Ocurrio un error tecnico. Contacta a Sistemas.';
+    return 'Ocurrió un error técnico. Contacta a Sistemas.';
   }
 
   if (typeof error === 'object' && error !== null && 'message' in error) {

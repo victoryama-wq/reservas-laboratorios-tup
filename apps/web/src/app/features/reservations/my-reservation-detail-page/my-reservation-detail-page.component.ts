@@ -14,6 +14,7 @@ import {
   StatusChipVariant,
 } from '../../../shared/components';
 import {
+  EvidenceFile,
   ProtocolFile,
   ReservationStatus,
 } from '../../../shared/models';
@@ -29,6 +30,7 @@ import {
   MyReservationView,
 } from '../services/my-reservations.service';
 import { CancelReservationService } from '../services/cancel-reservation.service';
+import { ReservationEvidenceService } from '../services/reservation-evidence.service';
 
 @Component({
   selector: 'app-my-reservation-detail-page',
@@ -52,10 +54,13 @@ export class MyReservationDetailPageComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly reservationsService = inject(MyReservationsService);
   private readonly cancelReservationService = inject(CancelReservationService);
+  private readonly evidenceService = inject(ReservationEvidenceService);
 
   protected readonly loading = signal(true);
   protected readonly protocolLoadingPath = signal<string | null>(null);
   protected readonly cancelLoading = signal(false);
+  protected readonly evidenceUploading = signal(false);
+  protected readonly evidenceOpeningPath = signal<string | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly logErrorMessage = signal('');
   protected readonly reservation = signal<MyReservationView | null>(null);
@@ -69,7 +74,7 @@ export class MyReservationDetailPageComponent implements OnInit {
     const reservationId = this.route.snapshot.paramMap.get('reservationId');
 
     if (!reservationId) {
-      this.errorMessage.set('No se encontro el identificador de la reserva.');
+      this.errorMessage.set('No se encontró el identificador de la reserva.');
       this.loading.set(false);
       return;
     }
@@ -84,7 +89,7 @@ export class MyReservationDetailPageComponent implements OnInit {
 
       if (!reservation) {
         this.errorMessage.set(
-          'No se encontro la reserva o no pertenece a tu usuario.',
+          'No se encontró la reserva o no pertenece a tu usuario.',
         );
         return;
       }
@@ -143,7 +148,7 @@ export class MyReservationDetailPageComponent implements OnInit {
 
       if (!openUrlInProtocolWindow(protocolWindow, url)) {
         throw new Error(
-          'El navegador bloqueo la apertura del protocolo.',
+          'El navegador bloqueó la apertura del protocolo.',
         );
       }
     } catch (error) {
@@ -172,6 +177,66 @@ export class MyReservationDetailPageComponent implements OnInit {
     ].includes(reservation.status);
   }
 
+  protected canUploadEvidence(reservation: MyReservationView): boolean {
+    return !!reservation.startDate &&
+      reservation.startDate.getTime() <= Date.now() &&
+      ['CONFIRMADA', 'CONFIRMADA_TRAS_VALIDACION'].includes(reservation.status) &&
+      (reservation.evidenceFiles?.length ?? 0) < 10;
+  }
+
+  protected async uploadEvidence(files: File[]): Promise<void> {
+    const reservation = this.reservation();
+    if (!reservation || !files.length || this.evidenceUploading()) {
+      return;
+    }
+    this.evidenceUploading.set(true);
+    try {
+      await this.evidenceService.uploadAndAttach(
+        reservation.id,
+        files,
+        reservation.evidenceFiles?.length ?? 0,
+      );
+      this.snackBar.open('Evidencias guardadas y responsable notificado.', 'Cerrar', {
+        duration: 6000,
+        panelClass: ['app-snackbar-success'],
+      });
+      await this.loadReservation();
+    } catch (error) {
+      this.snackBar.open(this.toEvidenceErrorMessage(error), 'Cerrar', {
+        duration: 7000,
+        panelClass: ['app-snackbar-danger'],
+      });
+    } finally {
+      this.evidenceUploading.set(false);
+    }
+  }
+
+  protected async openEvidence(file: EvidenceFile): Promise<void> {
+    const reservation = this.reservation();
+    if (!reservation) {
+      return;
+    }
+    this.evidenceOpeningPath.set(file.storagePath);
+    const evidenceWindow = prepareProtocolWindow();
+    try {
+      const url = await this.evidenceService.getAccessUrl(
+        reservation.id,
+        file.storagePath,
+      );
+      if (!openUrlInProtocolWindow(evidenceWindow, url)) {
+        throw new Error('El navegador bloqueó la apertura de la evidencia.');
+      }
+    } catch (error) {
+      closeProtocolWindow(evidenceWindow);
+      this.snackBar.open(this.toEvidenceErrorMessage(error), 'Cerrar', {
+        duration: 6000,
+        panelClass: ['app-snackbar-warning'],
+      });
+    } finally {
+      this.evidenceOpeningPath.set(null);
+    }
+  }
+
   protected async confirmCancelReservation(
     reservation: MyReservationView,
   ): Promise<void> {
@@ -183,7 +248,7 @@ export class MyReservationDetailPageComponent implements OnInit {
             title: 'Cancelar reserva',
             message: [
               `Se cancelara la reserva ${reservation.folio}.`,
-              'Esta accion liberara el horario y enviara notificaciones.',
+              'Esta acción liberará el horario y enviará notificaciones.',
             ].join(' '),
             confirmLabel: 'Sí, cancelar',
             cancelLabel: 'Conservar reserva',
@@ -293,16 +358,23 @@ export class MyReservationDetailPageComponent implements OnInit {
     }
 
     if (text.includes('encontro')) {
-      return 'No se encontro el archivo del protocolo.';
+      return 'No se encontró el archivo del protocolo.';
     }
 
     if (text.includes('bloqueo')) {
       return [
-        'El navegador bloqueo la nueva pestaña.',
+        'El navegador bloqueó la nueva pestaña.',
         'Permite ventanas emergentes para abrir el protocolo.',
       ].join(' ');
     }
 
     return 'No fue posible abrir el protocolo. Intenta nuevamente.';
+  }
+
+  private toEvidenceErrorMessage(error: unknown): string {
+    const message = (error as { message?: unknown }).message;
+    return typeof message === 'string' && message.trim()
+      ? message
+      : 'No fue posible procesar las evidencias.';
   }
 }

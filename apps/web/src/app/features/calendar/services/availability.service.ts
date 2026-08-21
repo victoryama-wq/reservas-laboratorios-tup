@@ -25,7 +25,7 @@ interface AvailabilityBusyBlock {
   id: string;
   startAt: string;
   endAt: string;
-  label: 'Ocupado' | 'Pendiente de validacion' | 'No disponible';
+  label: 'Ocupado' | 'Pendiente de validación' | 'No disponible';
   kind: AvailabilityBlockKind;
   status: AvailabilityBlockStatus;
 }

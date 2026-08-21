@@ -976,3 +976,26 @@ Para disponibilidad externa, cualquier evento no cancelado se trata como
 bloqueante cuando se traslapa. La regla incluye eventos con
 `transparency = transparent`; su apariencia `Disponible` en Google Calendar no
 elimina el bloqueo institucional.
+
+## Extensión de Functions para lotes y evidencias
+
+`createReservation` acepta `occurrences` con máximo 20 rangos dentro de 90
+días y devuelve un resultado por ocurrencia. Mantiene reservas individuales
+unidas por `reservationGroupId`; solo el correo de resultado es consolidado.
+
+Para `reservationMode = responsible_direct`, `createReservation` acepta
+únicamente perfiles activos `responsable_laboratorio` o `admin_sistemas` y
+rechaza el modo académico para ambos roles operativos. El responsable debe
+tener el laboratorio en `labsAssigned`; Admin/Sistemas conserva acceso global.
+Los perfiles `docente` no pueden enviar el modo simplificado.
+
+`approveReservation` y `rejectReservation` detectan grupos y aplican la
+decisión a todas sus reservas pendientes. La aprobación revalida protocolo,
+reglas, bloqueos y conflictos antes de crear eventos individuales. Los
+reintentos de Calendar mantienen la idempotencia por `reservationId`.
+
+`addReservationEvidence` vincula imágenes privadas del propietario;
+`getReservationEvidenceAccess` entrega acceso temporal al propietario,
+responsable asignado o Admin/Sistemas; y
+`scheduledCleanupReservationEvidence` elimina a diario archivos con 90 días
+de antigüedad, incluidos huérfanos. Un fallo de Gmail no cambia la reserva.

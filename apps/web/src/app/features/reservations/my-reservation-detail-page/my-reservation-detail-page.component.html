@@ -47,7 +47,12 @@
       [protocolLoadingPath]="protocolLoadingPath()"
       [canCancel]="canCancelReservation(selectedReservation)"
       [cancelLoading]="cancelLoading()"
+      [canUploadEvidence]="canUploadEvidence(selectedReservation)"
+      [evidenceUploading]="evidenceUploading()"
+      [evidenceOpeningPath]="evidenceOpeningPath()"
       (downloadProtocol)="openProtocol($event)"
+      (evidenceSelected)="uploadEvidence($event)"
+      (openEvidence)="openEvidence($event)"
       (cancelReservation)="confirmCancelReservation(selectedReservation)"
     />
   }

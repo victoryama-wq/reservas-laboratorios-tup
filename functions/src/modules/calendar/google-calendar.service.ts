@@ -721,10 +721,14 @@ export class GoogleCalendarService {
           reservation.teacherEmail
         })`,
         `🏫 Laboratorio: ${reservation.labName}`,
+        reservation.guestTeacherEmail ?
+          `✉️ Docente invitado: ${reservation.guestTeacherEmail}` : undefined,
         `📚 Asignatura: ${reservation.subject}`,
         `🎓 Grupo: ${reservation.group}`,
         "",
         `🧪 Tipo de práctica: ${reservation.practiceType}`,
+        reservation.practiceNumber ?
+          `🔢 Número de práctica: ${reservation.practiceNumber}` : undefined,
         reservation.practiceType === "Otro" ?
           `🧾 Especificación: ${
             reservation.practiceTypeOther || "No indicada"
@@ -750,7 +754,11 @@ export class GoogleCalendarService {
         reservation.materialRequired || "No indicado",
         "",
         "📝 Práctica / Objetivo:",
-        `${reservation.practiceName} / ${reservation.objective}`,
+        [
+          reservation.practiceName,
+          reservation.objective || reservation.description ||
+            "Sin descripción",
+        ].join(" / "),
         "",
         "✅ Generado por: Sistema Web de Reservas de Laboratorios",
       ].filter((line): line is string => Boolean(line)).join("\n"),
@@ -767,6 +775,10 @@ export class GoogleCalendarService {
           email: reservation.teacherEmail,
           displayName: reservation.teacherName,
         },
+        ...(reservation.guestTeacherEmail &&
+          reservation.guestTeacherEmail !== reservation.teacherEmail ? [{
+            email: reservation.guestTeacherEmail,
+          }] : []),
       ],
       extendedProperties: {
         private: {
