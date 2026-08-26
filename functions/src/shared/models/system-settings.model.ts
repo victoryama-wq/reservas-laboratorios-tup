@@ -5,6 +5,7 @@ export interface SystemSettingsDoc {
   institutionalDomain: string;
   defaultNotifyEmails: string[];
   adminEmails: string[];
+  accessExcludedEmails?: string[];
   termStart?: string;
   termEnd?: string;
   allowTeacherCancellation: boolean;

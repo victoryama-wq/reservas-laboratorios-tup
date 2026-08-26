@@ -45,7 +45,7 @@ export class ReservationDataGridComponent {
     }
 
     const fields: ReservationDataField[] = [
-      { label: 'Docente', value: reservation.teacherName },
+      { label: 'Solicitante', value: reservation.teacherName },
       { label: 'Correo', value: reservation.teacherEmail },
       { label: 'Fecha', value: this.dateLabel() },
       { label: 'Horario', value: this.timeLabel() },

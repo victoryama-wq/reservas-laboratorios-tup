@@ -165,7 +165,7 @@
           </div>
           <div class="user-copy">
             <span>{{ state.profile.displayName || state.user.email }}</span>
-            <small>{{ getRoleLabel(state.profile.role) }}</small>
+            <small>{{ getRoleLabel(state.profile) }}</small>
           </div>
         } @else if (state.kind === 'loading') {
           <div class="user-avatar" aria-hidden="true">

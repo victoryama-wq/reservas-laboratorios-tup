@@ -44,7 +44,7 @@ export interface ReservationDraftPayload {
   practiceNumber?: string;
   description?: string;
   guestTeacherEmail?: string;
-  reservationMode: 'academic' | 'responsible_direct';
+  reservationMode: 'academic' | 'administrative' | 'responsible_direct';
   objective: string;
   materialRequired: string;
   practiceType: string;
@@ -96,6 +96,7 @@ export class ReservationFormComponent {
   );
   protected readonly selectedDates = signal<Date[]>([]);
   protected readonly simplifiedMode = signal(false);
+  protected readonly administrativeMode = signal(false);
 
   protected readonly practiceTypes = [
     'Teórica',
@@ -291,20 +292,29 @@ export class ReservationFormComponent {
       endAt,
       protocolFiles,
       occurrences,
-      reservationMode: this.simplifiedMode() ? 'responsible_direct' : 'academic',
-      subject: this.simplifiedMode() ? '' : academic.subject ?? '',
-      group: this.simplifiedMode() ? '' : academic.group ?? '',
+      reservationMode: this.simplifiedMode() ?
+        'responsible_direct' : this.administrativeMode() ?
+          'administrative' : 'academic',
+      subject: this.simplifiedMode() || this.administrativeMode() ?
+        '' : academic.subject ?? '',
+      group: this.simplifiedMode() || this.administrativeMode() ?
+        '' : academic.group ?? '',
       practiceName: academic.practiceName ?? '',
-      practiceNumber: academic.practiceNumber?.trim() || undefined,
-      description: this.simplifiedMode() ?
+      practiceNumber: this.administrativeMode() ?
+        undefined : academic.practiceNumber?.trim() || undefined,
+      description: this.simplifiedMode() || this.administrativeMode() ?
         academic.description?.trim() || undefined : undefined,
       guestTeacherEmail: this.simplifiedMode() ?
         academic.guestTeacherEmail?.trim().toLowerCase() || undefined : undefined,
-      objective: this.simplifiedMode() ? '' : academic.objective ?? '',
-      materialRequired: this.simplifiedMode() ? '' : practice.materialRequired ?? '',
-      practiceType: this.simplifiedMode() ? 'Otro' : practice.practiceType ?? '',
+      objective: this.simplifiedMode() || this.administrativeMode() ?
+        '' : academic.objective ?? '',
+      materialRequired: this.simplifiedMode() || this.administrativeMode() ?
+        '' : practice.materialRequired ?? '',
+      practiceType: this.simplifiedMode() || this.administrativeMode() ?
+        'Otro' : practice.practiceType ?? '',
       practiceTypeOther: this.simplifiedMode() ?
-        'Reserva operativa' : practiceTypeOther,
+        'Reserva operativa' : this.administrativeMode() ?
+          'Actividad administrativa' : practiceTypeOther,
       externalParticipants: this.simplifiedMode() ? false : externalParticipants,
       risky: this.simplifiedMode() ? false : risky,
       protocolRequired: this.simplifiedMode() ? false : risky || externalParticipants,
@@ -449,8 +459,12 @@ export class ReservationFormComponent {
     const directMode = result.status === 'active' &&
       (result.profile?.role === 'responsable_laboratorio' ||
         result.profile?.role === 'admin_sistemas');
+    const administrativeMode = result.status === 'active' &&
+      result.profile?.role === 'docente' &&
+      result.profile.requesterType === 'administrativo';
     this.simplifiedMode.set(directMode);
-    if (directMode) {
+    this.administrativeMode.set(administrativeMode);
+    if (directMode || administrativeMode) {
       [
         this.academicForm.controls.subject,
         this.academicForm.controls.group,
@@ -470,6 +484,11 @@ export class ReservationFormComponent {
       this.practiceForm.controls.practiceType.updateValueAndValidity({
         emitEvent: false,
       });
+      this.academicForm.updateValueAndValidity({emitEvent: false});
+      this.practiceForm.updateValueAndValidity({emitEvent: false});
+    }
+
+    if (directMode) {
       this.riskForm.controls.risky.clearValidators();
       this.riskForm.controls.risky.updateValueAndValidity({emitEvent: false});
       this.riskForm.controls.externalParticipants.clearValidators();

@@ -385,6 +385,7 @@ async function processOccurrence(
           {uid, email: profile.email, displayName: profile.displayName},
           startAt, endAt, "CONFIRMADA", undefined, null,
           params.groupId, params.groupSize, params.groupIndex, profile.role,
+          profile.requesterType,
       );
       const calendarResult = await calendarService.ensureReservationEvent({
         lab,
@@ -408,6 +409,7 @@ async function processOccurrence(
         startAt, endAt, status,
         calendarErrorReason ?? rejectionDecision?.reason, calendarEventId,
         params.groupId, params.groupSize, params.groupIndex, profile.role,
+        profile.requesterType,
     );
     reservationRepository.createReservation(transaction, reservationRef, reservation);
     createLogs(
@@ -488,6 +490,7 @@ function requiresManualReview(input: CreateReservationInput): boolean {
  * @param {number} groupSize Number of requested dates.
  * @param {number} groupIndex Zero-based occurrence index.
  * @param {string} requestedByRole Authenticated role.
+ * @param {string} requesterType Requester category.
  * @return {ReservationDoc} Reservation document.
  */
 function buildReservation(
@@ -506,6 +509,7 @@ function buildReservation(
     groupSize = 1,
     groupIndex = 0,
     requestedByRole?: "docente" | "responsable_laboratorio" | "admin_sistemas",
+    requesterType?: "docente" | "administrativo",
 ): ReservationDoc {
   const now = Timestamp.now();
 
@@ -518,6 +522,7 @@ function buildReservation(
     teacherName: user.displayName,
     teacherEmail: user.email,
     requestedByRole,
+    requesterType,
     guestTeacherEmail: input.guestTeacherEmail,
     reservationMode: input.reservationMode ?? "academic",
     reservationGroupId: groupId,

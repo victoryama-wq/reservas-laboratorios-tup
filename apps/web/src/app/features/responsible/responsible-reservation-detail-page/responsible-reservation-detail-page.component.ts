@@ -320,7 +320,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
 
     const confirmed = await this.confirmDecision({
       title: 'Rechazar reserva',
-      message: `Se rechazará la solicitud ${reservation.folio}. El motivo indicado se notificará al docente.`,
+      message: `Se rechazará la solicitud ${reservation.folio}. El motivo indicado se notificará a la persona solicitante.`,
       confirmLabel: 'Rechazar reserva',
       cancelLabel: 'Cancelar',
       variant: 'danger',

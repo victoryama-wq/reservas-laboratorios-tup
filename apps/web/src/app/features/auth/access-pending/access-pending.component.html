@@ -4,24 +4,41 @@
       <mat-icon>verified_user</mat-icon>
     </span>
     <mat-card-header>
-      <mat-card-title>Acceso pendiente</mat-card-title>
-      <mat-card-subtitle>Perfil institucional requerido</mat-card-subtitle>
+      <mat-card-title>
+        {{ accessDenied ? 'Acceso no autorizado' : 'Acceso pendiente' }}
+      </mat-card-title>
+      <mat-card-subtitle>
+        {{ accessDenied ? 'Cuenta institucional sin acceso' : 'Perfil institucional requerido' }}
+      </mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
-      <p>
-        Los docentes con correo institucional
-        <strong>tup-dNUMEROS&#64;tecplayacar.edu.mx</strong> se registran
-        automáticamente al iniciar sesión.
-      </p>
-      <p>
-        Los responsables de laboratorio o coordinadores deben ser registrados
-        previamente por Admin/Sistemas antes de su primer acceso.
-      </p>
-      <p>
-        Si ve esta pantalla, su correo no coincide con el patrón docente o no
-        existe una prealta administrativa activa. Contacte a Admin/Sistemas.
-      </p>
+      @if (accessDenied) {
+        <p>
+          Las cuentas de estudiantes y las cuentas operativas excluidas no
+          pueden ingresar al Sistema Web de Reservas de Laboratorios.
+        </p>
+        <p>
+          Si considera que su cuenta fue clasificada incorrectamente, contacte
+          a Admin/Sistemas para revisar el perfil institucional.
+        </p>
+      } @else {
+        <p>
+          Los docentes con correo institucional
+          <strong>tup-dNUMEROS&#64;tecplayacar.edu.mx</strong> y el personal
+          administrativo con correo nominal autorizado se registran
+          automáticamente al iniciar sesión.
+        </p>
+        <p>
+          Los responsables de laboratorio deben ser registrados previamente
+          por Admin/Sistemas antes de su primer acceso.
+        </p>
+        <p>
+          Si ve esta pantalla, su correo no coincide con un patrón autorizado
+          o no existe una prealta administrativa activa. Contacte a
+          Admin/Sistemas.
+        </p>
+      }
     </mat-card-content>
   </mat-card>
 </section>

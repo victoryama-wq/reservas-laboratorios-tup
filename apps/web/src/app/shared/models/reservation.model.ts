@@ -1,10 +1,14 @@
 import { Timestamp } from 'firebase/firestore';
+import { UserRequesterType } from './app-user.model';
 import { EvidenceFile } from './evidence-file.model';
 import { ProtocolFile } from './protocol-file.model';
 import { ReservationStatus } from './reservation-status.model';
 
 export type ReservationSource = 'web' | 'qr' | 'admin';
-export type ReservationMode = 'academic' | 'responsible_direct';
+export type ReservationMode =
+  | 'academic'
+  | 'administrative'
+  | 'responsible_direct';
 
 export interface ReservationDoc {
   id: string;
@@ -15,6 +19,7 @@ export interface ReservationDoc {
   teacherName: string;
   teacherEmail: string;
   requestedByRole?: 'docente' | 'responsable_laboratorio' | 'admin_sistemas';
+  requesterType?: UserRequesterType;
   guestTeacherEmail?: string;
   reservationMode?: ReservationMode;
   reservationGroupId?: string;

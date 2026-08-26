@@ -271,3 +271,11 @@ politica sin autorizacion institucional expresa.
   o Admin.
 - Mantener máximo 10 archivos de 5 MB y eliminar objetos a los 90 días sin
   eliminar documentos ni trazabilidad.
+
+## Regla de mantenimiento para solicitantes administrativos
+
+No crear un rol adicional. Reutilizar `role = docente` con
+`requesterType = administrativo`, mantener la clasificación en
+`ensureUserProfile` y validar el `reservationMode` en Functions. Cualquier nuevo
+formulario debe tratar la categoría como experiencia de captura, no como permiso
+privilegiado.

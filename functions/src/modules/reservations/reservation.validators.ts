@@ -65,7 +65,9 @@ export function parseCreateReservationInput(
   }
 
   const reservationMode = input.reservationMode === "responsible_direct" ?
-    "responsible_direct" : "academic";
+    "responsible_direct" : input.reservationMode === "administrative" ?
+      "administrative" : "academic";
+  const requiresSafetyAnswers = reservationMode !== "responsible_direct";
   const requiredTextFields = ["practiceName", "startAt", "endAt"] as const;
 
   for (const field of requiredTextFields) {
@@ -77,7 +79,7 @@ export function parseCreateReservationInput(
     }
   }
 
-  if (reservationMode === "academic" && typeof input.risky !== "boolean") {
+  if (requiresSafetyAnswers && typeof input.risky !== "boolean") {
     throw new HttpsError(
         "invalid-argument",
         "Debe indicar si la practica es riesgosa.",
@@ -85,7 +87,7 @@ export function parseCreateReservationInput(
   }
 
   if (
-    reservationMode === "academic" &&
+    requiresSafetyAnswers &&
     typeof input.externalParticipants !== "boolean"
   ) {
     throw new HttpsError(
@@ -112,7 +114,9 @@ export function parseCreateReservationInput(
     validatePracticeType(
         input.practiceType?.trim() ?? "",
         input.practiceTypeOther,
-    ) : {practiceType: "Otro", practiceTypeOther: "Reserva operativa"};
+    ) : reservationMode === "administrative" ?
+      {practiceType: "Otro", practiceTypeOther: "Actividad administrativa"} :
+      {practiceType: "Otro", practiceTypeOther: "Reserva operativa"};
   const practiceNumber = parseOptionalText(
       input.practiceNumber,
       MAX_PRACTICE_NUMBER_LENGTH,
@@ -142,8 +146,8 @@ export function parseCreateReservationInput(
       input.materialRequired?.trim() ?? "" : "",
     practiceType: practiceType.practiceType,
     practiceTypeOther: practiceType.practiceTypeOther,
-    risky: reservationMode === "academic" ? input.risky === true : false,
-    externalParticipants: reservationMode === "academic" ?
+    risky: requiresSafetyAnswers ? input.risky === true : false,
+    externalParticipants: requiresSafetyAnswers ?
       input.externalParticipants === true : false,
     reservationMode,
     guestTeacherEmail,
@@ -169,11 +173,34 @@ export function validateReservationModeForProfile(
 ): void {
   const simplifiedRole = profile.role === "responsable_laboratorio" ||
     profile.role === "admin_sistemas";
+  const requesterType = profile.requesterType ?? "docente";
 
   if (simplifiedRole && input.reservationMode !== "responsible_direct") {
     throw new HttpsError(
         "permission-denied",
         "Responsables y Admin/Sistemas deben usar el formulario simplificado.",
+    );
+  }
+
+  if (
+    profile.role === "docente" &&
+    requesterType === "administrativo" &&
+    input.reservationMode !== "administrative"
+  ) {
+    throw new HttpsError(
+        "permission-denied",
+        "El personal administrativo debe usar el formulario adaptado.",
+    );
+  }
+
+  if (
+    profile.role === "docente" &&
+    requesterType === "docente" &&
+    input.reservationMode !== "academic"
+  ) {
+    throw new HttpsError(
+        "permission-denied",
+        "El personal docente debe usar el formulario academico.",
     );
   }
 

@@ -21,7 +21,7 @@ import {
   switchMap,
 } from 'rxjs';
 
-import { AppUser, UserRole } from '../../../shared/models';
+import { AppUser } from '../../../shared/models';
 import { AuthService } from '../../services/auth.service';
 import {
   INSTITUTIONAL_LOGO_ALT,
@@ -121,17 +121,18 @@ export class AppShellComponent {
     return (words[0]?.[0] ?? 'T').concat(words[1]?.[0] ?? 'U').toUpperCase();
   }
 
-  protected getRoleLabel(role: UserRole | undefined): string {
-    if (role === 'admin_sistemas') {
+  protected getRoleLabel(profile: AppUser): string {
+    if (profile.role === 'admin_sistemas') {
       return 'Admin';
     }
 
-    if (role === 'responsable_laboratorio') {
+    if (profile.role === 'responsable_laboratorio') {
       return 'Responsable';
     }
 
-    if (role === 'docente') {
-      return 'Docente';
+    if (profile.role === 'docente') {
+      return profile.requesterType === 'administrativo' ?
+        'Administrativo' : 'Docente';
     }
 
     return 'Rol no válido';

@@ -305,7 +305,13 @@ function buildReservationDetails(
         formatTime(reservation.endAt.toDate()),
       ].join(" - "),
     },
-    {label: "Docente", value: reservation.teacherName},
+    {
+      label: reservation.requesterType === "administrativo" ?
+        "Solicitante administrativo" :
+        reservation.reservationMode === "responsible_direct" ?
+          "Responsable solicitante" : "Docente",
+      value: reservation.teacherName,
+    },
     {label: "Correo", value: reservation.teacherEmail},
     {label: "Asignatura", value: reservation.subject},
     {label: "Grupo", value: reservation.group},

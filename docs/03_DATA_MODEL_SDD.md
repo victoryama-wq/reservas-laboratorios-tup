@@ -815,3 +815,19 @@ El modelo persistente de `reservations` no cambia. `calendarEventId` sigue
 siendo el unico identificador externo guardado. El ID determinista y las
 propiedades privadas de Google Calendar se derivan de `reservationId`; no se
 crean campos, colecciones ni migraciones nuevas.
+
+## Extensión de solicitante administrativo
+
+`users/{uid}` admite el campo opcional:
+
+```ts
+requesterType?: 'docente' | 'administrativo';
+```
+
+Los perfiles docentes heredados sin el campo se interpretan como
+`requesterType = docente`. `reservations/{id}` conserva opcionalmente el mismo
+campo para trazabilidad. `reservationMode` admite `academic`, `administrative`
+y `responsible_direct`.
+
+`systemSettings/global` admite `accessExcludedEmails?: string[]` para excluir
+buzones técnicos de la autoalta interactiva.

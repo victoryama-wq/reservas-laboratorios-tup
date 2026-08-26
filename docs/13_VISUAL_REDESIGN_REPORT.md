@@ -1635,3 +1635,11 @@ días.
 La revisión final de interfaz normaliza ortografía, acentos, signos y
 puntuación de los textos visibles en español. Se mantienen intactos los
 identificadores técnicos, rutas, roles, estatus y contratos de datos.
+
+## Formulario administrativo adaptado
+
+El personal administrativo comparte el sistema visual del formulario de
+reserva: stepper responsive, cards blancas, callouts, controles Material y
+acciones institucionales. Se eliminan visualmente los campos académicos que no
+aplican, pero se conservan fechas múltiples, actividad, descripción, seguridad,
+protocolo y resumen. No se introduce una paleta ni una navegación alterna.

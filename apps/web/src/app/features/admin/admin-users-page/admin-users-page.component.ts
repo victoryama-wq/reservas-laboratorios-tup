@@ -267,7 +267,7 @@ type PreauthorizationStatus = {
                 <article class="grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <header class="flex flex-wrap items-start justify-between gap-4">
                     <div class="min-w-0">
-                      <p class="app-page-kicker">{{ roleLabel(user.role) }}</p>
+                      <p class="app-page-kicker">{{ userAccessLabel(user) }}</p>
                       <h2 class="m-0 mt-1 break-words text-xl font-extrabold text-slate-950">
                         {{ user.displayName || 'Usuario sin nombre' }}
                       </h2>
@@ -285,7 +285,7 @@ type PreauthorizationStatus = {
                       <app-status-chip
                         [variant]="roleVariant(user.role)"
                         icon="badge"
-                        [label]="roleLabel(user.role)"
+                        [label]="userAccessLabel(user)"
                       />
                     </div>
                   </header>
@@ -397,6 +397,12 @@ export class AdminUsersPageComponent implements OnInit {
     };
 
     return labels[role];
+  }
+
+  protected userAccessLabel(user: AdminUserView): string {
+    return user.role === 'docente' && user.requesterType === 'administrativo'
+      ? 'Administrativo'
+      : this.roleLabel(user.role);
   }
 
   protected roleVariant(role: UserRole): StatusChipVariant {

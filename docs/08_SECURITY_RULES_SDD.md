@@ -337,3 +337,14 @@ evidencias directamente en Firestore.
 Una función programada elimina los archivos después de 90 días sin borrar
 reservas, logs, notificaciones ni auditoría. La recuperación de evidencias
 vencidas no está garantizada.
+
+## Seguridad de clasificación institucional
+
+Los patrones de correo solo habilitan acceso básico de solicitante y nunca
+asignan `responsable_laboratorio` ni `admin_sistemas`. La precedencia de perfil
+existente y prealta válida evita degradar permisos ya autorizados. Las cuentas
+estudiantiles se deniegan y los buzones técnicos pueden excluirse en
+`systemSettings/global.accessExcludedEmails`.
+
+La autorización crítica del modo de reserva se repite en Functions; ocultar
+campos en Angular no constituye un control de seguridad.

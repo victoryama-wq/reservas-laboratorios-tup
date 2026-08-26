@@ -261,6 +261,7 @@ export class ReservationRepository {
       teacherName: data.teacherName ?? "",
       teacherEmail: data.teacherEmail ?? "",
       requestedByRole: data.requestedByRole,
+      requesterType: data.requesterType,
       guestTeacherEmail: data.guestTeacherEmail,
       reservationMode: data.reservationMode,
       reservationGroupId: data.reservationGroupId,

@@ -19,7 +19,7 @@ export interface CreateReservationInput {
   practiceTypeOther?: string;
   risky: boolean;
   externalParticipants: boolean;
-  reservationMode?: 'academic' | 'responsible_direct';
+  reservationMode?: 'academic' | 'administrative' | 'responsible_direct';
   guestTeacherEmail?: string;
   startAt: string;
   endAt: string;

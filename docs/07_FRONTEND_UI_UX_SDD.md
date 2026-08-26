@@ -711,17 +711,18 @@ Estabilidad de carga visual:
 
 El login debe llamar `ensureUserProfile` cuando Google Sign-In regrese una
 cuenta institucional sin documento `users/{uid}`. Si la respuesta crea perfil
-docente o reclama prealta, el frontend debe recargar el perfil y continuar la
-redireccion normal por rol o ruta QR. Si recibe `PENDING_ACCESS`, debe mostrar
-la pantalla de acceso pendiente.
+docente, administrativo o reclama prealta, el frontend debe recargar el perfil
+y continuar la redireccion normal por rol o ruta QR. `PENDING_ACCESS` muestra
+acceso pendiente y `ACCESS_DENIED` muestra una denegacion explicita.
 
 La pantalla de acceso pendiente debe explicar que:
 
 - docentes con correo `tup-dNUMEROS@tecplayacar.edu.mx` entran
   automaticamente;
-- responsables/coordinadores requieren prealta de Admin/Sistemas;
-- cuentas institucionales que no cumplen patron docente ni tienen prealta
-  quedan pendientes.
+- personal administrativo nominal entra con formulario adaptado;
+- responsables y Admin/Sistemas requieren prealta privilegiada;
+- estudiantes y cuentas operativas excluidas no tienen acceso;
+- otros formatos institucionales quedan pendientes.
 
 La ruta `/admin/usuarios` debe incluir una accion visible para agregar
 responsable/coordinador. El dialog debe pedir nombre opcional, correo
@@ -1323,3 +1324,14 @@ En el detalle de Mis reservas, después del inicio de una reserva confirmada, el
 docente puede seleccionar imágenes. La UI informa límite de 10, compresión y 5
 MB por archivo, muestra progreso y conserva acciones táctiles. Responsable y
 Admin/Sistemas visualizan las evidencias desde el detalle autorizado.
+
+## Formulario adaptado para personal administrativo
+
+El header identifica al perfil con `requesterType = administrativo` como
+“Administrativo”, aunque su rol técnico sea `docente`. El formulario conserva
+el stepper institucional y selección múltiple de fechas, pero omite datos
+académicos no aplicables. Mantiene nombre y descripción de la actividad,
+preguntas de seguridad, carga privada de protocolo y resumen final.
+
+La pantalla de acceso diferencia un acceso pendiente de una denegación para
+cuentas estudiantiles u operativas.

@@ -436,3 +436,10 @@ mediante el formulario simplificado `responsible_direct`. El responsable solo
 puede seleccionar laboratorios presentes en `labsAssigned`; Admin/Sistemas
 puede seleccionar cualquier laboratorio activo. Ambos omiten datos académicos,
 materiales, condiciones de seguridad y protocolo.
+
+El personal administrativo solicitante usa `reservationMode = administrative`.
+Captura laboratorio, una o varias fechas, horario, nombre de la actividad,
+descripción opcional y condiciones de seguridad. No captura asignatura, grupo,
+número de práctica, objetivo académico, materiales ni tipo académico. Cuando
+hay riesgo o población externa, adjunta protocolo y sigue el flujo pendiente de
+validación. Los resultados por fecha y correos consolidados permanecen iguales.

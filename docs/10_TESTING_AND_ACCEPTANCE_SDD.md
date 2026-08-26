@@ -348,8 +348,10 @@ Agregar o ejecutar pruebas manuales para:
 
 - un correo `tup-d1@tecplayacar.edu.mx` sin perfil crea automaticamente
   `users/{uid}` como `docente` activo;
-- un correo institucional que no cumple patron docente y no tiene prealta queda
-  en acceso pendiente;
+- un correo administrativo nominal sin prealta crea perfil solicitante con
+  `requesterType: administrativo`;
+- un correo estudiantil `tupNUMEROS` recibe acceso denegado;
+- un correo institucional desconocido sin prealta queda en acceso pendiente;
 - Admin/Sistemas puede crear prealta de `responsable_laboratorio` con
   laboratorios asignados;
 - una cuenta preautorizada reclama la prealta en su primer login y se crea
@@ -967,3 +969,15 @@ que las fechas rechazadas no generan eventos Calendar.
 La aceptación visual incluye revisar ortografía, acentuación y puntuación de
 los textos visibles. Los identificadores técnicos deben conservarse sin
 traducción ni cambios.
+
+## Pruebas de acceso administrativo automático
+
+- `tup-d3001@tecplayacar.edu.mx` se clasifica como docente;
+- `tup12345@tecplayacar.edu.mx` se deniega como estudiante;
+- `nombre.apellido@tecplayacar.edu.mx` se clasifica como administrativo;
+- una cuenta configurada en `accessExcludedEmails` se deniega;
+- una prealta privilegiada válida tiene precedencia sobre clasificación;
+- un administrativo solo puede enviar `reservationMode = administrative`;
+- un docente solo puede enviar `academic`;
+- responsables y Admin/Sistemas solo pueden enviar `responsible_direct`;
+- el protocolo administrativo se exige cuando hay riesgo o población externa.

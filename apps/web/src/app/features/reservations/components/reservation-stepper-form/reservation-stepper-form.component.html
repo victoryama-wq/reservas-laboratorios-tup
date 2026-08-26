@@ -172,21 +172,29 @@
 
     <mat-step [stepControl]="group('academic')">
       <form [formGroup]="group('academic')" class="step-content">
-        <ng-template matStepLabel>{{ simplifiedMode() ? 'Detalles' : 'Datos' }}</ng-template>
+        <ng-template matStepLabel>
+          {{ simplifiedMode() || administrativeMode() ? 'Detalles' : 'Datos' }}
+        </ng-template>
 
         <div class="step-intro">
           <app-icon-box icon="school" />
           <div>
-            <h3>{{ simplifiedMode() ? 'Datos básicos' : 'Datos académicos' }}</h3>
+            <h3>
+              {{ simplifiedMode() ? 'Datos básicos' :
+                administrativeMode() ? 'Datos de la actividad' :
+                'Datos académicos' }}
+            </h3>
             <p>
               {{ simplifiedMode()
                 ? 'Indique la práctica, una descripción y el docente invitado si aplica.'
-                : 'Describa la asignatura, grupo y objetivo de la práctica.' }}
+                : administrativeMode()
+                  ? 'Indique el nombre de la actividad y agregue una descripción si aplica.'
+                  : 'Describa la asignatura, grupo y objetivo de la práctica.' }}
             </p>
           </div>
         </div>
 
-        @if (!simplifiedMode()) {
+        @if (!simplifiedMode() && !administrativeMode()) {
           <mat-form-field appearance="outline">
             <mat-label>Asignatura</mat-label>
             <input matInput formControlName="subject" />
@@ -206,11 +214,13 @@
           <mat-error>El nombre de la práctica es requerido.</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Número de práctica (opcional)</mat-label>
-          <input matInput formControlName="practiceNumber" maxlength="40" />
-          <mat-hint>Coloque el número de práctica si aplica.</mat-hint>
-        </mat-form-field>
+        @if (!administrativeMode()) {
+          <mat-form-field appearance="outline">
+            <mat-label>Número de práctica (opcional)</mat-label>
+            <input matInput formControlName="practiceNumber" maxlength="40" />
+            <mat-hint>Coloque el número de práctica si aplica.</mat-hint>
+          </mat-form-field>
+        }
 
         @if (simplifiedMode()) {
           <mat-form-field appearance="outline">
@@ -220,6 +230,11 @@
             <mat-error>Ingrese un correo institucional válido.</mat-error>
           </mat-form-field>
 
+          <mat-form-field appearance="outline">
+            <mat-label>Descripción (opcional)</mat-label>
+            <textarea matInput rows="4" formControlName="description"></textarea>
+          </mat-form-field>
+        } @else if (administrativeMode()) {
           <mat-form-field appearance="outline">
             <mat-label>Descripción (opcional)</mat-label>
             <textarea matInput rows="4" formControlName="description"></textarea>
@@ -242,7 +257,7 @@
       </form>
     </mat-step>
 
-    @if (!simplifiedMode()) {
+    @if (!simplifiedMode() && !administrativeMode()) {
     <mat-step [stepControl]="group('practice')">
       <form [formGroup]="group('practice')" class="step-content">
         <ng-template matStepLabel>Práctica</ng-template>
@@ -289,7 +304,9 @@
         </div>
       </form>
     </mat-step>
+    }
 
+    @if (!simplifiedMode()) {
     <mat-step [stepControl]="group('risk')">
       <form [formGroup]="group('risk')" class="step-content">
         <ng-template matStepLabel>Riesgo</ng-template>
@@ -446,7 +463,7 @@
               {{ displayValue('schedule', 'endTime') }}
             </strong>
           </div>
-          @if (!simplifiedMode()) {
+          @if (!simplifiedMode() && !administrativeMode()) {
             <div class="summary-card">
               <span>Asignatura</span>
               <strong>{{ displayValue('academic', 'subject') }}</strong>
@@ -466,17 +483,19 @@
               <strong>{{ displayValue('academic', 'practiceNumber') }}</strong>
             </div>
           }
-          @if (simplifiedMode()) {
+          @if (simplifiedMode() || administrativeMode()) {
             <div class="summary-card wide">
               <span>Descripción</span>
               <strong>{{ displayValue('academic', 'description', 'Sin descripción') }}</strong>
             </div>
+          }
+          @if (simplifiedMode()) {
             <div class="summary-card wide">
               <span>Docente invitado</span>
               <strong>{{ displayValue('academic', 'guestTeacherEmail', 'Sin invitado') }}</strong>
             </div>
           }
-          @if (!simplifiedMode()) {
+          @if (!simplifiedMode() && !administrativeMode()) {
           <div class="summary-card wide">
             <span>Objetivo</span>
             <strong>{{ displayValue('academic', 'objective') }}</strong>

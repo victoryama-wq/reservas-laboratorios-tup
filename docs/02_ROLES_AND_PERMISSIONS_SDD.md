@@ -104,7 +104,7 @@ Matriz de permisos
 | Ver reportes globales                  |      No |                      No |             Sí |
 | Revisar bitácora completa              |      No |                 Parcial |             Sí |
 
-## Actualizacion Fase 16A.1: autoalta docente y prealta administrativa
+## Actualizacion de autoalta y prealta privilegiada
 
 Los docentes regulares no requieren autorizacion administrativa previa cuando
 su correo institucional cumple el patron:
@@ -117,8 +117,12 @@ Al iniciar sesion con Google, la Cloud Function `ensureUserProfile` puede crear
 automaticamente `users/{uid}` con rol `docente`, `active: true` y
 `labsAssigned: []`. El frontend no crea este perfil directamente.
 
-Los responsables de laboratorio y coordinadores no se identifican por ese
-patron docente. Admin/Sistemas debe preautorizarlos desde `/admin/usuarios`
+El personal administrativo con correo nominal tambien puede recibir autoalta
+como `role: docente`, `requesterType: administrativo`. Esta clasificacion solo
+habilita reservas y no concede permisos administrativos del sistema.
+
+Los responsables de laboratorio y Admin/Sistemas no se infieren por patrones
+de correo. Deben preautorizarse desde `/admin/usuarios`
 mediante `adminPreauthorizeUser`, indicando correo institucional, rol oficial,
 estado activo/inactivo y laboratorios asignados cuando el rol sea
 `responsable_laboratorio`.
@@ -195,3 +199,14 @@ La vista docente mantiene su propio flujo de consulta de reservas propias.
 La bitacora visible para responsables no debe exponer `calendarId`,
 `storagePath`, URLs firmadas, UIDs como dato principal, stack traces, secretos
 ni metadata cruda.
+
+## Acceso de personal administrativo solicitante
+
+El personal administrativo con correo institucional nominal puede reservar sin
+prealta masiva. Su perfil usa `role = docente` para conservar el modelo oficial
+de tres roles y `requesterType = administrativo` para seleccionar la experiencia
+adaptada. Este atributo no concede permisos de responsable ni Admin/Sistemas.
+
+Las cuentas `tupNUMEROS@tecplayacar.edu.mx` se consideran estudiantiles y se
+deniegan. Los roles `responsable_laboratorio` y `admin_sistemas` solo se obtienen
+por perfil existente o prealta privilegiada válida.

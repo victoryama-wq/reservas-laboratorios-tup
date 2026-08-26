@@ -1112,7 +1112,7 @@ Vistas estabilizadas:
 El ajuste solo sincroniza el estado visual despues de cargas asincronicas con
 Firebase SDK modular. No cambia rutas, guards, servicios, permisos, Cloud
 Functions ni reglas de negocio.
-## Autoalta docente y prealta administrativa
+## Autoalta de solicitantes y prealta privilegiada
 
 Los docentes con correo `tup-dNUMEROS@tecplayacar.edu.mx` se dan de alta
 automaticamente desde backend mediante `ensureUserProfile`.
@@ -1123,8 +1123,10 @@ La regex usada es:
 ^tup-d\d+@tecplayacar\.edu\.mx$
 ```
 
-El perfil creado queda como `role: docente`, `active: true` y
-`labsAssigned: []`.
+El perfil creado queda como `role: docente`, `requesterType: docente`,
+`active: true` y `labsAssigned: []`. Los correos administrativos nominales
+tambien reciben autoalta con `role: docente` y
+`requesterType: administrativo`.
 
 Responsables/coordinadores se preautorizan desde `/admin/usuarios` mediante
 `adminPreauthorizeUser`; no se crean contrasenas. La prealta se guarda en
@@ -1884,3 +1886,27 @@ local.
 Los textos visibles de la Web App se revisaron para corregir ortografía,
 acentuación, signos de interrogación y puntuación en español. Esta normalización
 no modifica rutas, roles, estatus, nombres de controles ni contratos de datos.
+
+## Acceso automático de personal administrativo
+
+`ensureUserProfile` aplica esta precedencia al primer inicio de sesión:
+
+1. conserva cualquier perfil existente en `users/{uid}`;
+2. reclama una prealta privilegiada válida de responsable o Admin/Sistemas;
+3. crea perfil docente para `tup-dNUMEROS@tecplayacar.edu.mx`;
+4. deniega cuentas estudiantiles `tupNUMEROS@tecplayacar.edu.mx`;
+5. crea un perfil solicitante para correos nominales administrativos con punto
+   o guion bajo;
+6. deja en acceso pendiente cualquier formato institucional no reconocido.
+
+El personal administrativo conserva el rol técnico oficial `docente` y agrega
+`requesterType: administrativo`; no se creó un cuarto rol. Utiliza el modo de
+reserva `administrative`, con fechas, horario, nombre y descripción de la
+actividad, preguntas de seguridad y protocolo cuando corresponda. Docentes
+académicos usan `academic`; responsables y Admin/Sistemas continúan usando
+`responsible_direct`.
+
+Las cuentas operativas conocidas quedan excluidas por defecto. Se pueden sumar
+cuentas en `systemSettings/global.accessExcludedEmails`. Esta configuración no
+otorga roles privilegiados ni sustituye las prealtas de responsables o
+Admin/Sistemas.

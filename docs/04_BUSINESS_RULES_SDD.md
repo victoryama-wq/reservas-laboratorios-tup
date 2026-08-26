@@ -242,3 +242,15 @@ El docente propietario puede agregar hasta 10 evidencias comprimidas, de 5 MB
 cada una, después del inicio de una reserva confirmada. Solo propietario,
 responsable asignado y Admin/Sistemas pueden consultarlas. Se eliminan a los 90
 días sin borrar reservas ni trazabilidad.
+
+## Clasificación de acceso y modo de reserva
+
+La clasificación automática nunca asigna roles privilegiados. Un correo
+docente usa `academic`; un correo administrativo nominal usa `administrative`;
+responsables y Admin/Sistemas usan `responsible_direct`. `createReservation`
+rechaza cualquier combinación de perfil y modo que no corresponda.
+
+El modo administrativo conserva las preguntas de material riesgoso y población
+externa. Si alguna respuesta es afirmativa, el protocolo sigue siendo
+obligatorio y la reserva queda pendiente de validación según las reglas
+existentes.

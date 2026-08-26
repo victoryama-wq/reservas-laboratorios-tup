@@ -4,6 +4,17 @@ Los cambios relevantes del proyecto se documentan en este archivo.
 
 ## [Unreleased]
 
+### Acceso institucional
+
+- Autoalta segura de personal administrativo nominal como solicitante con rol
+  técnico `docente` y `requesterType: administrativo`.
+- Denegación explícita de cuentas estudiantiles `tupNUMEROS` y exclusión
+  configurable de buzones operativos.
+- Nuevo modo de reserva `administrative`, validado en backend y con formulario
+  adaptado sin datos académicos de asignatura, grupo, objetivo o materiales.
+- Se mantienen prealtas obligatorias para `responsable_laboratorio` y
+  `admin_sistemas`; no se agregaron roles.
+
 ### Reservas
 
 - Solicitudes de hasta 20 fechas únicas dentro de 90 días, con una reserva y

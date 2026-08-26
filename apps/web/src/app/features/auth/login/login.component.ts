@@ -162,6 +162,13 @@ export class LoginComponent implements OnInit {
         timeoutMessage,
       );
 
+      if (ensureResult.status === 'ACCESS_DENIED') {
+        await this.router.navigate(['/acceso-pendiente'], {
+          queryParams: { status: 'access-denied' },
+        });
+        return;
+      }
+
       if (ensureResult.status === 'PENDING_ACCESS') {
         await this.router.navigate(['/acceso-pendiente'], {
           queryParams: { status: 'pending-access' },

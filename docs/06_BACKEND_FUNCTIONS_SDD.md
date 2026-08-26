@@ -426,14 +426,17 @@ Reglas:
 - normaliza email en minusculas;
 - exige dominio `@tecplayacar.edu.mx`;
 - si `users/{uid}` existe, devuelve `EXISTING_PROFILE`;
+- si hay prealta privilegiada activa sin reclamar, crea `users/{uid}`, marca la
+  prealta como reclamada y registra `PREAUTHORIZED_USER_CLAIMED`;
 - si no existe y el correo cumple `^tup-d\d+@tecplayacar\.edu\.mx$`, crea
-  perfil `docente` activo y registra `AUTO_CREATE_DOCENTE_PROFILE`;
-- si no existe y hay prealta activa sin reclamar para ese correo, crea
-  `users/{uid}`, marca la prealta como reclamada y registra
-  `PREAUTHORIZED_USER_CLAIMED`;
+  perfil docente activo y registra `AUTO_CREATE_DOCENTE_PROFILE`;
+- si cumple el patron administrativo nominal, crea perfil con rol `docente`,
+  `requesterType: administrativo` y registra la autoalta;
+- si cumple `^tup\d+@tecplayacar\.edu\.mx$` o esta en la lista de exclusion,
+  devuelve `ACCESS_DENIED` sin crear perfil;
 - las prealtas con `active !== true`, `claimedByUid` o `revokedAt` no pueden
   reclamarse;
-- si no existe perfil ni prealta valida, devuelve `PENDING_ACCESS`.
+- cualquier otro formato institucional devuelve `PENDING_ACCESS`.
 
 ## Actualizacion Fase 16A.1: adminPreauthorizeUser
 
@@ -999,3 +1002,15 @@ reintentos de Calendar mantienen la idempotencia por `reservationId`.
 responsable asignado o Admin/Sistemas; y
 `scheduledCleanupReservationEvidence` elimina a diario archivos con 90 días
 de antigüedad, incluidos huérfanos. Un fallo de Gmail no cambia la reserva.
+
+## ensureUserProfile y modo administrativo
+
+`ensureUserProfile` revisa primero perfil existente y prealta privilegiada.
+Después clasifica docente, estudiante, administrativo nominal, cuenta excluida
+o acceso pendiente. Las cuentas administrativas automáticas se crean con rol
+`docente` y `requesterType = administrativo`. Las cuentas estudiantiles y
+operativas excluidas reciben `ACCESS_DENIED` sin crear perfil.
+
+`createReservation` valida en backend que el solicitante administrativo use
+`administrative`, el docente use `academic` y los roles privilegiados usen
+`responsible_direct`.

@@ -51,6 +51,7 @@ export class ReservationStepperFormComponent {
   readonly maxDate = input<Date | null>(null);
   readonly selectedDates = input<Date[]>([]);
   readonly simplifiedMode = input(false);
+  readonly administrativeMode = input(false);
   readonly availableStartTimes = input<string[]>([]);
   readonly availableEndTimes = input<string[]>([]);
   readonly practiceTypes = input<string[]>([]);

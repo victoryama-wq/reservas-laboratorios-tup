@@ -85,6 +85,83 @@ test("normalizes the responsible direct form without academic risk fields", () =
   assert.equal(result.guestTeacherEmail, "docente@tecplayacar.edu.mx");
 });
 
+test("normalizes the administrative form with safety conditions", () => {
+  const result = parseCreateReservationInput({
+    ...academicInput(),
+    reservationMode: "administrative",
+    subject: "",
+    group: "",
+    objective: "",
+    practiceType: "",
+    risky: true,
+    externalParticipants: false,
+    description: "Actividad institucional",
+  });
+
+  assert.equal(result.reservationMode, "administrative");
+  assert.equal(result.subject, "");
+  assert.equal(result.practiceTypeOther, "Actividad administrativa");
+  assert.equal(result.risky, true);
+  assert.equal(result.description, "Actividad institucional");
+});
+
+test("allows administrative mode only for administrative requesters", () => {
+  const input = parseCreateReservationInput({
+    ...academicInput(),
+    reservationMode: "administrative",
+  });
+  const administrativeProfile = {
+    uid: "administrative-1",
+    displayName: "Personal administrativo",
+    email: "nombre.apellido@tecplayacar.edu.mx",
+    role: "docente",
+    requesterType: "administrativo",
+    labsAssigned: [],
+    active: true,
+  };
+
+  assert.doesNotThrow(() =>
+    validateReservationModeForProfile(
+        input,
+        administrativeProfile,
+        {id: "lab-1"},
+    ),
+  );
+  assert.throws(
+      () => validateReservationModeForProfile(
+          parseCreateReservationInput(academicInput()),
+          administrativeProfile,
+          {id: "lab-1"},
+      ),
+      /formulario adaptado/,
+  );
+});
+
+test("prevents a teacher from using administrative mode", () => {
+  const input = parseCreateReservationInput({
+    ...academicInput(),
+    reservationMode: "administrative",
+  });
+  const teacherProfile = {
+    uid: "teacher-1",
+    displayName: "Docente",
+    email: "tup-d1@tecplayacar.edu.mx",
+    role: "docente",
+    requesterType: "docente",
+    labsAssigned: [],
+    active: true,
+  };
+
+  assert.throws(
+      () => validateReservationModeForProfile(
+          input,
+          teacherProfile,
+          {id: "lab-1"},
+      ),
+      /formulario academico/,
+  );
+});
+
 test("allows responsible direct mode only for an assigned lab", () => {
   const input = parseCreateReservationInput({
     ...academicInput(),
@@ -182,7 +259,7 @@ test("rejects direct mode for a teacher", () => {
 
   assert.throws(
       () => validateReservationModeForProfile(input, profile, {id: "lab-1"}),
-      /exclusivo de responsables y Admin\/Sistemas/,
+      /formulario academico/,
   );
 });
 

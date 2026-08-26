@@ -6,13 +6,19 @@ import {
   FIREBASE_FIRESTORE,
   FIREBASE_FUNCTIONS,
 } from '../firebase/firebase.providers';
-import { AppUser, UserRole } from '../../shared/models';
+import {
+  AppUser,
+  UserRequesterType,
+  UserRole,
+} from '../../shared/models';
 
 export type UserProfileStatus = 'active' | 'missing' | 'inactive' | 'invalid-role' | 'error';
 export type EnsureUserProfileStatus =
   | 'EXISTING_PROFILE'
   | 'DOCENTE_PROFILE_CREATED'
+  | 'ADMINISTRATIVE_PROFILE_CREATED'
   | 'PREAUTHORIZED_PROFILE_CREATED'
+  | 'ACCESS_DENIED'
   | 'PENDING_ACCESS';
 
 export interface UserProfileResult {
@@ -26,6 +32,7 @@ export interface EnsureUserProfileOutput {
   uid: string;
   email: string;
   role?: UserRole;
+  requesterType?: UserRequesterType;
   active?: boolean;
   message: string;
 }

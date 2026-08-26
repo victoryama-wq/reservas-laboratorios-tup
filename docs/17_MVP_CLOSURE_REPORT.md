@@ -1165,3 +1165,12 @@ Storage Rules y Hosting.
 
 También se completó una revisión ortográfica de la interfaz visible en español,
 sin modificar rutas, roles, estatus ni identificadores técnicos.
+
+## Extensión de acceso para personal administrativo
+
+Se incorporó autoalta segura para correos administrativos nominales sin
+preautorizar listas masivas. El modelo conserva los tres roles oficiales y usa
+`requesterType` más `reservationMode` para diferenciar la captura. Estudiantes y
+cuentas técnicas excluidas no reciben perfil. La aceptación productiva requiere
+smoke manual con una cuenta administrativa real antes de considerar cerrado el
+despliegue de esta extensión.
