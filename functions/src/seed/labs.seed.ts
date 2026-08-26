@@ -1,4 +1,5 @@
-import * as admin from "firebase-admin";
+import {getApps, initializeApp} from "firebase-admin/app";
+import {getFirestore, Timestamp} from "firebase-admin/firestore";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -40,8 +41,8 @@ function readSeedLabs(): SeedLabDoc[] {
 function toFirestoreLab(lab: SeedLabDoc): LabDoc {
   return {
     ...lab,
-    createdAt: admin.firestore.Timestamp.fromDate(new Date(lab.createdAt)),
-    updatedAt: admin.firestore.Timestamp.fromDate(new Date(lab.updatedAt)),
+    createdAt: Timestamp.fromDate(new Date(lab.createdAt)),
+    updatedAt: Timestamp.fromDate(new Date(lab.updatedAt)),
   };
 }
 
@@ -49,8 +50,8 @@ function toFirestoreLab(lab: SeedLabDoc): LabDoc {
  * Loads initial laboratory documents without deleting existing fields.
  */
 async function seedLabs(): Promise<void> {
-  if (!admin.apps.length) {
-    admin.initializeApp({
+  if (!getApps().length) {
+    initializeApp({
       projectId:
         process.env.GCLOUD_PROJECT ??
         process.env.GOOGLE_CLOUD_PROJECT ??
@@ -58,7 +59,7 @@ async function seedLabs(): Promise<void> {
     });
   }
 
-  const db = admin.firestore();
+  const db = getFirestore();
   const labs = readSeedLabs();
   const batch = db.batch();
 
