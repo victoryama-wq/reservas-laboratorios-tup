@@ -1,6 +1,9 @@
 <div class="app-shell">
   @if (profileState$ | async; as state) {
-    <mat-toolbar class="app-header">
+    <mat-toolbar
+      class="app-header"
+      [class.app-header--admin]="canSeeAdminNav$ | async"
+    >
       <a class="brand" routerLink="/" aria-label="Ir al inicio">
         <span class="brand-mark">
           @if (!headerLogoFailed) {
@@ -49,22 +52,15 @@
           }
 
           @if (canSeeAdminNav$ | async) {
-            <a mat-menu-item routerLink="/admin/usuarios">
-              <mat-icon aria-hidden="true">manage_accounts</mat-icon>
-              <span>Usuarios</span>
-            </a>
-            <a mat-menu-item routerLink="/admin/laboratorios">
-              <mat-icon aria-hidden="true">business</mat-icon>
-              <span>Laboratorios admin</span>
-            </a>
-            <a mat-menu-item routerLink="/admin/reglas">
-              <mat-icon aria-hidden="true">rule</mat-icon>
-              <span>Reglas</span>
-            </a>
-            <a mat-menu-item routerLink="/admin/bitacora">
-              <mat-icon aria-hidden="true">history</mat-icon>
-              <span>Bitácora</span>
-            </a>
+            <button
+              mat-menu-item
+              type="button"
+              [matMenuTriggerFor]="administrationMenu"
+              [class.admin-menu-active]="isAdminSection$ | async"
+            >
+              <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
+              <span>Administración</span>
+            </button>
           }
 
           <button mat-menu-item type="button" (click)="signOut()">
@@ -81,6 +77,22 @@
             <mat-icon aria-hidden="true">hourglass_empty</mat-icon>
             <span>Validando perfil...</span>
           </button>
+        }
+      </mat-menu>
+
+      <mat-menu #administrationMenu="matMenu" class="app-administration-menu">
+        @if (canSeeAdminNav$ | async) {
+          @for (item of adminNavigation; track item.path) {
+            <a
+              mat-menu-item
+              [routerLink]="item.path"
+              routerLinkActive="admin-menu-active"
+              ariaCurrentWhenActive="page"
+            >
+              <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+              <span>{{ item.label }}</span>
+            </a>
+          }
         }
       </mat-menu>
 
@@ -109,44 +121,24 @@
             >
               Responsable
             </a>
-            <a
-              mat-button
-              routerLink="/reportes"
-              routerLinkActive="active-link"
-            >
+            <a mat-button routerLink="/reportes" routerLinkActive="active-link">
               Reportes
             </a>
           }
 
           @if (canSeeAdminNav$ | async) {
-            <a
+            <button
               mat-button
-              routerLink="/admin/usuarios"
-              routerLinkActive="active-link"
+              type="button"
+              class="admin-menu-trigger"
+              [matMenuTriggerFor]="administrationMenu"
+              [class.active-link]="isAdminSection$ | async"
             >
-              Usuarios
-            </a>
-            <a
-              mat-button
-              routerLink="/admin/laboratorios"
-              routerLinkActive="active-link"
-            >
-              Laboratorios admin
-            </a>
-            <a
-              mat-button
-              routerLink="/admin/reglas"
-              routerLinkActive="active-link"
-            >
-              Reglas
-            </a>
-            <a
-              mat-button
-              routerLink="/admin/bitacora"
-              routerLinkActive="active-link"
-            >
-              Bitácora
-            </a>
+              Administración
+              <mat-icon iconPositionEnd aria-hidden="true"
+                >expand_more</mat-icon
+              >
+            </button>
           }
         } @else if (state.kind === 'signed-out') {
           <a mat-button routerLink="/login" routerLinkActive="active-link">

@@ -1335,3 +1335,15 @@ preguntas de seguridad, carga privada de protocolo y resumen final.
 
 La pantalla de acceso diferencia un acceso pendiente de una denegación para
 cuentas estudiantiles u operativas.
+
+## Navegación administrativa agrupada
+
+Para `admin_sistemas`, el navbar conserva Laboratorios, Mis reservas,
+Responsable y Reportes, y agrupa Usuarios, Laboratorios admin, Reglas y
+Bitácora en un menú Angular Material llamado `Administración`.
+El mismo menú se reutiliza desde la navegación hamburguesa en celular.
+La sección administrativa se indica como activa incluso al entrar por `/admin`.
+Los enlaces mantienen sus rutas y permisos; docentes y responsables conservan
+su navegación actual. Angular Material gestiona teclado, Escape y retorno
+del foco. En escritorio mediano, los enlaces administrativos se distribuyen
+en una segunda fila; desde 1600 px comparten fila con marca y perfil.

@@ -1643,3 +1643,36 @@ reserva: stepper responsive, cards blancas, callouts, controles Material y
 acciones institucionales. Se eliminan visualmente los campos académicos que no
 aplican, pero se conservan fechas múltiples, actividad, descripción, seguridad,
 protocolo y resumen. No se introduce una paleta ni una navegación alterna.
+
+## Navbar: opciones administrativas agrupadas
+
+El navbar de `admin_sistemas` sustituye los cuatro enlaces administrativos
+sueltos por el menú `Administración`, disponible también desde el menú móvil.
+Se mantienen Inter, paleta morada, iconos Material, destinos y acceso por rol.
+El disparador identifica la sección activa; los enlaces del menú muestran el
+destino actual. Las opciones administrativas comparten una única definición.
+
+En escritorio mediano, la navegación del administrador ocupa una segunda fila
+para separar la marca y el perfil de los enlaces. Desde 1600 px vuelve a una
+fila, con ancho acotado para el nombre del sistema. En celular se conserva la
+hamburguesa y en tablet la navegación horizontal. Las demás vistas por rol
+conservan su distribución.
+
+Validación local del 8 de septiembre de 2026:
+
+- Angular: 13/13 pruebas aprobadas, incluidas seis pruebas del navbar.
+- Validación completa previa a publicación (`npm run validate`): Functions
+  40/40 pruebas, Angular 13/13, lint de Functions y ambos builds correctos.
+- Build de producción y `git diff --check`: correctos.
+- Se comprobaron enlaces por rol, menú administrativo, navegación desde
+  hamburguesa, cierre al navegar, sección activa y retiro de accesos al salir.
+- El build conserva advertencias de Sass, budgets y `qrcode` CommonJS; el
+  estilo del AppShell queda por debajo del límite de error de 8 kB.
+- Pendiente: revisión visual autenticada en 360, 390, 414, 768, 820, 1024,
+  1366, 1440 y 1600 px, incluyendo foco y teclado. Las pruebas de componentes
+  no sustituyen esta revisión responsive.
+- Publicación autorizada por el propietario el 8 de septiembre de 2026:
+  commit atómico, push a `origin/main` y despliegue exclusivo de Hosting con
+  `npx.cmd firebase deploy --only hosting --project reservas-laboratorios-tup`.
+  El resultado de publicación se verifica después de ejecutar el despliegue;
+  esta autorización no equivale a aprobación del smoke visual autenticado.

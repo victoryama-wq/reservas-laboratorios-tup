@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import {
+  NavigationEnd,
   Router,
   RouterLink,
   RouterLinkActive,
@@ -13,6 +14,7 @@ import {
 import { User } from 'firebase/auth';
 import {
   catchError,
+  filter,
   from,
   map,
   of,
@@ -62,6 +64,22 @@ export class AppShellComponent {
   protected readonly institutionalLogoPath = INSTITUTIONAL_LOGO_PATH;
   protected readonly institutionalLogoAlt = INSTITUTIONAL_LOGO_ALT;
   protected headerLogoFailed = false;
+  protected readonly adminNavigation = [
+    { path: '/admin/usuarios', label: 'Usuarios', icon: 'manage_accounts' },
+    {
+      path: '/admin/laboratorios',
+      label: 'Laboratorios admin',
+      icon: 'business',
+    },
+    { path: '/admin/reglas', label: 'Reglas', icon: 'rule' },
+    { path: '/admin/bitacora', label: 'Bitácora', icon: 'history' },
+  ];
+  protected readonly isAdminSection$ = this.router.events.pipe(
+    filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+    map((event) => event.urlAfterRedirects),
+    startWith(this.router.url),
+    map((url) => /^\/admin(?:\/|[?#]|$)/.test(url)),
+  );
   protected readonly profileState$ = this.authService.authState$.pipe(
     switchMap((user) => {
       if (!user) {
@@ -82,7 +100,11 @@ export class AppShellComponent {
         }),
         startWith({ kind: 'loading', user } as ShellProfileState),
         catchError(() =>
-          of({ kind: 'unavailable', user, status: 'error' } as ShellProfileState),
+          of({
+            kind: 'unavailable',
+            user,
+            status: 'error',
+          } as ShellProfileState),
         ),
       );
     }),
@@ -131,8 +153,9 @@ export class AppShellComponent {
     }
 
     if (profile.role === 'docente') {
-      return profile.requesterType === 'administrativo' ?
-        'Administrativo' : 'Docente';
+      return profile.requesterType === 'administrativo'
+        ? 'Administrativo'
+        : 'Docente';
     }
 
     return 'Rol no válido';

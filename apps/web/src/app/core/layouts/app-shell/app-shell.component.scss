@@ -122,11 +122,11 @@
     opacity: 0.9;
   }
 
-  a.active-link {
+  .active-link {
     opacity: 1;
   }
 
-  a.active-link::after {
+  .active-link::after {
     position: absolute;
     right: 14px;
     bottom: 0;
@@ -134,7 +134,57 @@
     height: 3px;
     border-radius: 999px 999px 0 0;
     background: #d8ccff;
-    content: "";
+    content: '';
+  }
+}
+
+.nav-actions .admin-menu-trigger {
+  flex: 0 0 auto;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 8%);
+}
+
+.app-header--admin {
+  .nav-actions {
+    flex: 0 0 auto;
+  }
+
+  .nav-actions :is(a, button):focus-visible {
+    outline: 2px solid #d8ccff;
+    outline-offset: 2px;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1599px) {
+  .app-header.app-header--admin {
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding-top: 12px;
+    padding-bottom: 8px;
+
+    .brand {
+      flex: 1 1 0;
+    }
+
+    .nav-actions {
+      order: 3;
+      flex-basis: 100%;
+      justify-content: flex-start;
+      padding-top: 4px;
+      border-top: 1px solid rgb(255 255 255 / 16%);
+    }
+  }
+}
+
+@media (min-width: 1600px) {
+  .app-header--admin .brand {
+    flex: 0 1 320px;
+  }
+
+  .app-header--admin .brand-text {
+    white-space: normal;
   }
 }
 
@@ -187,7 +237,7 @@
   border: 2px solid var(--color-primary);
   border-radius: 999px;
   background: #ff6a6a;
-  content: "";
+  content: '';
 }
 
 .user-avatar {

@@ -170,6 +170,35 @@ a {
 
 /* Layout base */
 
+/* El menú se monta en el overlay CDK, fuera del AppShell. */
+.app-administration-menu.mat-mdc-menu-panel {
+  min-width: 240px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+
+  .mat-mdc-menu-content {
+    padding: 8px;
+  }
+
+  .mat-mdc-menu-item {
+    min-height: 48px;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+
+    .mat-icon {
+      color: var(--brand-secondary);
+    }
+  }
+
+  .admin-menu-active {
+    background: var(--color-primary-light);
+    color: var(--brand-primary);
+    font-weight: 700;
+  }
+}
+
 .app-shell {
   min-height: 100vh;
   background: var(--app-bg);
