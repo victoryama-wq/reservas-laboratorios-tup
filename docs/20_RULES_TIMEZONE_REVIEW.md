@@ -1,8 +1,8 @@
 # Revisión de Reglas y fechas institucionales
 
 Fecha: 2026-09-08. Implementación y validación automatizada completas.
-El propietario autorizó commit, push y deploy el 2026-09-08. El smoke
-operativo posterior a publicación permanece pendiente de confirmación.
+Commit, push y deploy completados el 2026-09-08. El propietario confirmó
+posteriormente: «Quedo excelente, los smoke pasaron». Fase cerrada.
 
 ## Alcance
 
@@ -72,7 +72,7 @@ Los dos laboratorios y las cinco reglas estaban activos al consultar.
 El horario semanal observado es lunes a viernes 08:00–20:00, sábado
 08:00–18:00 y domingo deshabilitado.
 
-## Smoke pendiente tras publicar
+## Smoke posterior a publicación — confirmado por el propietario
 
 1. Revisar las reglas existentes de Taller de Arquitectura y Juicios Orales:
    laboratorio, vigencia, días y horas. Confirmar coincidencia en calendario.
@@ -89,8 +89,10 @@ El horario semanal observado es lunes a viernes 08:00–20:00, sábado
 7. Simular fallo de conexión al guardar: conservar datos y permitir reintento.
    Simular fallo de disponibilidad: no mostrar horarios libres.
 
-Los smoke anteriores confirmados por el propietario corresponden a la fase
-anterior; no cierran esta revisión.
+La confirmación anterior a este deploy correspondía a otra fase. La nueva
+confirmación del propietario, posterior al despliegue de `da38623`, cierra
+esta revisión. Es evidencia manual declarada por el propietario; no se
+atribuye a Codex la ejecución individual de los pasos anteriores.
 
 ## Validación automatizada de esta revisión
 
@@ -108,9 +110,9 @@ La suite incluye nueve pruebas backend nuevas y nueve frontend nuevas. Se
 conservan las advertencias de Sass `@import`, presupuestos de tamaño y el
 módulo CommonJS `qrcode`; no hubo errores de compilación.
 
-No se ejecutó un smoke operativo con escrituras en producción. La consulta de
-las reglas existentes y su reproducción local son evidencias distintas del
-smoke pendiente tras publicar.
+Codex no creó reservas de prueba en producción. El smoke operativo fue
+confirmado por el propietario después del despliegue. Se distingue esa
+aceptación de las pruebas automatizadas y de las consultas técnicas.
 
 ## Cierre autorizado
 
@@ -174,3 +176,15 @@ npx.cmd firebase deploy --only functions,hosting --project reservas-laboratorios
 - `functions/src/modules/reservations/reservation.validators.ts`
 
 Archivos eliminados: ninguno.
+
+## Evidencia del cierre productivo
+
+- Commit desplegado: `da38623b110d03470bb841fb6bc960d0bb3a1787`.
+- Push a `origin/main` completado y árbol Git limpio al cerrar la fase.
+- Functions y Hosting: `Deploy complete!`, código de salida 0.
+- 28 Functions activas, runtime Node.js 22 y hash actualizado en las 28.
+- `/`, `/login` y `/admin/reglas`: HTTP 200 y contenido idéntico al build local.
+- Disponibilidad, creación/edición de reglas y creación de reservas: HTTP 401
+  `UNAUTHENTICATED` ante llamadas sin sesión, como se esperaba.
+- Smoke: confirmado por el propietario tras la publicación.
+- Esta entrega se incorpora a `v1.1.0`; véase `21_V1_1_0_RELEASE.md`.

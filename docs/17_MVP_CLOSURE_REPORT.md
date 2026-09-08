@@ -1174,3 +1174,15 @@ preautorizar listas masivas. El modelo conserva los tres roles oficiales y usa
 cuentas técnicas excluidas no reciben perfil. La aceptación productiva requiere
 smoke manual con una cuenta administrativa real antes de considerar cerrado el
 despliegue de esta extensión.
+
+## Liberación v1.1.0 — 2026-09-08
+
+Las extensiones posteriores al MVP, la navegación administrativa y las
+correcciones de Reglas/Cancún se consolidan en v1.1.0. El código productivo
+corresponde a `da38623b110d03470bb841fb6bc960d0bb3a1787`, publicado en
+Functions y Hosting. El propietario confirmó los smoke tras ese despliegue.
+
+Los estados de implementación pendientes de las secciones anteriores son
+históricos. La evidencia vigente de esta liberación se registra en
+`21_V1_1_0_RELEASE.md` y `20_RULES_TIMEZONE_REVIEW.md`. El versionado
+actualiza metadatos y documentación sobre el mismo código validado.

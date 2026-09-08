@@ -4,6 +4,36 @@ Los cambios relevantes del proyecto se documentan en este archivo.
 
 ## [Unreleased]
 
+Sin cambios pendientes de publicación.
+
+## [1.1.0] - 2026-09-08
+
+Versión menor compatible que consolida las extensiones posteriores a v1.0.0.
+Código productivo: `da38623b110d03470bb841fb6bc960d0bb3a1787`.
+Deploy de Functions y Hosting completado; el propietario confirmó los smoke.
+
+### Reglas y zona horaria
+
+- Manejo de fechas y horarios en `America/Cancun` en todos los módulos.
+- Guardado de reglas con campos opcionales, todos los días y edición de vigencia.
+- Formularios que conservan los datos ante errores e impiden doble envío.
+- Bloqueos de día completo con fin exclusivo y calendario coherente con backend.
+- Resultado persistente por fecha y mensajes de restricción sin motivos privados.
+- Consulta fallida de disponibilidad sin ofrecer espacios como libres.
+
+### Navegación administrativa
+
+- Opciones de Admin/Sistemas agrupadas en el menú «Administración» del navbar.
+- Continuidad visual y comportamiento responsive para los tres roles oficiales.
+
+### Mantenimiento y validación
+
+- Firebase Admin 14.3.0 y Functions 7.3.2, con runtime Node.js 22.
+- 49 pruebas backend, 22 frontend, lint y builds aprobados.
+- Las 28 Functions quedaron activas; Hosting verificado contra el build local.
+- Cierre documental y trazabilidad en `docs/21_V1_1_0_RELEASE.md`.
+
+
 ### Acceso institucional
 
 - Autoalta segura de personal administrativo nominal como solicitante con rol

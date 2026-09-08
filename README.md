@@ -1,5 +1,10 @@
 # Sistema Web de Reservas de Laboratorios
 
+**Versión estable: v1.1.0 (2026-09-08).**
+
+[Notas de versión y evidencia de cierre](docs/21_V1_1_0_RELEASE.md).
+El historial de v1.0.0 se conserva en las secciones de cierre del MVP.
+
 Web app institucional para gestionar reservas de laboratorios acadÃ©micos del TecnolÃ³gico universitario Playacar.
 
 ## Entorno recomendado
