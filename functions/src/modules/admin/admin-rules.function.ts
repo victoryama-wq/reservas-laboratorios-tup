@@ -33,6 +33,10 @@ import {
   validateTimeRange,
 } from "./admin-validation.utils";
 
+import {
+  normalizeBlockedRange,
+} from "../../shared/utils/institutional-time.utils";
+
 const REGION = "us-central1";
 
 const CREATE_SPECIAL_RULE_KEYS = new Set([
@@ -185,7 +189,7 @@ export const adminCreateSpecialRule = onCall(
           throw new HttpsError("not-found", "El laboratorio no existe.");
         }
         const lab = labSnapshot.data() as LabDoc;
-        const rule: LabSpecialRule = {
+        const rule = removeUndefined({
           id: ruleId,
           name: input.name,
           active: input.active,
@@ -196,7 +200,7 @@ export const adminCreateSpecialRule = onCall(
           blockedEnd: input.blockedEnd,
           fullDayBlocked: input.fullDayBlocked,
           reason: input.reason,
-        };
+        }) as LabSpecialRule;
         const specialRules = [...(lab.specialRules ?? []), rule];
 
         transaction.update(labRef, {
@@ -673,8 +677,14 @@ function parseCreateBlockedPeriodInput(
 ): AdminCreateBlockedPeriodInput {
   const record = requireRecord(data);
   validateAllowedKeys(record, CREATE_BLOCKED_PERIOD_KEYS);
-  const startAt = parseIsoDate(record.startAt, "startAt");
-  const endAt = parseIsoDate(record.endAt, "endAt");
+  const fullDay = requireBoolean(record.fullDay, "fullDay");
+  validateDateOrder(parseIsoDate(record.startAt, "startAt"),
+      parseIsoDate(record.endAt, "endAt"));
+  const range = normalizeBlockedRange(
+      parseIsoDate(record.startAt, "startAt"),
+      parseIsoDate(record.endAt, "endAt"), fullDay,
+  );
+  const {startAt, endAt} = range;
   validateDateOrder(startAt, endAt);
   const scope = parseScope(record.scope);
   const labIds = parseLabIds(record.labIds, scope);
@@ -687,7 +697,7 @@ function parseCreateBlockedPeriodInput(
     labIds,
     startAt,
     endAt,
-    fullDay: requireBoolean(record.fullDay, "fullDay"),
+    fullDay,
     active: requireBoolean(record.active, "active"),
   };
 }
@@ -743,8 +753,16 @@ async function buildBlockedPeriodPatch(
   const finalLabIds = input.labIds ?? current.labIds ?? [];
   const normalizedLabIds = parseLabIds(finalLabIds, finalScope);
   await assertLabsExist(normalizedLabIds ?? []);
-  const finalStartAt = input.startAt ?? toDate(current.startAt);
-  const finalEndAt = input.endAt ?? toDate(current.endAt);
+  const fullDay = input.fullDay ?? current.fullDay;
+  const rangeChanged = input.startAt !== undefined ||
+    input.endAt !== undefined || input.fullDay !== undefined;
+  validateDateOrder(input.startAt ?? toDate(current.startAt),
+      input.endAt ?? toDate(current.endAt));
+  const range = rangeChanged ? normalizeBlockedRange(
+      input.startAt ?? toDate(current.startAt),
+      input.endAt ?? toDate(current.endAt), fullDay,
+  ) : {startAt: toDate(current.startAt), endAt: toDate(current.endAt)};
+  const {startAt: finalStartAt, endAt: finalEndAt} = range;
   validateDateOrder(finalStartAt, finalEndAt);
 
   const patch: Partial<BlockedPeriodDoc> = {};
@@ -756,11 +774,11 @@ async function buildBlockedPeriodPatch(
       "labIds",
       finalScope === "global" ? [] : normalizedLabIds,
   );
-  setBlockedField(patch, "startAt", input.startAt ?
-    Timestamp.fromDate(input.startAt) :
+  setBlockedField(patch, "startAt", rangeChanged ?
+    Timestamp.fromDate(finalStartAt) :
     undefined);
-  setBlockedField(patch, "endAt", input.endAt ?
-    Timestamp.fromDate(input.endAt) :
+  setBlockedField(patch, "endAt", rangeChanged ?
+    Timestamp.fromDate(finalEndAt) :
     undefined);
   setBlockedField(patch, "fullDay", input.fullDay);
   setBlockedField(patch, "active", input.active);

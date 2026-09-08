@@ -1,3 +1,4 @@
+import { INSTITUTIONAL_TIME_ZONE, datePickerKey, institutionalDateTime } from '../../../../shared/utils/institutional-time.utils';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -137,29 +138,29 @@ export class ReservationStepperFormComponent {
       return 'Pendiente';
     }
 
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       day: '2-digit',
       month: 'long',
       year: 'numeric',
-    }).format(value);
+    }).format(institutionalDateTime(datePickerKey(value)));
   }
 
   protected formatShortDate(value: Date): string {
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       weekday: 'short',
       day: '2-digit',
       month: 'short',
-    }).format(value);
+    }).format(institutionalDateTime(datePickerKey(value)));
   }
 
   protected formatResultDate(value: string): string {
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       dateStyle: 'long',
     }).format(new Date(value));
   }
 
   protected formatResultTime(value: string): string {
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       hour: '2-digit',
       minute: '2-digit',
     }).format(new Date(value));

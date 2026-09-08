@@ -1,3 +1,4 @@
+import { INSTITUTIONAL_TIME_ZONE } from '../../../shared/utils/institutional-time.utils';
 import { inject, Injectable } from '@angular/core';
 import {
   collection,
@@ -36,11 +37,11 @@ export interface AdminCreateSpecialRuleInput {
   labId: string;
   name: string;
   active: boolean;
-  termStart?: string;
-  termEnd?: string;
+  termStart?: string | null;
+  termEnd?: string | null;
   daysOfWeek?: number[];
-  blockedStart?: string;
-  blockedEnd?: string;
+  blockedStart?: string | null;
+  blockedEnd?: string | null;
   fullDayBlocked: boolean;
   reason: string;
 }
@@ -143,7 +144,7 @@ export class AdminRulesService {
       return 'Sin fecha';
     }
 
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       day: '2-digit',
       month: 'short',
       year: 'numeric',

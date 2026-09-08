@@ -1,6 +1,6 @@
 <app-availability-calendar
   title="Disponibilidad"
-  [subtitle]="lab().name"
+  [subtitle]="lab().name + ' · Hora de Cancún'"
   [scheduleSummary]="scheduleSummary()"
   [viewMode]="selectedView()"
   [currentRangeLabel]="currentRangeLabel()"
@@ -9,6 +9,7 @@
   [slots]="calendarSlots()"
   [selectedSlot]="selectedSlot()"
   [loading]="loading()"
+  [disabled]="loading() || hasReadLimit()"
   [errorMessage]="errorMessage()"
   [emptyMessage]="emptyMessage()"
   [readLimitMessage]="readLimitMessage()"

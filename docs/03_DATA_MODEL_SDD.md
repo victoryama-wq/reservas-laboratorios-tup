@@ -831,3 +831,16 @@ y `responsible_direct`.
 
 `systemSettings/global` admite `accessExcludedEmails?: string[]` para excluir
 buzones técnicos de la autoalta interactiva.
+
+## Semántica de fechas de reglas (2026-09-08)
+
+Las fechas y horas de `LabSpecialRule` son civiles de `America/Cancun`.
+Las funciones omiten opcionales sin valor antes de escribir objetos dentro
+del arreglo `specialRules`; no almacenan `undefined`. En la API de edición,
+`null` borra fechas u horas opcionales y `[]` representa todos los días.
+
+Para `BlockedPeriodDoc.fullDay`, `startAt` corresponde a 00:00 de Cancún y
+`endAt` a la medianoche exclusiva posterior al último día incluido. Los
+bloqueos por hora mantienen sus instantes exactos. No se modifica el esquema
+ni se requiere migración. La lectura normaliza los periodos de día completo
+anteriores sin alterar sus documentos.

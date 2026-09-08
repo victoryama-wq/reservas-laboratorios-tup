@@ -1,3 +1,4 @@
+import { INSTITUTIONAL_TIME_ZONE } from '../../../shared/utils/institutional-time.utils';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -396,7 +397,7 @@ export class ResponsibleReservationDetailPageComponent implements OnInit {
       return '';
     }
 
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

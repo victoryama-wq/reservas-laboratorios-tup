@@ -1,3 +1,4 @@
+import { institutionalDateTime, institutionalTime, shiftDateKey } from '../../../../shared/utils/institutional-time.utils';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -221,10 +222,7 @@ export class AvailabilityCalendarComponent {
 
     const visibleStart = this.timeToMinutes(firstHour);
     const visibleEnd = visibleStart + this.visibleDurationMinutes();
-    const start = this.normalizeEndMinutes(
-      this.timeToMinutes(block.startTime),
-      visibleStart,
-    );
+    const start = this.timeToMinutes(block.startTime);
     const clippedStart = Math.min(Math.max(start, visibleStart), visibleEnd);
 
     return clippedStart - visibleStart;
@@ -239,10 +237,7 @@ export class AvailabilityCalendarComponent {
 
     const visibleStart = this.timeToMinutes(firstHour);
     const visibleEnd = visibleStart + this.visibleDurationMinutes();
-    const start = this.normalizeEndMinutes(
-      this.timeToMinutes(block.startTime),
-      visibleStart,
-    );
+    const start = this.timeToMinutes(block.startTime);
     const end = this.normalizeEndMinutes(this.timeToMinutes(block.endTime), start);
     const clippedStart = Math.min(Math.max(start, visibleStart), visibleEnd);
     const clippedEnd = Math.min(Math.max(end, visibleStart), visibleEnd);
@@ -341,7 +336,7 @@ export class AvailabilityCalendarComponent {
         statusLabel: block.label,
         timeRange: `${block.startTime} - ${block.endTime}`,
         message:
-          'Este rango no está disponible para reserva de acuerdo con el calendario o reglas del laboratorio.',
+          'Este horario está bloqueado por el calendario o las reglas del laboratorio. Seleccione otra fecha u horario disponible.',
       };
     }
 
@@ -381,7 +376,7 @@ export class AvailabilityCalendarComponent {
     }
 
     const eventStart = this.metaDate(slot.meta, 'start');
-    return eventStart ? this.formatTime(eventStart) : slot.startTime;
+    return eventStart ? (eventStart <= institutionalDateTime(slot.dayKey) ? '00:00' : institutionalTime(eventStart)) : slot.startTime;
   }
 
   private blockEndTime(slot: AvailabilitySlot, index: number): string {
@@ -391,7 +386,7 @@ export class AvailabilityCalendarComponent {
 
     const eventEnd = this.metaDate(slot.meta, 'end');
     return eventEnd ?
-      this.formatTime(eventEnd) :
+      (eventEnd >= institutionalDateTime(shiftDateKey(slot.dayKey, 1)) ? '24:00' : institutionalTime(eventEnd)) :
       (slot.endTime ?? this.nextHourLabel(index));
   }
 
@@ -459,12 +454,7 @@ export class AvailabilityCalendarComponent {
     return null;
   }
 
-  private formatTime(date: Date): string {
-    return [
-      date.getHours().toString().padStart(2, '0'),
-      date.getMinutes().toString().padStart(2, '0'),
-    ].join(':');
-  }
+
 
   private timeToMinutes(time: string): number {
     const [hours = '0', minutes = '0'] = time.split(':');

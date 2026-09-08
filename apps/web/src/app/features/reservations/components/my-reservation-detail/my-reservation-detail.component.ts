@@ -1,3 +1,4 @@
+import { INSTITUTIONAL_TIME_ZONE } from '../../../../shared/utils/institutional-time.utils';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -229,7 +230,7 @@ export class MyReservationDetailComponent {
       return 'Fecha no disponible';
     }
 
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -257,7 +258,7 @@ export class MyReservationDetailComponent {
       return undefined;
     }
 
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       day: '2-digit',
       month: 'long',
       year: 'numeric',

@@ -2,7 +2,11 @@ import {randomBytes} from "crypto";
 import {Timestamp} from "firebase-admin/firestore";
 import {ReservationStatus} from "../../shared/models";
 
-export const INSTITUTIONAL_TIME_ZONE = "America/Cancun";
+import {
+  INSTITUTIONAL_TIME_ZONE,
+} from "../../shared/utils/institutional-time.utils";
+
+export {INSTITUTIONAL_TIME_ZONE};
 
 export const BLOCKING_RESERVATION_STATUSES: ReservationStatus[] = [
   "PENDIENTE_VALIDACION",
@@ -38,9 +42,7 @@ const WEEKDAY_TO_DAY_INDEX: Record<string, number> = {
  * @return {string} Reservation folio.
  */
 export function generateReservationFolio(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const {year, month, day} = getInstitutionalDateParts(date);
   const suffix = randomBytes(2).toString("hex").toUpperCase();
 
   return `RES-${year}${month}${day}-${suffix}`;

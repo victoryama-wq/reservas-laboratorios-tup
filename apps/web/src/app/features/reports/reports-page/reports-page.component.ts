@@ -1,3 +1,4 @@
+import { INSTITUTIONAL_TIME_ZONE } from '../../../shared/utils/institutional-time.utils';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -148,15 +149,15 @@ export class ReportsPageComponent implements OnInit {
   }
 
   private monthLabel(month: number): string {
-    const label = new Intl.DateTimeFormat('es-MX', { month: 'long' }).format(
-      new Date(2026, month - 1, 1),
+    const label = new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE, month: 'long' }).format(
+      new Date(Date.UTC(2026, month - 1, 1, 12)),
     );
     return label.charAt(0).toUpperCase() + label.slice(1);
   }
 
   private institutionalYear(): number {
     const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Cancun',
+      timeZone: INSTITUTIONAL_TIME_ZONE,
       year: 'numeric',
     }).formatToParts(new Date());
     return Number(parts.find((part) => part.type === 'year')?.value);

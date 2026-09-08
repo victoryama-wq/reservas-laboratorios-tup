@@ -386,6 +386,9 @@ export class AdminRulesPageComponent implements OnInit {
             labs: this.labs,
             selectedLabId: this.selectedLabId,
             rule,
+            save: (input: AdminSpecialRuleDialogResult) => mode === 'create'
+              ? this.rulesService.createSpecialRule(input as AdminCreateSpecialRuleInput)
+              : this.rulesService.updateSpecialRule(input as AdminUpdateSpecialRuleInput),
           },
         })
         .afterClosed(),
@@ -395,7 +398,8 @@ export class AdminRulesPageComponent implements OnInit {
       return;
     }
 
-    await this.saveSpecialRule(mode, result);
+    this.snackBar.open('Regla guardada correctamente.', 'Cerrar', {duration: 4500});
+    await this.loadData(false);
   }
 
   protected async openBlockedPeriodDialog(
@@ -412,7 +416,11 @@ export class AdminRulesPageComponent implements OnInit {
           width: 'min(780px, calc(100vw - 32px))',
           maxWidth: 'calc(100vw - 32px)',
           maxHeight: 'calc(100vh - 32px)',
-          data: { mode, labs: this.labs, period },
+          data: { mode, labs: this.labs, period,
+            save: (input: AdminBlockedPeriodDialogResult) => mode === 'create'
+              ? this.rulesService.createBlockedPeriod(input as AdminCreateBlockedPeriodInput)
+              : this.rulesService.updateBlockedPeriod(input as AdminUpdateBlockedPeriodInput),
+          },
         })
         .afterClosed(),
     );
@@ -421,7 +429,8 @@ export class AdminRulesPageComponent implements OnInit {
       return;
     }
 
-    await this.saveBlockedPeriod(mode, result);
+    this.snackBar.open('Bloqueo guardado correctamente.', 'Cerrar', {duration: 4500});
+    await this.loadData(false);
   }
 
   protected async toggleSpecialRule(rule: AdminSpecialRuleView): Promise<void> {

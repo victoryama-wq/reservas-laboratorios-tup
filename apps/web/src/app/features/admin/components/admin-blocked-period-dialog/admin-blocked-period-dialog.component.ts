@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { institutionalDateKey, institutionalDateTime, institutionalTime, shiftDateKey } from '../../../../shared/utils/institutional-time.utils';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   ReactiveFormsModule,
@@ -32,6 +33,7 @@ type DialogMode = 'create' | 'edit';
 
 export interface AdminBlockedPeriodDialogData {
   mode: DialogMode;
+  save: (input: AdminBlockedPeriodDialogResult) => Promise<string>;
   labs: AdminLabView[];
   period?: AdminBlockedPeriodView;
 }
@@ -72,7 +74,7 @@ export type AdminBlockedPeriodDialogResult =
       <app-info-callout
         variant="warning"
         icon="warning"
-        message="Los bloqueos activos impiden crear o aprobar reservas que se traslapen con el periodo configurado."
+        message="Zona horaria: Cancún. Los bloqueos activos impiden crear o aprobar reservas que se traslapen con el periodo configurado."
       />
 
       <form class="grid gap-4" [formGroup]="form">
@@ -111,14 +113,14 @@ export type AdminBlockedPeriodDialogResult =
         <div class="grid gap-4 md:grid-cols-2">
           <mat-form-field appearance="outline">
             <mat-label>Inicio</mat-label>
-            <input matInput type="datetime-local" formControlName="startAt" />
+            <input matInput [type]="form.get('fullDay')?.value ? 'date' : 'datetime-local'" formControlName="startAt" />
             @if (form.get('startAt')?.hasError('required')) {
               <mat-error>La fecha inicial es obligatoria.</mat-error>
             }
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Fin</mat-label>
+            <mat-label>{{ form.get('fullDay')?.value ? 'Último día incluido' : 'Fin' }}</mat-label>
             <input matInput type="datetime-local" formControlName="endAt" />
             @if (form.get('endAt')?.hasError('required')) {
               <mat-error>La fecha final es obligatoria.</mat-error>
@@ -143,16 +145,23 @@ export type AdminBlockedPeriodDialogResult =
         </mat-form-field>
 
         <div class="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
-          <mat-checkbox formControlName="fullDay">Bloqueo de día completo</mat-checkbox>
+          <mat-checkbox formControlName="fullDay" (change)="changeFullDay($event.checked)">Bloqueo de día completo</mat-checkbox>
           <mat-checkbox formControlName="active">Bloqueo activo</mat-checkbox>
         </div>
       </form>
 
+      @if (saveError()) {
+        <app-info-callout variant="danger" icon="error" [message]="saveError()" />
+      }
+      @if (form.invalid && form.touched) {
+        <app-info-callout variant="warning" icon="warning"
+          message="Revise los campos: nombre y motivo obligatorios, fechas ordenadas y hora final mayor que la inicial. Seleccione los laboratorios si el alcance es por laboratorio." />
+      }
       <footer class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <button mat-button type="button" (click)="close()">Cancelar</button>
-        <button mat-flat-button color="primary" type="button" (click)="save()">
+        <button mat-button type="button" [disabled]="saving()" (click)="close()">Cancelar</button>
+        <button mat-flat-button color="primary" type="button" [disabled]="saving()" (click)="save()">
           <mat-icon>save</mat-icon>
-          Guardar bloqueo
+          {{ saving() ? 'Guardando...' : 'Guardar bloqueo' }}
         </button>
       </footer>
     </section>
@@ -183,10 +192,10 @@ export class AdminBlockedPeriodDialogComponent {
       ]),
       labIds: new UntypedFormControl(this.data.period?.labIds ?? []),
       startAt: new UntypedFormControl(
-        toDatetimeLocal(this.data.period?.startDate),
+        toDatetimeLocal(this.data.period?.startDate, this.data.period?.fullDay),
         [Validators.required],
       ),
-      endAt: new UntypedFormControl(toDatetimeLocal(this.data.period?.endDate), [
+      endAt: new UntypedFormControl(toDatetimeLocal(this.data.period?.fullDay && this.data.period.endDate ? new Date(this.data.period.endDate.getTime() - 1) : this.data.period?.endDate, this.data.period?.fullDay), [
         Validators.required,
       ]),
       fullDay: new UntypedFormControl(this.data.period?.fullDay ?? false),
@@ -195,11 +204,23 @@ export class AdminBlockedPeriodDialogComponent {
     [blockedPeriodValidator],
   );
 
+  protected readonly saving = signal(false);
+  protected readonly saveError = signal('');
+
+  protected changeFullDay(fullDay: boolean): void {
+    for (const field of ['startAt', 'endAt']) {
+      const control = this.form.get(field);
+      if (control?.value) control.setValue(fullDay ? control.value.slice(0, 10) : control.value.slice(0, 10) + 'T00:00');
+    }
+  }
+
   protected close(): void {
+    if (this.saving()) return;
     this.dialogRef.close();
   }
 
-  protected save(): void {
+  protected async save(): Promise<void> {
+    if (this.saving()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -213,17 +234,33 @@ export class AdminBlockedPeriodDialogComponent {
       reason: value.reason.trim(),
       scope,
       labIds: scope === 'lab' ? value.labIds ?? [] : [],
-      startAt: new Date(value.startAt).toISOString(),
-      endAt: new Date(value.endAt).toISOString(),
+      startAt: parseCivilInput(value.startAt).toISOString(),
+      endAt: (value.fullDay ? institutionalDateTime(shiftDateKey(value.endAt.slice(0, 10), 1)) : parseCivilInput(value.endAt)).toISOString(),
       fullDay: Boolean(value.fullDay),
       active: Boolean(value.active),
     };
 
-    this.dialogRef.close(
+    const result =
       this.data.mode === 'edit' && this.data.period
         ? { ...payload, blockedPeriodId: this.data.period.id }
-        : payload,
-    );
+        : payload;
+    this.saving.set(true);
+    this.saveError.set('');
+    this.dialogRef.disableClose = true;
+    this.form.disable();
+    try {
+      await this.data.save(result);
+      this.dialogRef.close(result);
+    } catch (error) {
+      const code = (error as {code?: string})?.code;
+      this.saveError.set(code === 'functions/invalid-argument' || code === 'functions/failed-precondition'
+        ? (error as Error).message
+        : 'No fue posible guardar. Los datos se conservaron; revise la conexión y vuelva a intentar.');
+    } finally {
+      this.form.enable();
+      this.saving.set(false);
+      this.dialogRef.disableClose = false;
+    }
   }
 }
 
@@ -236,17 +273,19 @@ function blockedPeriodValidator(control: AbstractControl): ValidationErrors | nu
   if (scope === 'lab' && (!Array.isArray(labIds) || labIds.length === 0)) {
     return { labRequired: true };
   }
-  if (startAt && endAt && new Date(endAt) <= new Date(startAt)) {
+  if (startAt && endAt && (control.get('fullDay')?.value ? endAt < startAt : endAt <= startAt)) {
     return { dateTimeRange: true };
   }
 
   return null;
 }
 
-function toDatetimeLocal(value?: Date | null): string {
-  if (!value) {
-    return '';
-  }
-  const offset = value.getTimezoneOffset() * 60000;
-  return new Date(value.getTime() - offset).toISOString().slice(0, 16);
+function toDatetimeLocal(value?: Date | null, fullDay = false): string {
+  if (!value) return '';
+  return institutionalDateKey(value) + (fullDay ? '' : 'T' + institutionalTime(value));
+}
+
+function parseCivilInput(value: string): Date {
+  const [day, time = '00:00'] = value.split('T');
+  return institutionalDateTime(day, time);
 }

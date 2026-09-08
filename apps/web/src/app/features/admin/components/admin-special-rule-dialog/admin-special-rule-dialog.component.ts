@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   ReactiveFormsModule,
@@ -36,6 +36,7 @@ interface DayOption {
 
 export interface AdminSpecialRuleDialogData {
   mode: DialogMode;
+  save: (input: AdminSpecialRuleDialogResult) => Promise<string>;
   labs: AdminLabView[];
   selectedLabId?: string;
   rule?: AdminSpecialRuleView;
@@ -168,11 +169,18 @@ export type AdminSpecialRuleDialogResult =
         <mat-checkbox formControlName="active">Regla activa</mat-checkbox>
       </form>
 
+      @if (saveError()) {
+        <app-info-callout variant="danger" icon="error" [message]="saveError()" />
+      }
+      @if (form.invalid && form.touched) {
+        <app-info-callout variant="warning" icon="warning"
+          message="Revise los campos: nombre y motivo obligatorios, fechas ordenadas y hora final mayor que la inicial. Seleccione los laboratorios si el alcance es por laboratorio." />
+      }
       <footer class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <button mat-button type="button" (click)="close()">Cancelar</button>
-        <button mat-flat-button color="primary" type="button" (click)="save()">
+        <button mat-button type="button" [disabled]="saving()" (click)="close()">Cancelar</button>
+        <button mat-flat-button color="primary" type="button" [disabled]="saving()" (click)="save()">
           <mat-icon>save</mat-icon>
-          Guardar regla
+          {{ saving() ? 'Guardando...' : 'Guardar regla' }}
         </button>
       </footer>
     </section>
@@ -192,17 +200,17 @@ export class AdminSpecialRuleDialogComponent {
   protected readonly dayOptions: DayOption[] = [
     { value: 1, label: 'Lunes' },
     { value: 2, label: 'Martes' },
-    { value: 3, label: 'Miercoles' },
+    { value: 3, label: 'Miércoles' },
     { value: 4, label: 'Jueves' },
     { value: 5, label: 'Viernes' },
-    { value: 6, label: 'Sabado' },
+    { value: 6, label: 'Sábado' },
     { value: 0, label: 'Domingo' },
   ];
 
   protected readonly form = new UntypedFormGroup(
     {
       labId: new UntypedFormControl(
-        this.data.rule?.labId ?? this.data.selectedLabId ?? '',
+        {value: this.data.rule?.labId ?? this.data.selectedLabId ?? '', disabled: this.data.mode === 'edit'},
         [Validators.required],
       ),
       name: new UntypedFormControl(this.data.rule?.name ?? '', [
@@ -224,11 +232,16 @@ export class AdminSpecialRuleDialogComponent {
     [specialRuleValidator],
   );
 
+  protected readonly saving = signal(false);
+  protected readonly saveError = signal('');
+
   protected close(): void {
+    if (this.saving()) return;
     this.dialogRef.close();
   }
 
-  protected save(): void {
+  protected async save(): Promise<void> {
+    if (this.saving()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -236,24 +249,41 @@ export class AdminSpecialRuleDialogComponent {
 
     const value = this.form.getRawValue();
     const fullDayBlocked = Boolean(value.fullDayBlocked);
-    const payload: AdminCreateSpecialRuleInput = {
+    const payload: AdminCreateSpecialRuleInput | AdminUpdateSpecialRuleInput = {
       labId: value.labId,
       name: value.name.trim(),
       active: Boolean(value.active),
-      termStart: value.termStart || undefined,
-      termEnd: value.termEnd || undefined,
-      daysOfWeek: value.daysOfWeek?.length ? value.daysOfWeek : undefined,
-      blockedStart: fullDayBlocked ? undefined : value.blockedStart,
-      blockedEnd: fullDayBlocked ? undefined : value.blockedEnd,
+      termStart: value.termStart || null,
+      termEnd: value.termEnd || null,
+      daysOfWeek: value.daysOfWeek ?? [],
+      blockedStart: fullDayBlocked ? null : value.blockedStart,
+      blockedEnd: fullDayBlocked ? null : value.blockedEnd,
       fullDayBlocked,
       reason: value.reason.trim(),
     };
 
-    this.dialogRef.close(
+    const result =
       this.data.mode === 'edit' && this.data.rule
         ? { ...payload, ruleId: this.data.rule.id }
-        : payload,
-    );
+        : payload;
+    this.saving.set(true);
+    this.saveError.set('');
+    this.dialogRef.disableClose = true;
+    this.form.disable();
+    try {
+      await this.data.save(result);
+      this.dialogRef.close(result);
+    } catch (error) {
+      const code = (error as {code?: string})?.code;
+      this.saveError.set(code === 'functions/invalid-argument' || code === 'functions/failed-precondition'
+        ? (error as Error).message
+        : 'No fue posible guardar. Los datos se conservaron; revise la conexión y vuelva a intentar.');
+    } finally {
+      this.form.enable();
+      if (this.data.mode === 'edit') this.form.get('labId')?.disable();
+      this.saving.set(false);
+      this.dialogRef.disableClose = false;
+    }
   }
 }
 

@@ -1,3 +1,4 @@
+import { INSTITUTIONAL_TIME_ZONE, institutionalDateKey, institutionalDateTime, institutionalTime, institutionalWeekday, shiftDateKey } from '../../../shared/utils/institutional-time.utils';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { EventInput } from '@fullcalendar/core';
@@ -100,7 +101,7 @@ export class LabCalendarComponent {
   });
 
   protected readonly emptyMessage = computed(() =>
-    this.visibleEvents().length
+    this.visibleEvents().length || this.loading() || this.hasReadLimit()
       ? ''
       : 'No hay reservas ni bloqueos internos registrados para este laboratorio.',
   );
@@ -136,6 +137,8 @@ export class LabCalendarComponent {
           this.loading.set(false);
         },
         error: () => {
+          this.events.set([]);
+          this.hasReadLimit.set(true);
           this.errorMessage.set(
             'No fue posible cargar la disponibilidad interna.',
           );
@@ -172,7 +175,7 @@ export class LabCalendarComponent {
   }
 
   protected selectCalendarSlot(slot: AvailabilitySlot): void {
-    if (slot.disabled) {
+    if (slot.disabled || this.loading() || this.hasReadLimit()) {
       return;
     }
 
@@ -202,7 +205,7 @@ export class LabCalendarComponent {
       };
     }
 
-    if (!schedule?.enabled || !this.isInsideSchedule(hour, schedule)) {
+    if (this.loading() || this.hasReadLimit() || day.disabled || !schedule?.enabled || !this.isInsideSchedule(hour, schedule)) {
       return {
         dayKey: day.key,
         startTime: hour,
@@ -232,12 +235,12 @@ export class LabCalendarComponent {
 
   private monthDays(): AvailabilityDay[] {
     const current = this.currentDate();
-    const firstDay = new Date(current.getFullYear(), current.getMonth(), 1);
+    const firstDay = institutionalDateTime(this.dateKey(current).slice(0, 7) + '-01');
     const start = this.startOfWeek(firstDay);
 
     return Array.from({ length: 42 }, (_, index) => {
       const date = this.addDays(start, index);
-      return this.toAvailabilityDay(date, date.getMonth() !== current.getMonth());
+      return this.toAvailabilityDay(date, this.dateKey(date).slice(0, 7) !== this.dateKey(current).slice(0, 7));
     });
   }
 
@@ -246,8 +249,8 @@ export class LabCalendarComponent {
 
     return {
       key: this.dateKey(date),
-      label: new Intl.DateTimeFormat('es-MX', { weekday: 'short' }).format(date),
-      dateLabel: new Intl.DateTimeFormat('es-MX', {
+      label: new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE, weekday: 'short' }).format(date),
+      dateLabel: new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
         day: '2-digit',
         month: '2-digit',
       }).format(date),
@@ -297,7 +300,7 @@ export class LabCalendarComponent {
       'saturday',
     ];
 
-    return this.lab().weeklySchedule[weekdays[date.getDay()]];
+    return this.lab().weeklySchedule[weekdays[institutionalWeekday(this.dateKey(date))]];
   }
 
   private isInsideSchedule(
@@ -363,64 +366,47 @@ export class LabCalendarComponent {
 
     const firstDate = this.slotDate(first, '00:00');
     const lastDate = this.slotDate(last, '00:00');
-    const monthYear = new Intl.DateTimeFormat('es-MX', {
+    const monthYear = new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       month: 'long',
       year: 'numeric',
     }).format(lastDate);
 
-    return `${firstDate.getDate()} - ${lastDate.getDate()} ${monthYear}`;
+    return `${Number(this.dateKey(firstDate).slice(-2))} - ${Number(this.dateKey(lastDate).slice(-2))} ${monthYear}`;
   }
 
   private formatMonthRange(date: Date): string {
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       month: 'long',
       year: 'numeric',
     }).format(date);
   }
 
   private startOfWeek(date: Date): Date {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    start.setDate(start.getDate() - start.getDay());
-    return start;
+    const key = this.dateKey(date);
+    return institutionalDateTime(shiftDateKey(key, -institutionalWeekday(key)));
   }
-
   private addDays(date: Date, days: number): Date {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
+    return institutionalDateTime(shiftDateKey(this.dateKey(date), days));
   }
-
   private addMonths(date: Date, months: number): Date {
-    return new Date(date.getFullYear(), date.getMonth() + months, 1);
+    const carrier = new Date(this.dateKey(date).slice(0, 7) + '-01T12:00:00Z');
+    carrier.setUTCMonth(carrier.getUTCMonth() + months);
+    return institutionalDateTime(carrier.toISOString().slice(0, 10));
   }
-
   private addHours(date: Date, hours: number): Date {
-    const result = new Date(date);
-    result.setHours(result.getHours() + hours);
-    return result;
+    return new Date(date.getTime() + hours * 3600000);
   }
-
   private slotDate(dayKey: string, hour: string): Date {
-    return new Date(`${dayKey}T${hour}:00`);
+    return institutionalDateTime(dayKey, hour);
   }
-
   private dateKey(date: Date): string {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return institutionalDateKey(date);
   }
-
   private formatHour(date: Date): string {
-    return `${date.getHours().toString().padStart(2, '0')}:00`;
+    return institutionalTime(date);
   }
-
   private formatTime(date: Date): string {
-    return [
-      date.getHours().toString().padStart(2, '0'),
-      date.getMinutes().toString().padStart(2, '0'),
-    ].join(':');
+    return institutionalTime(date);
   }
 
   private hourFromTime(time: string): number {

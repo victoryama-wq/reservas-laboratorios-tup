@@ -1,3 +1,4 @@
+import { INSTITUTIONAL_TIME_ZONE } from '../../../shared/utils/institutional-time.utils';
 import { inject, Injectable } from '@angular/core';
 import {
   collection,
@@ -175,7 +176,7 @@ export class ReservationReviewService {
       return 'Fecha no disponible';
     }
 
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       day: '2-digit',
       month: 'long',
       year: 'numeric',
@@ -187,7 +188,7 @@ export class ReservationReviewService {
       return 'Horario no disponible';
     }
 
-    const formatter = new Intl.DateTimeFormat('es-MX', {
+    const formatter = new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,

@@ -254,3 +254,31 @@ El modo administrativo conserva las preguntas de material riesgoso y población
 externa. Si alguna respuesta es afirmativa, el protocolo sigue siendo
 obligatorio y la reserva queda pendiente de validación según las reglas
 existentes.
+
+## Reglas y zona horaria institucional (2026-09-08)
+
+Todos los instantes se capturan, validan y presentan en `America/Cancun`.
+Firestore conserva timestamps e intercambia ISO 8601 con zona explícita. Las
+fechas civiles (`YYYY-MM-DD`) y horas (`HH:mm`) de las reglas se interpretan en
+Cancún, independientemente de la zona del navegador o del servidor.
+
+- Una regla especial afecta únicamente al laboratorio que la contiene.
+- Solo las reglas activas restringen nuevas solicitudes y aprobaciones.
+- `termStart` y `termEnd` son opcionales e inclusivos. Sin un extremo, no hay
+  límite de vigencia por ese extremo.
+- `daysOfWeek: []` o el campo ausente significa todos los días.
+- Los rangos son semiabiertos: `[inicio, fin)`. Una reserva que termine justo
+  al iniciar un bloqueo, o empiece justo al finalizarlo, no se traslapa.
+- `fullDayBlocked` abarca de 00:00 a 00:00 del día siguiente en Cancún.
+- En `blockedPeriods`, `fullDay` normaliza el inicio a la medianoche y el fin
+  a la siguiente medianoche, conservando un fin que ya sea medianoche como
+  exclusivo. La interfaz solicita el último día incluido y envía el fin
+  exclusivo. La lectura también aplica esta semántica a periodos anteriores,
+  sin migrarlos ni escribir cambios en los documentos.
+- Crear o cambiar una regla no cancela reservas existentes ni genera eventos
+  en Google Calendar. Las solicitudes pendientes se revalidan al aprobarlas.
+- El motivo administrativo de una regla no se copia al mensaje público de
+  rechazo ni al bloque de disponibilidad. Se indica que el horario está
+  bloqueado y que debe elegirse otra fecha u hora.
+
+Véase `20_RULES_TIMEZONE_REVIEW.md` para alcance y validación de esta revisión.

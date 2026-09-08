@@ -1,3 +1,4 @@
+import { INSTITUTIONAL_TIME_ZONE } from '../../../../shared/utils/institutional-time.utils';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -199,8 +200,8 @@ export class LabUsageChartComponent {
   }
 
   private monthLabel(month: number, format: 'short' | 'long'): string {
-    return new Intl.DateTimeFormat('es-MX', { month: format }).format(
-      new Date(2026, month - 1, 1),
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE, month: format }).format(
+      new Date(Date.UTC(2026, month - 1, 1, 12)),
     );
   }
 

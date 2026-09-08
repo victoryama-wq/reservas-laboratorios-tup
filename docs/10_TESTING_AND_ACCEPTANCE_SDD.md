@@ -981,3 +981,17 @@ traducción ni cambios.
 - un docente solo puede enviar `academic`;
 - responsables y Admin/Sistemas solo pueden enviar `responsible_direct`;
 - el protocolo administrativo se exige cuando hay riesgo o población externa.
+
+## Regresión de Reglas y Cancún (2026-09-08)
+
+Se incorporaron pruebas en `functions/test/special-rules-timezone.test.js` y
+specs de los diálogos administrativos, calendario, resultado de reserva y
+utilidades de fechas. Cubren opcionales de Firestore, edición que borra
+vigencia, días vacíos, errores que conservan datos, doble envío, alcance,
+reglas inactivas, límites exclusivos, día completo, consulta intradía,
+resultados mixtos y fechas con el equipo en otra zona.
+
+`npm run validate`: 49 pruebas backend y 22 frontend aprobadas; lint y builds
+aprobados. La configuración consultada de Taller de Arquitectura y Sala de
+Juicios Orales se reprodujo localmente. El detalle y el smoke posterior a
+publicación están en `20_RULES_TIMEZONE_REVIEW.md`.

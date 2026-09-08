@@ -1,3 +1,6 @@
+import {
+  institutionalDateKey, institutionalDateTime, shiftDateKey,
+} from "../../shared/utils/institutional-time.utils";
 /* eslint-disable max-len, require-jsdoc, valid-jsdoc */
 import {HttpsError} from "firebase-functions/v2/https";
 
@@ -247,11 +250,11 @@ function parseOccurrences(
 
   const unique = new Set<string>();
   const now = new Date();
-  const minimum = new Date(now);
-  minimum.setHours(0, 0, 0, 0);
-  const maximum = new Date(now);
-  maximum.setDate(maximum.getDate() + MAX_BATCH_RANGE_DAYS);
-  maximum.setHours(23, 59, 59, 999);
+  const day = institutionalDateKey(now);
+  const minimum = institutionalDateTime(day);
+  const maximum = new Date(institutionalDateTime(
+      shiftDateKey(day, MAX_BATCH_RANGE_DAYS + 1),
+  ).getTime() - 1);
 
   return input.occurrences.map((occurrence) => {
     if (
@@ -416,8 +419,7 @@ export function validateReservationTiming(
     };
   }
 
-  const minNoticeDate = new Date(now);
-  minNoticeDate.setHours(minNoticeDate.getHours() + lab.minNoticeHours);
+  const minNoticeDate = new Date(now.getTime() + lab.minNoticeHours * 3600000);
   if (lab.minNoticeHours > 0 && startAt < minNoticeDate) {
     return {
       status: "RECHAZADA_MIN_ANTICIPACION",
@@ -732,7 +734,8 @@ function validateSpecialRules(
     if (rule.fullDayBlocked) {
       return {
         status: "RECHAZADA_REGLA_HORARIO",
-        reason: rule.reason,
+        reason: "El horario solicitado está bloqueado por una regla del " +
+          "laboratorio. Seleccione otra fecha u horario disponible.",
       };
     }
 
@@ -744,7 +747,8 @@ function validateSpecialRules(
     ) {
       return {
         status: "RECHAZADA_REGLA_HORARIO",
-        reason: rule.reason,
+        reason: "El horario solicitado está bloqueado por una regla del " +
+          "laboratorio. Seleccione otra fecha u horario disponible.",
       };
     }
   }

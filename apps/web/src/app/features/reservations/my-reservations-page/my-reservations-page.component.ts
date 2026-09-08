@@ -1,3 +1,4 @@
+import { datePickerDate, institutionalDateKey, institutionalDateTime, shiftDateKey } from '../../../shared/utils/institutional-time.utils';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -258,7 +259,7 @@ export class MyReservationsPageComponent implements OnInit {
   }
 
   protected datepickerValue(value: string): Date | null {
-    return this.parseFilterDate(value);
+    return value ? datePickerDate(value) : null;
   }
 
   protected setStartDateFilter(event: MatDatepickerInputEvent<Date>): void {
@@ -286,17 +287,13 @@ export class MyReservationsPageComponent implements OnInit {
       return null;
     }
 
-    const date = new Date(`${value}T00:00:00`);
-
-    if (Number.isNaN(date.getTime())) {
+    try {
+      return endOfDay
+        ? new Date(institutionalDateTime(shiftDateKey(value, 1)).getTime() - 1)
+        : institutionalDateTime(value);
+    } catch {
       return null;
     }
-
-    if (endOfDay) {
-      date.setHours(23, 59, 59, 999);
-    }
-
-    return date;
   }
 
   private toFilterDateValue(value: Date | null): string {
@@ -371,10 +368,8 @@ export class MyReservationsPageComponent implements OnInit {
   }
 
   private recentCutoffDate(): Date {
-    const cutoff = new Date();
-    cutoff.setMonth(cutoff.getMonth() - 3);
-    cutoff.setHours(0, 0, 0, 0);
-
-    return cutoff;
+    const cutoff = new Date(institutionalDateKey(new Date()) + 'T12:00:00Z');
+    cutoff.setUTCMonth(cutoff.getUTCMonth() - 3);
+    return institutionalDateTime(cutoff.toISOString().slice(0, 10));
   }
 }

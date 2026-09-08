@@ -1,3 +1,4 @@
+import { datePickerDate, datePickerKey, institutionalDateKey, institutionalDateTime, shiftDateKey } from '../../../shared/utils/institutional-time.utils';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import {
   Component,
@@ -90,10 +91,8 @@ export class ReservationFormComponent {
   protected readonly submitting = signal(false);
   protected readonly uploadingProtocol = signal(false);
   protected readonly result = signal<CreateReservationOutput | null>(null);
-  protected readonly minDate = new Date();
-  protected readonly maxDate = new Date(
-    Date.now() + 90 * 24 * 60 * 60 * 1000,
-  );
+  protected readonly minDate = datePickerDate(institutionalDateKey(new Date()));
+  protected readonly maxDate = datePickerDate(shiftDateKey(institutionalDateKey(new Date()), 90));
   protected readonly selectedDates = signal<Date[]>([]);
   protected readonly simplifiedMode = signal(false);
   protected readonly administrativeMode = signal(false);
@@ -235,8 +234,7 @@ export class ReservationFormComponent {
       return false;
     }
 
-    const minimumDate = new Date();
-    minimumDate.setHours(minimumDate.getHours() + lab.minNoticeHours);
+    const minimumDate = new Date(Date.now() + lab.minNoticeHours * 3600000);
 
     return startAt < minimumDate;
   }
@@ -531,20 +529,15 @@ export class ReservationFormComponent {
       return null;
     }
 
-    const [hours, minutes] = time.split(':').map(Number);
-    const dateTime = new Date(date);
-    dateTime.setHours(hours, minutes, 0, 0);
-    return dateTime;
+    try {
+      return institutionalDateTime(datePickerKey(date), time);
+    } catch {
+      return null;
+    }
   }
 
   private isDateBeforeToday(date: Date): boolean {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const selectedDate = new Date(date);
-    selectedDate.setHours(0, 0, 0, 0);
-
-    return selectedDate < today;
+    return datePickerKey(date) < institutionalDateKey(new Date());
   }
 
   private getReadableError(error: unknown): string {

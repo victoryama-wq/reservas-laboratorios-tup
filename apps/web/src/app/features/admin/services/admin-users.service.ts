@@ -1,3 +1,4 @@
+import { INSTITUTIONAL_TIME_ZONE } from '../../../shared/utils/institutional-time.utils';
 import { inject, Injectable } from '@angular/core';
 import {
   collection,
@@ -66,7 +67,7 @@ export class AdminUsersService {
       return 'Sin registro';
     }
 
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       day: '2-digit',
       month: 'short',
       year: 'numeric',

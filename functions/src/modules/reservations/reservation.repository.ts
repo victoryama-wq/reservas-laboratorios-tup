@@ -1,4 +1,7 @@
 import {
+  normalizeBlockedRange,
+} from "../../shared/utils/institutional-time.utils";
+import {
   CollectionReference,
   DocumentReference,
   FieldValue,
@@ -182,7 +185,15 @@ export class ReservationRepository {
         .get();
 
     return snapshot.docs
-        .map((document) => document.data() as BlockedPeriodDoc)
+        .map((document) => {
+          const period = document.data() as BlockedPeriodDoc;
+          const start = this.toDate(period.startAt);
+          const end = this.toDate(period.endAt);
+          if (!start || !end || !period.fullDay) return period;
+          const range = normalizeBlockedRange(start, end, true);
+          return {...period, startAt: Timestamp.fromDate(range.startAt),
+            endAt: Timestamp.fromDate(range.endAt)};
+        })
         .filter((period) => {
           if (
             period.scope === "lab" &&

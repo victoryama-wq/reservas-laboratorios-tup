@@ -1347,3 +1347,22 @@ Los enlaces mantienen sus rutas y permisos; docentes y responsables conservan
 su navegación actual. Angular Material gestiona teclado, Escape y retorno
 del foco. En escritorio mediano, los enlaces administrativos se distribuyen
 en una segunda fila; desde 1600 px comparten fila con marca y perfil.
+
+## Reglas, calendario y resultados (2026-09-08)
+
+Los módulos muestran instantes en la zona institucional `America/Cancun`.
+Los controles de calendario capturan fechas civiles sin desplazar el día según
+la zona del equipo. El calendario identifica sus horarios como hora de Cancún.
+
+Los diálogos de reglas y bloqueos permanecen abiertos durante el guardado y
+ante un error. Conservan los campos, muestran el error y permiten reintentar;
+no admiten doble envío. Editar una regla conserva su laboratorio original.
+El bloqueo de día completo solicita fechas y un último día incluido.
+
+La página de reserva conserva el resultado por fecha después de cerrar el
+formulario, con folio, horario, mensaje y enlace al detalle. Si todas las
+fechas fueron rechazadas ofrece elegir otro horario. Un lote parcialmente
+aceptado no ofrece reenviar el lote; cada resultado permanece consultable.
+
+Los bloques de varios días se recortan al día y horario visibles. Si falla la
+consulta de disponibilidad, no se presentan ni seleccionan espacios libres.

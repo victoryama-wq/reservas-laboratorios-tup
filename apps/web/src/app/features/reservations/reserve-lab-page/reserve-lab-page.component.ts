@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { INSTITUTIONAL_TIME_ZONE, institutionalDateTime } from '../../../shared/utils/institutional-time.utils';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { EventInput } from '@fullcalendar/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -47,6 +48,19 @@ export class ReserveLabPageComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
+  protected readonly lastResult = signal<ReservationCreatedEvent | null>(null);
+  protected readonly resultRows = computed(() => {
+    const event = this.lastResult();
+    return event ? event.result.results?.length ? event.result.results : [{
+      ...event.result, startAt: event.payload.startAt, endAt: event.payload.endAt,
+    }] : [];
+  });
+  protected readonly canChooseAnotherTime = computed(() => this.resultRows().length > 0 &&
+    this.resultRows().every((row) => row.status.startsWith('RECHAZADA')));
+  protected resultDate(value: string): string {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
+      dateStyle: 'long', timeStyle: 'short' }).format(new Date(value));
+  }
   protected readonly lab = signal<PublicLab | null>(null);
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal('');
@@ -124,6 +138,7 @@ export class ReserveLabPageComponent implements OnInit {
   }
 
   protected onReservationCreated(event: ReservationCreatedEvent): void {
+    this.lastResult.set(event);
     this.selectedCalendarSlot.set(null);
     const calendarEvents = this.toOptimisticCalendarEvents(event);
 
@@ -234,9 +249,9 @@ export class ReserveLabPageComponent implements OnInit {
   }
 
   private formatDayKey(dayKey: string): string {
-    const date = new Date(`${dayKey}T00:00:00`);
+    const date = institutionalDateTime(dayKey);
 
-    return new Intl.DateTimeFormat('es-MX', {
+    return new Intl.DateTimeFormat('es-MX', { timeZone: INSTITUTIONAL_TIME_ZONE,
       weekday: 'long',
       day: '2-digit',
       month: 'long',

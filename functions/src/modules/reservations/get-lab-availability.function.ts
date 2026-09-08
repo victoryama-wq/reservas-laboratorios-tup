@@ -13,6 +13,10 @@ import {
   ReservationDoc,
 } from "../../shared/models";
 import {ReservationRepository} from "./reservation.repository";
+import {
+  institutionalDateKey, institutionalDateTime, institutionalWeekday,
+  shiftDateKey,
+} from "../../shared/utils/institutional-time.utils";
 
 const REGION = "us-central1";
 const MAX_RANGE_DAYS = 62;
@@ -169,8 +173,8 @@ function blocksForSpecialRule(
   const startDate = maxDate(startOfDay(rangeFrom), parseDay(rule.termStart));
   const termEndDate = parseDay(rule.termEnd);
   const endDate = minDate(
-      startOfDay(rangeTo),
-      termEndDate ? addDays(termEndDate, 1) : startOfDay(rangeTo),
+      rangeTo,
+      termEndDate ? addDays(termEndDate, 1) : rangeTo,
   );
 
   if (!startDate || !endDate || startDate >= endDate) {
@@ -184,7 +188,8 @@ function blocksForSpecialRule(
     day < endDate;
     day = addDays(day, 1)
   ) {
-    if (rule.daysOfWeek?.length && !rule.daysOfWeek.includes(day.getDay())) {
+    if (rule.daysOfWeek?.length &&
+        !rule.daysOfWeek.includes(institutionalWeekday(dateKey(day)))) {
       continue;
     }
 
@@ -430,7 +435,7 @@ function parseDay(value: string | undefined): Date | null {
     return null;
   }
 
-  const parsed = new Date(`${value}T00:00:00`);
+  const parsed = institutionalDateTime(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
@@ -441,9 +446,7 @@ function parseDay(value: string | undefined): Date | null {
  * @return {Date} Start of day.
  */
 function startOfDay(date: Date): Date {
-  const result = new Date(date);
-  result.setHours(0, 0, 0, 0);
-  return result;
+  return institutionalDateTime(dateKey(date));
 }
 
 /**
@@ -454,9 +457,7 @@ function startOfDay(date: Date): Date {
  * @return {Date} Result.
  */
 function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
+  return institutionalDateTime(shiftDateKey(dateKey(date), days));
 }
 
 /**
@@ -471,10 +472,7 @@ function timeOnDay(day: Date, time: string | undefined): Date | null {
     return null;
   }
 
-  const [hours, minutes] = time.split(":").map(Number);
-  const result = new Date(day);
-  result.setHours(hours, minutes, 0, 0);
-  return result;
+  return institutionalDateTime(dateKey(day), time);
 }
 
 /**
@@ -522,8 +520,5 @@ function minDate(first: Date | null, second: Date | null): Date | null {
  * @return {string} YYYY-MM-DD key.
  */
 function dateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return institutionalDateKey(date);
 }
