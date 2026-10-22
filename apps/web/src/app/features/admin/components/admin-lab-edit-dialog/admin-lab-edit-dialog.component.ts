@@ -382,6 +382,18 @@ export type AdminLabEditDialogResult =
           </mat-tab>
 
           <mat-tab label="Disponibilidad">
+            <div class="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+              <mat-checkbox formControlName="blockSundayRequestsForMondayMorning"
+                aria-describedby="sunday-request-policy-help">
+                Bloquear solicitudes del domingo para el lunes antes de las 12:00
+              </mat-checkbox>
+              <p id="sunday-request-policy-help" class="m-0 mt-2 text-sm leading-6 text-slate-600">
+                Si está activo, no se aceptan solicitudes enviadas en domingo para
+                iniciar antes del mediodía del lunes inmediato, según la hora de Cancún.
+                Las horas mínimas de anticipación y las demás reglas siguen aplicando.
+                Esta opción es independiente de abrir o cerrar el laboratorio los domingos.
+              </p>
+            </div>
             <div class="grid gap-4 pt-5" formGroupName="weeklySchedule">
               <app-info-callout
                 variant="info"
@@ -806,6 +818,9 @@ export class AdminLabEditDialogComponent {
     requiresApprovalWhenRisky: new UntypedFormControl(
       this.data.lab?.requiresApprovalWhenRisky ?? true,
     ),
+    blockSundayRequestsForMondayMorning: new UntypedFormControl(
+      this.data.lab?.blockSundayRequestsForMondayMorning === true,
+    ),
     requiresProtocolWhenRisky: new UntypedFormControl(
       this.data.lab?.requiresProtocolWhenRisky ?? true,
     ),
@@ -1157,6 +1172,7 @@ export class AdminLabEditDialogComponent {
       active: Boolean(value.active),
       visibleInCatalog: Boolean(value.visibleInCatalog),
       minNoticeHours: Number(value.minNoticeHours ?? 0),
+      blockSundayRequestsForMondayMorning: Boolean(value.blockSundayRequestsForMondayMorning),
       requiresApprovalWhenRisky: Boolean(value.requiresApprovalWhenRisky),
       requiresProtocolWhenRisky: Boolean(value.requiresProtocolWhenRisky),
       weeklySchedule: value.weeklySchedule as WeeklySchedule,
@@ -1367,6 +1383,7 @@ function toComparablePayload(
     active: Boolean(source.active),
     visibleInCatalog: Boolean(source.visibleInCatalog),
     minNoticeHours: Number(source.minNoticeHours ?? 0),
+    blockSundayRequestsForMondayMorning: source.blockSundayRequestsForMondayMorning === true,
     requiresApprovalWhenRisky: source.requiresApprovalWhenRisky ?? true,
     requiresProtocolWhenRisky: source.requiresProtocolWhenRisky ?? true,
     weeklySchedule: normalizeWeeklyScheduleForComparison(

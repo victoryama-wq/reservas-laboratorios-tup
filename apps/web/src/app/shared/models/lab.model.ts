@@ -19,6 +19,7 @@ export interface LabDoc {
   active: boolean;
   visibleInCatalog: boolean;
   minNoticeHours: number;
+  blockSundayRequestsForMondayMorning?: boolean;
   requiresApprovalWhenRisky: boolean;
   requiresProtocolWhenRisky: boolean;
   weeklySchedule: WeeklySchedule;
@@ -41,6 +42,7 @@ export interface PublicLab {
   active: boolean;
   visibleInCatalog: boolean;
   minNoticeHours: number;
+  blockSundayRequestsForMondayMorning?: boolean;
   requiresApprovalWhenRisky: boolean;
   requiresProtocolWhenRisky: boolean;
   weeklySchedule: WeeklySchedule;

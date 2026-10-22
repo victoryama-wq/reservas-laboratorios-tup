@@ -57,6 +57,25 @@ minNoticeHours: number
 Para los laboratorios que actualmente requieren mínimo 24 horas:
 minNoticeHours = 24
 
+Regla 8A. Solicitudes dominicales para el lunes inmediato
+
+Admin/Sistemas puede activar o desactivar por laboratorio
+`blockSundayRequestsForMondayMorning` desde Editar → Disponibilidad.
+Por compatibilidad, ausente o `false` significa desactivada.
+
+Si está activa, una solicitud recibida el domingo no puede reservar un inicio
+anterior a las 12:00 del lunes inmediato. Tanto el día de recepción como la
+fecha y hora de inicio se interpretan en `America/Cancun`. El inicio a las
+12:00 queda fuera de esta restricción, pero conserva la anticipación mínima
+y todas las demás validaciones. No bloquea otros días ni lunes posteriores.
+
+Se aplica a los tres roles y a cada ocurrencia de un lote, usando una sola
+hora de recepción del servidor para toda la solicitud. El rechazo usa
+`RECHAZADA_REGLA_HORARIO`, conserva motivo y bitácora y no genera un evento
+Calendar. No se reevalúa esta política de envío al aprobar una solicitud
+pendiente. Abrir o cerrar el laboratorio los domingos sigue dependiendo
+exclusivamente del horario semanal y demás bloqueos.
+
 Regla 9. Reglas especiales por cuatrimestre
 
 Las reglas especiales deben estar en Firestore, no hardcodeadas.

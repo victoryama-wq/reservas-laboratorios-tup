@@ -43,6 +43,7 @@ export interface AdminCreateLabInput {
   active: boolean;
   visibleInCatalog: boolean;
   minNoticeHours: number;
+  blockSundayRequestsForMondayMorning?: boolean;
   requiresApprovalWhenRisky?: boolean;
   requiresProtocolWhenRisky?: boolean;
   weeklySchedule: WeeklySchedule;
@@ -160,6 +161,8 @@ export class AdminLabsService {
       active: Boolean(lab.active),
       visibleInCatalog: Boolean(lab.visibleInCatalog),
       minNoticeHours: Number(lab.minNoticeHours ?? 0),
+      blockSundayRequestsForMondayMorning:
+        lab.blockSundayRequestsForMondayMorning === true,
       requiresApprovalWhenRisky:
         lab.requiresApprovalWhenRisky ?? true,
       requiresProtocolWhenRisky:

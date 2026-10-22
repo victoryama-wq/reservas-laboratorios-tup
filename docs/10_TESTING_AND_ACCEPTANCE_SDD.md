@@ -995,3 +995,23 @@ resultados mixtos y fechas con el equipo en otra zona.
 aprobados. La configuración consultada de Taller de Arquitectura y Sala de
 Juicios Orales se reprodujo localmente. El detalle y el smoke posterior a
 publicación están en `20_RULES_TIMEZONE_REVIEW.md`.
+
+## Disponibilidad y solicitudes dominicales (2026-10-22)
+
+Pruebas en `functions/test/sunday-request-policy.test.js`, `lab.service.spec.ts`
+y `admin-lab-edit-dialog.component.spec.ts`:
+
+- domingo abierto, cerrado y sin configuración en el resumen;
+- distintos horarios entre semana sin suponer que todos coinciden con lunes;
+- opción ausente, activada y desactivada; persistencia del cambio del diálogo;
+- backend rechaza tipos inválidos y conserva el campo en parches que lo omiten;
+- domingo → lunes 08:00 y 11:59 rechazados, incluso con 24 horas cumplidas;
+- inicio a las 12:00 permitido por esta política, conservando anticipación mínima;
+- límites de medianoche en Cancún, otros días y lunes de semanas posteriores;
+- resultados por fecha en lote y aprobación independiente del día de revisión.
+
+Validación local: 56 pruebas backend, 27 frontend, lint y builds aprobados.
+Cloud Run volvió a arrancar y se comprobó el detalle con sesión administrativa.
+La aceptación productiva de la nueva política requiere desplegar este cambio
+y ejecutar smoke con los tres roles. Véase
+`22_LAB_DETAIL_SUNDAY_REVIEW.md`.

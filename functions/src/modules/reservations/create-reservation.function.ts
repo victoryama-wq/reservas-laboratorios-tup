@@ -72,6 +72,7 @@ export const createReservation = onCall(
     async (
         request: CallableRequest<unknown>,
     ): Promise<CreateReservationOutput> => {
+      const requestedAt = new Date();
       const uid = request.auth?.uid;
       const email = request.auth?.token.email as string | undefined;
 
@@ -117,6 +118,7 @@ export const createReservation = onCall(
 
       for (const [index, occurrence] of occurrences.entries()) {
         processed.push(await processOccurrence({
+          requestedAt,
           input: {
             ...input,
             startAt: occurrence.startAt,
@@ -173,6 +175,7 @@ interface ProcessedOccurrence {
 }
 
 interface ProcessOccurrenceParams {
+  requestedAt: Date;
   input: CreateReservationInput;
   groupId?: string;
   groupSize: number;
@@ -325,7 +328,7 @@ async function processOccurrence(
   } = params;
   const {startAt, endAt} = parseReservationDates(input);
   let rejectionDecision = validateReservationTiming(
-      input, lab, startAt, endAt, new Date(),
+      input, lab, startAt, endAt, params.requestedAt,
   );
   let calendarErrorReason: string | undefined;
   const reservationRef = reservationRepository.createReservationRef();

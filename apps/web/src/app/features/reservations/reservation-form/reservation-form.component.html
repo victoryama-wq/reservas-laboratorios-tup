@@ -1,3 +1,10 @@
+@if (lab().blockSundayRequestsForMondayMorning) {
+  <div class="mb-4">
+    <app-info-callout variant="info" icon="schedule"
+      message="Este laboratorio no acepta solicitudes enviadas en domingo para iniciar antes de las 12:00 del lunes inmediato (hora de Cancún). Las horas mínimas de anticipación también aplican."
+    />
+  </div>
+}
 <app-reservation-stepper-form
   [form]="reservationForm"
   [stepperOrientation]="stepperOrientation()"

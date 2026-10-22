@@ -70,6 +70,7 @@ const ALLOWED_INPUT_KEYS = new Set([
   "active",
   "visibleInCatalog",
   "minNoticeHours",
+  "blockSundayRequestsForMondayMorning",
   "requiresApprovalWhenRisky",
   "requiresProtocolWhenRisky",
   "weeklySchedule",
@@ -123,6 +124,7 @@ interface ParsedLabInput {
   active?: boolean;
   visibleInCatalog?: boolean;
   minNoticeHours?: number;
+  blockSundayRequestsForMondayMorning?: boolean;
   requiresApprovalWhenRisky?: boolean;
   requiresProtocolWhenRisky?: boolean;
   weeklySchedule?: WeeklySchedule;
@@ -197,6 +199,8 @@ export const adminCreateLab = onCall(
           active: input.active,
           visibleInCatalog: input.visibleInCatalog,
           minNoticeHours: input.minNoticeHours,
+          blockSundayRequestsForMondayMorning:
+            input.blockSundayRequestsForMondayMorning,
           requiresApprovalWhenRisky:
             input.requiresApprovalWhenRisky ?? true,
           requiresProtocolWhenRisky:
@@ -224,6 +228,8 @@ export const adminCreateLab = onCall(
             active: input.active,
             visibleInCatalog: input.visibleInCatalog,
             minNoticeHours: input.minNoticeHours,
+            blockSundayRequestsForMondayMorning:
+              input.blockSundayRequestsForMondayMorning,
             responsibleUids: input.responsibleUids,
             responsibleEmails: input.responsibleEmails,
             defaultNotifyEmails: input.defaultNotifyEmails,
@@ -729,6 +735,8 @@ function parseCreateInput(
         "visibleInCatalog debe ser booleano.",
     ),
     minNoticeHours: requireMinNoticeHours(input.minNoticeHours),
+    blockSundayRequestsForMondayMorning:
+      input.blockSundayRequestsForMondayMorning ?? false,
     requiresApprovalWhenRisky:
       input.requiresApprovalWhenRisky ?? true,
     requiresProtocolWhenRisky:
@@ -823,6 +831,10 @@ function parseBaseInput(data: unknown): ParsedLabInput {
         data.requiresApprovalWhenRisky,
         "requiresApprovalWhenRisky",
     ),
+    blockSundayRequestsForMondayMorning: optionalBoolean(
+        data.blockSundayRequestsForMondayMorning,
+        "blockSundayRequestsForMondayMorning",
+    ),
     requiresProtocolWhenRisky: optionalBoolean(
         data.requiresProtocolWhenRisky,
         "requiresProtocolWhenRisky",
@@ -862,6 +874,11 @@ function buildLabPatch(
   setIfDefined(patch, "active", input.active);
   setIfDefined(patch, "visibleInCatalog", input.visibleInCatalog);
   setIfDefined(patch, "minNoticeHours", input.minNoticeHours);
+  setIfDefined(
+      patch,
+      "blockSundayRequestsForMondayMorning",
+      input.blockSundayRequestsForMondayMorning,
+  );
   setIfDefined(
       patch,
       "requiresApprovalWhenRisky",

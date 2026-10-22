@@ -42,6 +42,7 @@ interface LabDoc {
   visibleInCatalog: boolean;
 
   minNoticeHours: number;
+  blockSundayRequestsForMondayMorning?: boolean;
 
   requiresApprovalWhenRisky: boolean;
   requiresProtocolWhenRisky: boolean;
@@ -54,6 +55,11 @@ interface LabDoc {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
+
+`blockSundayRequestsForMondayMorning` es opcional; ausente equivale a `false`.
+Se configura por laboratorio y también se expone en `PublicLab` para informar
+al solicitante. No altera `weeklySchedule.sunday`: restringe el momento de
+enviar la solicitud, según la regla 8A. No requiere migrar documentos existentes.
 
 weeklySchedule
 

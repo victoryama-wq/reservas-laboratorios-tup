@@ -419,6 +419,20 @@ export function validateReservationTiming(
     };
   }
 
+  if (
+    lab.blockSundayRequestsForMondayMorning === true &&
+    getInstitutionalDayIndex(now) === 0 &&
+    reservationDay === shiftDateKey(today, 1) &&
+    toTimeString(startAt) < "12:00"
+  ) {
+    return {
+      status: "RECHAZADA_REGLA_HORARIO",
+      reason: "Este laboratorio no acepta solicitudes enviadas en domingo " +
+        "para el lunes inmediato antes de las 12:00 (hora de Cancún). " +
+        "Seleccione otro horario que cumpla la anticipación mínima.",
+    };
+  }
+
   const minNoticeDate = new Date(now.getTime() + lab.minNoticeHours * 3600000);
   if (lab.minNoticeHours > 0 && startAt < minNoticeDate) {
     return {

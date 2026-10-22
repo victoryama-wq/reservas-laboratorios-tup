@@ -1014,3 +1014,17 @@ operativas excluidas reciben `ACCESS_DENIED` sin crear perfil.
 `createReservation` valida en backend que el solicitante administrativo use
 `administrative`, el docente use `academic` y los roles privilegiados usen
 `responsible_direct`.
+
+## Restricción de solicitudes del domingo
+
+`adminCreateLab` y `adminUpdateLab` aceptan el booleano opcional
+`blockSundayRequestsForMondayMorning`. Crear sin el campo guarda `false`;
+una actualización que lo omite conserva el valor previo. Los tipos distintos
+de booleano se rechazan. Se mantienen la autorización de Admin/Sistemas y
+la auditoría de cambios del laboratorio.
+
+`getPublicLabs` y `getPublicLabDetail` exponen el indicador normalizado.
+`createReservation` captura una sola hora del servidor al recibir la solicitud
+y aplica la regla 8A antes de consultar conflictos o crear eventos Calendar.
+Las ocurrencias rechazadas conservan resultado, motivo y bitácora existentes.
+`approveReservation` no aplica de nuevo esta política sobre el día de envío.

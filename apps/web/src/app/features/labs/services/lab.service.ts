@@ -48,17 +48,17 @@ export class LabService {
   }
 
   getWeeklyScheduleSummary(schedule: WeeklySchedule): string {
-    const weekday = schedule.monday;
-    const saturday = schedule.saturday;
-
-    const weekdayText = weekday?.enabled
-      ? `Lun a vie ${weekday.start} - ${weekday.end}`
-      : 'Lun a vie sin horario';
-    const saturdayText = saturday?.enabled
-      ? `Sab ${saturday.start} - ${saturday.end}`
-      : 'Sab sin horario';
-
-    return `${weekdayText}. ${saturdayText}. Domingo cerrado.`;
+    const days = [
+      ['monday', 'Lun'], ['tuesday', 'Mar'], ['wednesday', 'Mié'],
+      ['thursday', 'Jue'], ['friday', 'Vie'], ['saturday', 'Sáb'],
+      ['sunday', 'Domingo'],
+    ] as const;
+    return days.map(([key, label]) => {
+      const day = schedule[key];
+      return day?.enabled
+        ? label + ' ' + day.start + ' - ' + day.end
+        : label + ' cerrado';
+    }).join('. ') + '.';
   }
 
   private getPublicLabDetail(

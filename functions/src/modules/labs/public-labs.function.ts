@@ -243,6 +243,8 @@ async function toPublicLab(
     active: lab.active === true,
     visibleInCatalog: lab.visibleInCatalog === true,
     minNoticeHours: Number(lab.minNoticeHours ?? 0),
+    blockSundayRequestsForMondayMorning:
+      lab.blockSundayRequestsForMondayMorning === true,
     requiresApprovalWhenRisky: lab.requiresApprovalWhenRisky === true,
     requiresProtocolWhenRisky: lab.requiresProtocolWhenRisky === true,
     weeklySchedule: lab.weeklySchedule ?? {},

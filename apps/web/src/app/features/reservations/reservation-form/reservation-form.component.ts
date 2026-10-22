@@ -22,6 +22,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserProfileService } from '../../../core/services/user-profile.service';
 import { PublicLab } from '../../../shared/models';
+import { AppInfoCalloutComponent } from '../../../shared/components/app-info-callout/app-info-callout.component';
 import { AvailabilitySlot } from '../../calendar/components';
 import { ReservationStepperFormComponent } from '../components/reservation-stepper-form/reservation-stepper-form.component';
 import {
@@ -65,6 +66,7 @@ export interface ReservationCreatedEvent {
 @Component({
   selector: 'app-reservation-form',
   imports: [
+    AppInfoCalloutComponent,
     MatSnackBarModule,
     ReservationStepperFormComponent,
   ],
